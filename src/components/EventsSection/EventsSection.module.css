@@ -1,0 +1,252 @@
+/* ── Events Section ───────────────────────────────────────────── */
+
+.section {
+  position: relative;
+  background: #fdfaf6; /* Light warm background matching the map */
+  padding: 100px 0 120px;
+  overflow: hidden;
+}
+
+/* Watermark Background */
+.bgWatermark {
+  position: absolute;
+  inset: 0;
+  background-image: url('/images/testimonials-v2-pattern.png'); /* Reusing topographic pattern */
+  background-size: cover;
+  background-position: center;
+  opacity: 0.2;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 60px;
+}
+
+.taglineWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.lineLeft {
+  display: flex;
+  align-items: center;
+}
+
+.line {
+  width: 40px;
+  height: 2px;
+  background: var(--color-primary);
+}
+
+.diamond {
+  width: 8px;
+  height: 8px;
+  background: var(--color-primary);
+  transform: rotate(45deg);
+  margin-left: -4px;
+}
+
+.tagline {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-primary);
+  font-style: italic;
+  letter-spacing: 0.5px;
+}
+
+.heading {
+  font-family: var(--font-heading);
+  font-size: clamp(34px, 4vw, 50px);
+  font-weight: 900;
+  color: var(--color-dark);
+  line-height: 1.15;
+}
+
+.viewAllBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-primary);
+  color: #fff;
+  border: none;
+  padding: 14px 32px;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.3s ease;
+  margin-bottom: 10px;
+}
+
+.viewAllBtn:hover {
+  background: var(--color-dark);
+}
+
+/* ── Grid ───────────────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 24px;
+}
+
+/* ── Card ───────────────────────────────────────────────────── */
+.card {
+  display: flex;
+  background: #fff;
+  border-radius: 24px;
+  padding: 24px;
+  gap: 24px;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.04);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 15px 45px rgba(0,0,0,0.08);
+}
+
+/* Image */
+.imageArea {
+  width: 220px;
+  border-radius: 16px;
+  background-size: cover;
+  background-position: center;
+  flex-shrink: 0;
+}
+
+/* Content */
+.contentArea {
+  flex-grow: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-dark);
+  line-height: 1.3;
+  margin-bottom: 16px;
+}
+
+.metaRow {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+
+.metaItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  color: #718096;
+  font-weight: 500;
+}
+
+.desc {
+  font-size: 15px;
+  color: #718096;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  flex-grow: 1;
+}
+
+/* Footer */
+.cardFooter {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  border-top: 1px solid #f1f5f9;
+  padding-top: 20px;
+}
+
+.detailsLink {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--color-secondary);
+  font-size: 15px;
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.3s ease;
+  margin-bottom: 4px;
+}
+
+.detailsLink:hover {
+  color: var(--color-primary);
+}
+
+/* Author Box */
+.authorBox {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.authorAvatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  background-size: cover;
+  background-position: center;
+}
+
+.authorInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.authorName {
+  font-family: var(--font-heading);
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-dark);
+}
+
+.authorRole {
+  font-size: 13px;
+  color: #94a3b8;
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+@media (max-width: 1100px) {
+  .grid {
+    grid-template-columns: 1fr;
+    gap: 32px;
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+  }
+  
+  .card {
+    flex-direction: column;
+  }
+  
+  .imageArea {
+    width: 100%;
+    height: 240px;
+  }
+}

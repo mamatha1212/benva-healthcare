@@ -1,0 +1,334 @@
+/* ── Volunteer Section ───────────────────────────────────────── */
+
+.section {
+  background: #f0eeea;
+  padding: 70px 0 80px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Topographic texture overlay */
+.sectionPattern {
+  position: absolute;
+  inset: 0;
+  background-size: 380px 380px;
+  background-repeat: repeat;
+  opacity: 0.35;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 0 24px;
+  display: grid;
+  grid-template-columns: 1fr 0.75fr 1fr;
+  gap: 24px;
+  align-items: stretch;
+}
+
+/* ── Shared card base ────────────────────────────────────────── */
+.card {
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  min-height: 420px;
+  display: flex;
+  flex-direction: column;
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+  z-index: 1;
+}
+
+.card:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 24px 60px rgba(0, 0, 0, 0.22);
+}
+
+/* ── Dark cards (left & right) ───────────────────────────────── */
+.cardLeft {
+  background-color: var(--color-dark);
+}
+
+.cardRight {
+  background-color: var(--color-dark-2);
+}
+
+/* White decorative shape pinned to bottom-right of dark cards */
+.cardShape {
+  position: absolute;
+  bottom: -20px;
+  right: -20px;
+  width: 220px;
+  height: 220px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: bottom right;
+  opacity: 0.08;
+  pointer-events: none;
+  z-index: 1;
+  animation: floatBlob1 10s ease-in-out infinite;
+}
+
+/* Dark gradient overlay so text is always readable over the photo */
+.cardOverlay {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(
+    160deg,
+    rgba(10, 22, 18, 0.82) 0%,
+    rgba(10, 22, 18, 0.65) 55%,
+    rgba(10, 22, 18, 0.55) 100%
+  );
+  z-index: 1;
+}
+
+/* ── Teal center card ────────────────────────────────────────── */
+.cardTeal {
+  background: var(--color-dark);
+  border: 1.5px solid rgba(255, 255, 255, 0.06);
+}
+
+/* Decorative ring inside center card */
+.circleDecor {
+  position: absolute;
+  width: 260px;
+  height: 260px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  pointer-events: none;
+  animation: spinSlow 20s linear infinite;
+}
+
+.circleDecor::after {
+  content: '';
+  position: absolute;
+  width: 320px;
+  height: 320px;
+  border-radius: 50%;
+  border: 1px dashed rgba(232, 72, 30, 0.12);
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+}
+
+@keyframes spinSlow {
+  from { transform: translate(-50%, -50%) rotate(0deg); }
+  to   { transform: translate(-50%, -50%) rotate(360deg); }
+}
+
+/* ── Card content ────────────────────────────────────────────── */
+.cardContent {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  padding: 40px 36px;
+}
+
+/* ── Tag line ────────────────────────────────────────────────── */
+.cardTag {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.55);
+  margin-bottom: 16px;
+}
+
+.tagDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  flex-shrink: 0;
+}
+
+/* ── Title ───────────────────────────────────────────────────── */
+.cardTitle {
+  font-family: var(--font-heading);
+  font-size: clamp(26px, 2.5vw, 34px);
+  font-weight: 800;
+  line-height: 1.15;
+  color: #fff;
+  margin-bottom: 18px;
+}
+
+/* ── Description ─────────────────────────────────────────────── */
+.cardDesc {
+  font-size: 14.5px;
+  line-height: 1.72;
+  color: rgba(255, 255, 255, 0.65);
+  flex-grow: 1;
+  margin-bottom: 32px;
+}
+
+/* ── Buttons ─────────────────────────────────────────────────── */
+.btnOrange {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 26px;
+  background: var(--color-primary);
+  color: #fff;
+  text-decoration: none;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 600;
+  align-self: flex-start;
+  transition: background 0.25s, transform 0.25s, box-shadow 0.25s;
+  box-shadow: 0 4px 18px rgba(232, 72, 30, 0.4);
+}
+
+.btnOrange:hover {
+  background: var(--color-primary-dark);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(232, 72, 30, 0.55);
+}
+
+.btnWhite {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 11px 26px;
+  background: transparent;
+  color: #fff;
+  text-decoration: none;
+  border-radius: 30px;
+  font-size: 14px;
+  font-weight: 600;
+  border: 1.5px solid rgba(255, 255, 255, 0.75);
+  align-self: flex-start;
+  transition: background 0.25s, border-color 0.25s, transform 0.25s;
+}
+
+.btnWhite:hover {
+  background: rgba(255, 255, 255, 0.1);
+  border-color: #fff;
+  transform: translateY(-2px);
+}
+
+/* ── Avatar stack (center card) ──────────────────────────────── */
+.avatarStack {
+  display: flex;
+  align-items: center;
+  margin-bottom: 28px;
+}
+
+.avatar {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  border: 2.5px solid var(--color-dark);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  margin-left: -13px;
+  flex-shrink: 0;
+  transition: transform 0.25s, box-shadow 0.25s;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+}
+
+.avatar:first-child { margin-left: 0; }
+
+.avatarImg {
+  width: 100% !important;
+  height: 100% !important;
+  object-fit: cover !important;
+  object-position: center top !important;
+  display: block !important;
+  border-radius: 50%;
+}
+
+.avatarStack:hover .avatar {
+  transform: translateX(5px);
+  box-shadow: 0 4px 14px rgba(0,0,0,0.4);
+}
+
+.avatarPlus {
+  background: var(--color-primary) !important;
+  border-color: var(--color-dark);
+  cursor: pointer;
+}
+
+/* ── Stats (center card) ─────────────────────────────────────── */
+.statNumber {
+  font-family: var(--font-heading);
+  font-size: clamp(52px, 6vw, 72px);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1;
+  margin-bottom: 8px;
+  letter-spacing: -2px;
+}
+
+.statLabel {
+  font-size: 16px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.65);
+  margin-bottom: 28px;
+}
+
+.statDivider {
+  width: 40px;
+  height: 2px;
+  background: rgba(232, 72, 30, 0.6);
+  border-radius: 2px;
+  margin-bottom: 24px;
+}
+
+.miniStats {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.miniStat {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.miniNum {
+  font-size: 20px;
+  font-weight: 800;
+  color: #fff;
+  font-family: var(--font-heading);
+}
+
+.miniLabel {
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.5);
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.miniStatDivider {
+  width: 1px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.15);
+}
+
+/* ── Responsive ──────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .container {
+    grid-template-columns: 1fr;
+    max-width: 520px;
+  }
+
+  .card { min-height: 360px; }
+  .cardCenter { min-height: 300px; }
+}

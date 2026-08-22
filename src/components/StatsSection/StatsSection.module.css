@@ -1,0 +1,85 @@
+/* ── Stats Section ────────────────────────────────────────────── */
+
+.section {
+  position: relative;
+  background: #fff;
+  padding: 80px 0;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.container {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.grid {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.statItem {
+  position: relative;
+  flex: 1;
+  text-align: center;
+}
+
+.number {
+  font-family: var(--font-heading);
+  font-size: clamp(40px, 5vw, 64px);
+  font-weight: 800;
+  margin-bottom: 8px;
+  letter-spacing: -1px;
+}
+
+.green {
+  color: var(--color-secondary);
+}
+
+.orange {
+  color: var(--color-primary);
+}
+
+.label {
+  font-size: 16px;
+  font-weight: 600;
+  color: #718096;
+}
+
+/* Vertical Divider */
+.divider {
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  width: 1px;
+  height: 60px;
+  background: #e2e8f0;
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+@media (max-width: 900px) {
+  .grid {
+    flex-wrap: wrap;
+    row-gap: 40px;
+  }
+  
+  .statItem {
+    flex: 0 0 50%;
+  }
+
+  /* Hide 2nd divider in a 2x2 grid */
+  .statItem:nth-child(2) .divider {
+    display: none;
+  }
+}
+
+@media (max-width: 500px) {
+  .statItem {
+    flex: 0 0 100%;
+  }
+  .divider {
+    display: none;
+  }
+}

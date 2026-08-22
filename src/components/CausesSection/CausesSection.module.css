@@ -1,0 +1,287 @@
+/* ── Causes Section ────────────────────────────────────────────── */
+
+.section {
+  position: relative;
+  background: #fff; /* Bottom half background */
+  padding: 100px 0 120px;
+}
+
+/* ── Dark Top Background ── */
+.darkBg {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 65%; /* Covers top portion */
+  background-image: url('/images/main-slider-v2-img2.jpg'); /* fallback dark image */
+  background-size: cover;
+  background-position: center;
+  z-index: 0;
+}
+
+.bgOverlay {
+  position: absolute;
+  inset: 0;
+  background: var(--color-dark);
+  opacity: 0.85; /* strong dark tint */
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+/* ── Header ─────────────────────────────────────────────────── */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  margin-bottom: 60px;
+}
+
+.taglineWrapper {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.lineLeft {
+  display: flex;
+  align-items: center;
+}
+
+.line {
+  width: 40px;
+  height: 2px;
+  background: var(--color-primary);
+}
+
+.diamond {
+  width: 8px;
+  height: 8px;
+  background: var(--color-primary);
+  transform: rotate(45deg);
+  margin-left: -4px;
+}
+
+.tagline {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-primary);
+  font-style: italic;
+  letter-spacing: 0.5px;
+}
+
+.heading {
+  font-family: var(--font-heading);
+  font-size: clamp(34px, 4vw, 50px);
+  font-weight: 900;
+  color: #fff;
+  line-height: 1.15;
+}
+
+/* Navigation Buttons */
+.headerRight {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 8px;
+}
+
+.navBtn {
+  width: 54px;
+  height: 54px;
+  border-radius: 50%;
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  background: transparent;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.navBtn:hover {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+}
+
+/* ── Grid ───────────────────────────────────────────────────── */
+.grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 24px;
+}
+
+/* ── Card ───────────────────────────────────────────────────── */
+.card {
+  background: #fff;
+  border-radius: 28px;
+  overflow: hidden;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.08);
+  transition: transform 0.3s ease;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+}
+
+/* Image with white padding frame */
+.imageFrame {
+  padding: 16px;
+  padding-bottom: 0;
+  border-radius: 28px 28px 0 0;
+  background: #fff;
+}
+
+.image {
+  width: 100%;
+  height: 240px;
+  border-radius: 16px;
+  background-size: cover;
+  background-position: center;
+}
+
+/* Content Area */
+.content {
+  padding: 24px 32px 32px;
+}
+
+.title {
+  font-family: var(--font-heading);
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-dark);
+  line-height: 1.4;
+  margin-bottom: 24px;
+  min-height: 60px; /* Aligns boxes */
+}
+
+/* ── Progress Box ───────────────────────────────────────────── */
+.progressBox {
+  background: #f8fcfb; /* very subtle green tint */
+  border: 1px solid #e2e8f0;
+  padding: 24px;
+  border-radius: 16px;
+}
+
+.progressHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+
+.donationLabel {
+  font-size: 15px;
+  font-weight: 600;
+  color: #4a5568;
+}
+
+.percentageBadge {
+  position: relative;
+  background: var(--color-secondary);
+  color: #fff;
+  font-size: 13px;
+  font-weight: 700;
+  padding: 4px 10px;
+  border-radius: 6px;
+}
+
+.badgeTail {
+  position: absolute;
+  bottom: -4px;
+  left: 50%;
+  transform: translateX(-50%) rotate(45deg);
+  width: 8px;
+  height: 8px;
+  background: var(--color-secondary);
+}
+
+.progressBarBg {
+  width: 100%;
+  height: 6px;
+  background: #e2e8f0;
+  border-radius: 4px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+
+.progressBarFill {
+  height: 100%;
+  background: var(--color-secondary);
+  border-radius: 4px;
+}
+
+.progressFooter {
+  display: flex;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+  margin-bottom: 24px;
+}
+
+.raised {
+  color: var(--color-dark);
+}
+
+.goal {
+  color: var(--color-secondary);
+}
+
+.donateBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: var(--color-secondary);
+  color: #fff;
+  border: none;
+  border-radius: 30px;
+  padding: 12px 24px;
+  font-size: 15px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.donateBtn:hover {
+  background: var(--color-dark);
+}
+
+/* ── Bottom Right Waves Decor ── */
+.bottomDecor {
+  position: absolute;
+  bottom: 0;
+  right: -50px;
+  width: 250px;
+  height: 250px;
+  z-index: 0;
+  pointer-events: none;
+}
+
+/* ── Responsive ───────────────────────────────────────────────── */
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
+
+@media (max-width: 768px) {
+  .header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 24px;
+  }
+  
+  .grid {
+    grid-template-columns: 1fr;
+  }
+  
+  .darkBg {
+    height: 35%; /* Adjust for stacked layout */
+  }
+}

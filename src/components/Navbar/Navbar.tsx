@@ -38,14 +38,7 @@ export default function Navbar() {
         <div className={styles.navInner}>
           {/* Logo */}
           <a href="/" className={styles.logo}>
-            <div className={styles.logoIcon}>
-              <svg width="32" height="32" viewBox="0 0 40 40" fill="none">
-                <path d="M20 35s-15-9-15-20a10 10 0 0120 0 10 10 0 0120 0c0 11-15 20-15 20z" fill="#e8481e" opacity="0.9"/>
-                <path d="M20 35s-10-6-10-15a7 7 0 0114 0 7 7 0 0114 0c0 9-10 15-10 15z" fill="#1a4a45" opacity="0.7"/>
-              </svg>
-            </div>
-            <span className={styles.logoText}>Benva</span>
-            <span className={styles.logoAccent}>Healthcare</span>
+            <img src="/images/Benva%20NEW.png" alt="Benva Healthcare" style={{ height: '70px', width: 'auto', transform: 'scale(2.5)', transformOrigin: 'left center' }} />
           </a>
 
           {/* Nav Links */}
