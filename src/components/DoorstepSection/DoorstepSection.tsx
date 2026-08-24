@@ -28,8 +28,7 @@ export default function DoorstepSection() {
 
     const step = () => {
       if (!isHovered && scrollContainer) {
-        scrollContainer.scrollLeft += 1; // Scroll speed
-        // Seamless infinite loop (using the tripled array)
+        scrollContainer.scrollLeft += 1;
         if (scrollContainer.scrollLeft >= scrollContainer.scrollWidth / 3) {
           scrollContainer.scrollLeft = 0;
         }
@@ -62,68 +61,50 @@ export default function DoorstepSection() {
         <p className={styles.subtitle}>Professional Home Sample Collection Service</p>
       </div>
 
-      <div className={styles.cardsContainer}>
-        {/* Card 1: Home Sample Collection (Active Style) */}
-        <div className={`${styles.card} ${styles.cardActive} ${mounted ? styles.fadeInUp : ''}`} style={{ animationDelay: '0.2s' }}>
-          <div className={styles.cardHeader}>
-            <div className={styles.iconWrap}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
-            </div>
-            <h3>Home Sample Collection</h3>
+      <div className={`${styles.pillGrid} ${mounted ? styles.fadeInUp : ''}`} style={{ animationDelay: '0.2s' }}>
+        
+        {/* Pill 1 */}
+        <div className={styles.pillCard}>
+          <div className={styles.pillIcon} style={{ color: '#22c55e' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
           </div>
-          <p className={styles.cardDesc}>Professional laboratory sample collection from the comfort of your home.</p>
-          
-          <ul className={styles.cardFeatures}>
-            <li>
-              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              Certified Phlebotomists
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              NABL Partner Labs
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              Andhra Pradesh & Telangana
-            </li>
-          </ul>
-
-          <button className={styles.btnPrimary}>
-            Book Collection
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
-          </button>
+          <div className={styles.pillText}>
+            <h4>Certified Phlebotomists</h4>
+          </div>
         </div>
 
-        {/* Card 2: Medicine Delivery (Inactive Style) */}
-        <div className={`${styles.card} ${mounted ? styles.fadeInUp : ''}`} style={{ animationDelay: '0.3s' }}>
-          <div className={styles.cardHeader}>
-            <div className={styles.iconWrap}>
-              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.5 20.5 19 12a2.828 2.828 0 1 0-4-4L6.5 16.5a2.828 2.828 0 1 0 4 4z"/><path d="m16.5 10.5-6 6"/></svg>
-            </div>
-            <h3>Medicine Delivery</h3>
+        {/* Pill 2 */}
+        <div className={styles.pillCard}>
+          <div className={styles.pillIcon} style={{ color: '#ef4444' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
           </div>
-          <p className={styles.cardDesc}>Genuine medicines delivered securely and directly to your doorstep.</p>
-          
-          <ul className={styles.cardFeatures}>
-            <li>
-              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              Available Across India
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              Fast & Secure Delivery
-            </li>
-            <li>
-              <svg viewBox="0 0 24 24" width="16" height="16" stroke="currentColor" fill="none" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
-              Authentic Medications
-            </li>
-          </ul>
-
-          <button className={styles.btnSecondary}>
-            Order Medicine
-            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5"><line x1="7" y1="17" x2="17" y2="7"/><polyline points="7 7 17 7 17 17"/></svg>
-          </button>
+          <div className={styles.pillText}>
+            <h4>Home Sample Collection</h4>
+            <span>ANDHRA PRADESH & TELANGANA</span>
+          </div>
         </div>
+
+        {/* Pill 3 */}
+        <div className={styles.pillCard}>
+          <div className={styles.pillIcon} style={{ color: '#3b82f6' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2l.5-.5a4 4 0 0 0 5.56-5.56l7.95-7.95a2.12 2.12 0 0 0-3-3l-7.95 7.95a4 4 0 0 0-5.56 5.56l-.5.5Z"/></svg>
+          </div>
+          <div className={styles.pillText}>
+            <h4>NABL Partner Labs</h4>
+          </div>
+        </div>
+
+        {/* Pill 4 */}
+        <div className={styles.pillCard}>
+          <div className={styles.pillIcon} style={{ color: '#eab308' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.5 20.5 19 12a2.828 2.828 0 1 0-4-4L6.5 16.5a2.828 2.828 0 1 0 4 4z"/><path d="m16.5 10.5-6 6"/></svg>
+          </div>
+          <div className={styles.pillText}>
+            <h4>Medicine Delivery</h4>
+            <span>AVAILABLE ACROSS INDIA</span>
+          </div>
+        </div>
+
       </div>
 
       {/* Locations Timeline Tile */}
