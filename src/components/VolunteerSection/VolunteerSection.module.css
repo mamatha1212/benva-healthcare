@@ -267,7 +267,7 @@
 /* ── Stats (center card) ─────────────────────────────────────── */
 .statNumber {
   font-family: var(--font-heading);
-  font-size: clamp(52px, 6vw, 72px);
+  font-size: clamp(44px, 6vw, 72px);
   font-weight: 900;
   color: #fff;
   line-height: 1;

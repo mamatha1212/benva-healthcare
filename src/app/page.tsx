@@ -2,15 +2,21 @@ import Navbar from '@/components/Navbar/Navbar';
 import HeroBanner from '@/components/HeroBanner/HeroBanner';
 import VolunteerSection from '@/components/VolunteerSection/VolunteerSection';
 import AboutSection from '@/components/AboutSection/AboutSection';
+import PremiumCheckupSection from '@/components/PremiumCheckupSection/PremiumCheckupSection';
+import BookingFormSection from '@/components/BookingFormSection/BookingFormSection';
 import WhatWeDoSection from '@/components/WhatWeDoSection/WhatWeDoSection';
+import ServicesGridSection from '@/components/ServicesGridSection/ServicesGridSection';
+import MembershipFormSection from '@/components/MembershipFormSection/MembershipFormSection';
+import HomeHealthcareSection from '@/components/HomeHealthcareSection/HomeHealthcareSection';
+import HomeHealthcareFormSection from '@/components/HomeHealthcareFormSection/HomeHealthcareFormSection';
 import WhyChooseUsSection from '@/components/WhyChooseUsSection/WhyChooseUsSection';
-import StatsSection from '@/components/StatsSection/StatsSection';
-import CausesSection from '@/components/CausesSection/CausesSection';
 import DoorstepSection from '@/components/DoorstepSection/DoorstepSection';
 import WorkProcessSection from '@/components/WorkProcessSection/WorkProcessSection';
-import TeamSection from '@/components/TeamSection/TeamSection';
+import ServiceAreasSection from '@/components/ServiceAreasSection/ServiceAreasSection';
 import TestimonialSection from '@/components/TestimonialSection/TestimonialSection';
-import EventsSection from '@/components/EventsSection/EventsSection';
+import FaqSection from '@/components/FaqSection/FaqSection';
+import ContactSection from '@/components/ContactSection/ContactSection';
+import StatsSection from '@/components/StatsSection/StatsSection';
 import Footer from '@/components/Footer/Footer';
 
 export default function Home() {
@@ -18,17 +24,22 @@ export default function Home() {
     <main>
       <Navbar />
       <HeroBanner />
-      <VolunteerSection />
-      <AboutSection />
       <WhatWeDoSection />
+      <AboutSection />
+      <PremiumCheckupSection />
+      <ServicesGridSection />
+      <HomeHealthcareSection />
+      <BookingFormSection />
+      <MembershipFormSection />
+      <HomeHealthcareFormSection />
+      <WhyChooseUsSection />
       <DoorstepSection />
       <WorkProcessSection />
+      <ServiceAreasSection />
       <TestimonialSection />
-      <TeamSection />
-      <CausesSection />
-      <WhyChooseUsSection />
+      <FaqSection />
+      <ContactSection />
       <StatsSection />
-      <EventsSection />
       <Footer />
     </main>
   );

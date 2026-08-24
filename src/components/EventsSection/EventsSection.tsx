@@ -1,6 +1,8 @@
 'use client';
 import React from 'react';
+import Image from 'next/image';
 import styles from './EventsSection.module.css';
+import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
 
 const events = [
   {
@@ -49,7 +51,7 @@ export default function EventsSection() {
               </div>
               <span className={styles.tagline}>Event & Program</span>
             </div>
-            <h2 className={styles.heading}>Take Part In Our Most<br/>Recent Events.</h2>
+            <AnimatedHeading className={styles.heading}>Take Part In Our Most Recent Events.</AnimatedHeading>
           </div>
           
           <div className={styles.headerRight}>

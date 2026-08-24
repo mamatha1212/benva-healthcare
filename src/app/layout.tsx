@@ -8,6 +8,8 @@ export const metadata: Metadata = {
   keywords: 'healthcare, charity, donation, children, hope, community',
 };
 
+import FloatingContactButtons from '@/components/FloatingContactButtons/FloatingContactButtons';
+
 export default function RootLayout({
   children,
 }: {
@@ -15,7 +17,10 @@ export default function RootLayout({
 }) {
   return (
     <html lang="en">
-      <body>{children}</body>
+      <body suppressHydrationWarning>
+        {children}
+        <FloatingContactButtons />
+      </body>
     </html>
   );
 }

@@ -2,7 +2,8 @@
 
 .footer {
   position: relative;
-  background: var(--color-dark); /* Dark green/black */
+  background: var(--color-dark);
+  /* Dark green/black */
   color: #cbd5e1;
   padding-top: 100px;
 }
@@ -43,6 +44,25 @@
   max-width: 90%;
 }
 
+.contactInfo {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  font-size: 14.5px;
+  color: #cbd5e1;
+  margin-top: 24px;
+}
+
+.contactInfo p {
+  margin: 0;
+  line-height: 1.5;
+}
+
+.contactInfo strong {
+  color: #fff;
+  font-weight: 600;
+}
+
 .socials {
   display: flex;
   gap: 12px;
@@ -58,6 +78,7 @@
   background: #fff;
   color: var(--color-dark);
   font-weight: 700;
+  font-size: 13px;
   text-decoration: none;
   transition: all 0.3s ease;
 }
@@ -169,9 +190,28 @@
   color: var(--color-primary);
 }
 
+/* ── Important Disclaimer ── */
+.disclaimerSection {
+  margin-top: 40px;
+  padding: 40px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+  text-align: center;
+  font-size: 13.5px;
+  color: #94a3b8;
+  line-height: 1.7;
+}
+
+.disclaimerSection h4 {
+  color: #fff;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
 /* ── Bottom Bar ── */
 .bottomBar {
-  background: var(--color-dark);
+  background: rgba(0, 0, 0, 0.2);
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
   padding: 24px 0;
 }
 
@@ -195,7 +235,8 @@
 }
 
 .footerLinks a {
-  color: #38bdf8; /* light blue as seen in design */
+  color: #38bdf8;
+  /* light blue as seen in design */
   font-size: 14px;
   text-decoration: none;
   transition: color 0.3s ease;
@@ -217,10 +258,15 @@
   .grid {
     grid-template-columns: 1fr;
   }
-  
+
   .bottomContainer {
     flex-direction: column;
     gap: 16px;
     text-align: center;
+  }
+
+  .footerLinks {
+    flex-direction: column;
+    gap: 12px;
   }
 }

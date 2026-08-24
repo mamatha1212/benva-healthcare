@@ -1,0 +1,336 @@
+.section {
+  padding: 100px 24px;
+  background-color: #f8fafc;
+  font-family: 'Inter', sans-serif;
+  position: relative;
+  overflow: hidden;
+}
+
+/* Background Elements */
+.bgElements {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.bgElement {
+  position: absolute;
+  opacity: 0.12; /* Increased opacity to show colors */
+}
+
+.bgRed { color: #ef4444; }
+.bgBlue { color: #38bdf8; }
+
+.bgElement1 { top: 10%; left: 5%; width: 120px; height: 120px; animation: moveContact1 22s ease-in-out infinite; }
+.bgElement2 { top: 50%; left: 45%; width: 150px; height: 150px; transform: translate(-50%, -50%); animation: moveContact2 18s ease-in-out infinite reverse; }
+.bgElement3 { top: 40%; right: 15%; width: 80px; height: 80px; animation: moveContact3 25s ease-in-out infinite; }
+.bgElement4 { bottom: 15%; right: 10%; width: 120px; height: 120px; animation: moveContact4 20s ease-in-out infinite reverse; }
+
+@keyframes moveContact1 {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(200px, 40px) rotate(10deg); }
+  66% { transform: translate(50px, 80px) rotate(-5deg); }
+}
+
+@keyframes moveContact2 {
+  0%, 100% { transform: translate(-50%, -50%) rotate(0deg); }
+  50% { transform: translate(calc(-50% - 150px), calc(-50% + 50px)) rotate(-15deg); }
+}
+
+@keyframes moveContact3 {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  33% { transform: translate(-180px, -60px) rotate(20deg); }
+  66% { transform: translate(-50px, -20px) rotate(5deg); }
+}
+
+@keyframes moveContact4 {
+  0%, 100% { transform: translate(0, 0) rotate(0deg); }
+  50% { transform: translate(-250px, -30px) rotate(-15deg); }
+}
+
+.container {
+  max-width: 1200px;
+  margin: 0 auto;
+  position: relative;
+  z-index: 1;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 64px;
+}
+
+.taglineWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.lineLeft, .lineRight {
+  display: flex;
+  align-items: center;
+}
+
+.line {
+  width: 32px;
+  height: 2px;
+  background: var(--color-primary);
+}
+
+.diamond {
+  width: 8px;
+  height: 8px;
+  background: var(--color-primary);
+  transform: rotate(45deg);
+}
+
+.lineLeft .line { margin-right: -4px; }
+.lineRight .line { margin-left: -4px; }
+
+.tagline {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-primary);
+  font-style: italic;
+  letter-spacing: 0.5px;
+}
+
+.heading {
+  font-family: var(--font-heading);
+  font-size: clamp(24px, 4vw, 48px);
+  font-weight: 900;
+  color: #0f172a;
+}
+
+/* Layout */
+.layout {
+  display: flex;
+  gap: 60px;
+  align-items: flex-start;
+}
+
+/* Info Column */
+.infoCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+}
+
+.infoCard {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.iconBox {
+  width: 56px;
+  height: 56px;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.03);
+}
+
+.iconBox svg {
+  width: 24px;
+  height: 24px;
+}
+
+.infoTitle {
+  font-size: 18px;
+  font-weight: 700;
+  color: #0f172a;
+  margin-bottom: 4px;
+}
+
+.infoText {
+  font-size: 15px;
+  color: #64748b;
+}
+
+.quickActions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+  flex-wrap: wrap;
+}
+
+.actionBtn {
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.actionBtn:hover {
+  transform: translateY(-2px);
+}
+
+.actionCall {
+  background: #eff6ff;
+  color: #2563eb;
+}
+
+.actionWa {
+  background: #dcfce7;
+  color: #16a34a;
+}
+
+.actionEmail {
+  background: #f1f5f9;
+  color: #475569;
+}
+
+/* Form Column */
+.formCol {
+  width: 480px;
+  flex-shrink: 0;
+}
+
+.formWrapper {
+  background: #ffffff;
+  border-radius: 24px;
+  padding: 40px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+  border: 1px solid #f1f5f9;
+}
+
+.formTitle {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 24px;
+}
+
+.formGroup {
+  margin-bottom: 20px;
+}
+
+.label {
+  display: block;
+  font-size: 13px;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 8px;
+}
+
+.input, .textarea {
+  width: 100%;
+  padding: 14px 16px;
+  border: 1px solid #cbd5e1;
+  border-radius: 12px;
+  font-size: 15px;
+  color: #0f172a;
+  background: #f8fafc;
+  outline: none;
+  transition: all 0.2s ease;
+  font-family: inherit;
+}
+
+.textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+
+.input:focus, .textarea:focus {
+  border-color: var(--color-primary);
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(212, 59, 20, 0.1);
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 16px;
+  background: var(--color-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin-top: 8px;
+}
+
+.submitBtn:hover {
+  background: #d43b14;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(212, 59, 20, 0.2);
+}
+
+.submitBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.successState {
+  text-align: center;
+  padding: 20px 0;
+}
+
+.successIcon {
+  width: 80px;
+  height: 80px;
+  background: #dcfce7;
+  color: #16a34a;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 24px;
+}
+
+.successIcon svg {
+  width: 40px;
+  height: 40px;
+}
+
+.successTitle {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 12px;
+}
+
+.successDesc {
+  font-size: 15px;
+  color: #64748b;
+  margin-bottom: 32px;
+  line-height: 1.6;
+}
+
+.resetBtn {
+  padding: 14px 32px;
+  background: #0f172a;
+  color: #ffffff;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+@media (max-width: 1024px) {
+  .layout {
+    flex-direction: column;
+  }
+  .formCol {
+    width: 100%;
+  }
+}

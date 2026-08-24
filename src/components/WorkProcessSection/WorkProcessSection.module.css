@@ -72,7 +72,7 @@
 
 .heading {
   font-family: var(--font-heading);
-  font-size: clamp(32px, 4vw, 48px);
+  font-size: clamp(24px, 4vw, 48px);
   font-weight: 900;
   color: var(--color-dark);
 }
@@ -96,8 +96,8 @@
 
 .grid {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
-  gap: 20px;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 12px;
   position: relative;
   z-index: 1;
 }
@@ -133,7 +133,7 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  padding: 0 16px;
+  padding: 0 8px;
 }
 
 .numBadge {
@@ -158,14 +158,14 @@
 
 .title {
   font-family: var(--font-heading);
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
   color: var(--color-dark);
   margin-bottom: 12px;
 }
 
 .desc {
-  font-size: 14px;
+  font-size: 13px;
   color: #718096;
   line-height: 1.6;
 }
@@ -198,6 +198,37 @@
   transform: translateY(-5px);
   filter: drop-shadow(0 8px 24px rgba(45,122,114,0.15));
   color: var(--color-primary);
+}
+
+.btnContainer {
+  text-align: center;
+  margin-top: 48px;
+  position: relative;
+  z-index: 2;
+}
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 40px;
+  background: var(--color-primary);
+  color: #ffffff;
+  border: none;
+  border-radius: 30px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.btn:hover {
+  background: #2d7a72;
+  transform: translateY(-2px);
+  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
 }
 
 /* ── Responsive ───────────────────────────────────────────────── */

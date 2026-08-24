@@ -1,0 +1,188 @@
+.section {
+  position: relative;
+  background: #1a2542; /* Blue background */
+  padding: 100px 0 120px;
+  overflow: hidden;
+  font-family: 'Inter', sans-serif;
+}
+
+.bgDecor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.container {
+  position: relative;
+  z-index: 1;
+  max-width: 1200px; /* Wider container for 2 columns */
+  margin: 0 auto;
+  padding: 0 32px;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 60px;
+}
+
+.taglineWrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.lineLeft, .lineRight {
+  display: flex;
+  align-items: center;
+}
+
+.line {
+  width: 32px;
+  height: 2px;
+  background: var(--color-primary);
+}
+
+.diamond {
+  width: 8px;
+  height: 8px;
+  background: var(--color-primary);
+  transform: rotate(45deg);
+}
+
+.lineLeft .line { margin-right: -4px; }
+.lineRight .line { margin-left: -4px; }
+
+.tagline {
+  font-size: 17px;
+  font-weight: 700;
+  color: var(--color-primary);
+  font-style: italic;
+  letter-spacing: 0.5px;
+}
+
+.heading {
+  font-family: var(--font-heading);
+  font-size: clamp(24px, 4vw, 48px);
+  font-weight: 900;
+  color: #ffffff; /* White text on blue bg */
+}
+
+/* ── Accordion ── */
+.accordionContainer {
+  /* Removed white background box to let items float freely or keep it? The previous was floating cards */
+  /* Let's remove the white box container and just make the grid items white */
+}
+
+.accordionGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20px;
+  align-items: start; /* Prevent stretching */
+}
+
+.accordionItem {
+  background: #ffffff;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+}
+
+.accordionItem.active {
+  border-color: var(--color-primary);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+
+.accordionButton {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px 24px;
+  background: none;
+  border: none;
+  cursor: pointer;
+  text-align: left;
+  transition: background-color 0.2s ease;
+}
+
+.accordionButton:hover {
+  background-color: #f8fafc;
+}
+
+.active .accordionButton {
+  background-color: #fffaf9;
+}
+
+.questionText {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  padding-right: 16px;
+}
+
+.active .questionText {
+  color: var(--color-primary);
+}
+
+.iconWrapper {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #64748b;
+  transition: all 0.3s ease;
+}
+
+.active .iconWrapper {
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+.icon {
+  width: 18px;
+  height: 18px;
+  transition: transform 0.3s ease;
+}
+
+.iconOpen {
+  transform: rotate(180deg);
+}
+
+.accordionContent {
+  transition: max-height 0.3s ease-out;
+  overflow: hidden;
+}
+
+.answerText {
+  padding: 0 24px 24px;
+  color: #64748b;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+@media (max-width: 768px) {
+  .accordionContainer {
+    /* padding: 24px; */
+  }
+  .accordionGrid {
+    grid-template-columns: 1fr;
+  }
+  .accordionButton {
+    padding: 16px;
+  }
+  .answerText {
+    padding: 0 16px 16px;
+  }
+}

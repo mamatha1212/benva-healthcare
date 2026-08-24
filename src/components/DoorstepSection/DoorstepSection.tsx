@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import styles from './DoorstepSection.module.css';
+import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
 
 const cities = [
   'Visakhapatnam',
@@ -25,10 +26,9 @@ export default function DoorstepSection() {
         
         {/* Header */}
         <div className={styles.header}>
-          <h2 className={styles.heading}>
-            <span className={styles.pinIcon}>📍</span>
-            Doorstep Phlebotomy Service Across Andhra Pradesh & Telangana
-          </h2>
+          <AnimatedHeading className={styles.heading}>
+            📍 Doorstep Phlebotomy Service Across Andhra Pradesh & Telangana
+          </AnimatedHeading>
           <p className={styles.subtitle}>
             Certified home sample collection technicians available across all major cities & districts
           </p>

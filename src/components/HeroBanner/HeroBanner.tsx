@@ -5,23 +5,11 @@ import styles from './HeroBanner.module.css';
 
 const slides = [
   {
-    tagline: 'Give The Gift Of Hope',
-    heading: "Change A Child's\nLife Today",
+    tagline: 'Welcome To BENVA Healthcare',
+    heading: 'Complete Healthcare Services\nAt Your Doorstep',
     subtitle:
-      'Join our mission to provide food, shelter, education, and hope to communities in need. Every act of kindness brings us closer to a better world.',
-  },
-  {
-    tagline: 'Together We Can Do More',
-    heading: 'Be The Change\nYou Wish To See',
-    subtitle:
-      'Your generosity empowers vulnerable families with the resources and care they need to thrive. One donation can change a life forever.',
-  },
-  {
-    tagline: 'Make A Difference Today',
-    heading: 'Hope Starts\nWith You',
-    subtitle:
-      'Stand with us as we fight poverty, hunger, and disease. With your support, we bring smiles to thousands of children every year.',
-  },
+      'Book Lab Tests, Order Medicines, Home Healthcare Services And Teleconsultation Through BENVA Healthcare.',
+  }
 ];
 
 export default function HeroBanner() {
@@ -52,7 +40,7 @@ export default function HeroBanner() {
       {/* ── Background Image ── */}
       <div className={styles.bgWrapper}>
         <Image
-          src="/images/main-slider-v2-img2.jpg"
+          src="/images/hero-bg-new.png"
           alt="Benva Healthcare Hero"
           fill
           priority
@@ -87,14 +75,14 @@ export default function HeroBanner() {
         </div>
       </div>
 
-      {/* ── RIGHT HEART (real uploaded PNG) ── */}
+      {/* ── RIGHT HEALTHCARE ICON ── */}
       <div className={styles.heartWrapper}>
-        <div className={styles.heartImg}>
+        <div className={styles.healthcareImg}>
           <Image
-            src="/images/main-slider-v2-shape6.png"
-            alt="Heart"
-            width={320}
-            height={360}
+            src="/images/healthcare-icon-clean.png"
+            alt="Healthcare Icon"
+            width={400}
+            height={400}
             style={{ objectFit: 'contain', width: '100%', height: 'auto' }}
           />
         </div>
@@ -117,8 +105,8 @@ export default function HeroBanner() {
           <div className={styles.tagline}>
             <span className={styles.taglineArrow}>
               <svg width="32" height="10" viewBox="0 0 32 10" fill="none">
-                <line x1="0" y1="5" x2="24" y2="5" stroke="var(--color-primary)" strokeWidth="2"/>
-                <polyline points="20,1 28,5 20,9" stroke="var(--color-primary)" strokeWidth="2" fill="none"/>
+                <line x1="0" y1="5" x2="24" y2="5" stroke="var(--color-primary)" strokeWidth="2" />
+                <polyline points="20,1 28,5 20,9" stroke="var(--color-primary)" strokeWidth="2" fill="none" />
               </svg>
             </span>
             <span>{slide.tagline}</span>
@@ -138,7 +126,7 @@ export default function HeroBanner() {
 
           {/* CTA Buttons */}
           <div className={styles.buttons}>
-            <a href="#lab-tests" className={styles.btnAction}>
+            <a href="#premium-checkup" className={styles.btnAction}>
               <div className={styles.btnIcon}>
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M14 6L2 18" />
@@ -149,13 +137,13 @@ export default function HeroBanner() {
               </div>
               <div className={styles.btnTextWrapper}>
                 <span className={styles.btnSmallText}>Book</span>
-                <span className={styles.btnLargeText}>Lab Tests</span>
+                <span className={styles.btnLargeText}>Health Checkup</span>
               </div>
             </a>
 
-            <a href="#checkups" className={styles.btnAction}>
+            <a href="#services-grid" className={styles.btnAction}>
               <div className={styles.btnIcon}>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
                   <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
                   <line x1="12" y1="11" x2="12" y2="17" />
@@ -163,25 +151,27 @@ export default function HeroBanner() {
                 </svg>
               </div>
               <div className={styles.btnTextWrapper}>
-                <span className={styles.btnSmallText}>Book</span>
-                <span className={styles.btnLargeText}>Checkups</span>
+                <span className={styles.btnSmallText}>Order</span>
+                <span className={styles.btnLargeText}>Medicines</span>
               </div>
             </a>
           </div>
         </div>
       </div>
 
-      {/* ── SLIDE INDICATORS ── */}
-      <div className={styles.indicators}>
-        {slides.map((_, i) => (
-          <button
-            key={i}
-            className={`${styles.dot} ${i === active ? styles.dotActive : ''}`}
-            onClick={() => goTo(i)}
-            aria-label={`Slide ${i + 1}`}
-          />
-        ))}
-      </div>
+      {/* ── SLIDE INDICATORS (Hidden since only 1 slide now) ── */}
+      {slides.length > 1 && (
+        <div className={styles.indicators}>
+          {slides.map((_, i) => (
+            <button
+              key={i}
+              className={`${styles.dot} ${i === active ? styles.dotActive : ''}`}
+              onClick={() => goTo(i)}
+              aria-label={`Slide ${i + 1}`}
+            />
+          ))}
+        </div>
+      )}
 
       {/* ── BOTTOM WAVE SHAPE ── */}
       <div className={styles.bottomWave}>

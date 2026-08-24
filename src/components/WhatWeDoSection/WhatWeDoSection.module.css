@@ -18,17 +18,31 @@
   z-index: 0;
 }
 
-/* Decorative heart bottom-right */
-.heartDecor {
+/* Decorative medical bottom-right */
+.medicalDecor {
   position: absolute;
   bottom: -20px;
   right: 30px;
   width: 200px;
   height: 190px;
-  opacity: 0.7;
+  opacity: 0.5;
   z-index: 0;
   pointer-events: none;
-  animation: heartPulse 3s ease-in-out infinite;
+  animation: floatDot 4s ease-in-out infinite;
+}
+
+/* Decorative medical top-left */
+.medicalDecorTopLeft {
+  position: absolute;
+  top: -10px;
+  left: 20px;
+  width: 160px;
+  height: 160px;
+  opacity: 0.4;
+  z-index: 0;
+  pointer-events: none;
+  transform: rotate(-15deg);
+  animation: floatDot 5s ease-in-out infinite reverse;
 }
 
 .container {
@@ -76,7 +90,7 @@
 
 .heading {
   font-family: var(--font-heading);
-  font-size: clamp(32px, 4vw, 52px);
+  font-size: clamp(24px, 4vw, 52px);
   font-weight: 900;
   line-height: 1.18;
   color: var(--color-dark);
@@ -84,10 +98,18 @@
 
 /* ── Cards Row ───────────────────────────────────────────────── */
 .cardsWrapper {
-  display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  display: flex;
   gap: 20px;
   margin-bottom: 36px;
+  overflow-x: auto;
+  padding-bottom: 20px;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+  position: relative;
+}
+
+.cardsWrapper::-webkit-scrollbar {
+  display: none;
 }
 
 /* ── Individual Card ─────────────────────────────────────────── */
@@ -102,6 +124,8 @@
   overflow: hidden;
   display: flex;
   flex-direction: column;
+  flex: 0 0 calc(33.333% - 14px); /* Show 3 items on desktop */
+  min-width: 320px;
 }
 
 .card:hover {
@@ -170,7 +194,6 @@
   font-size: 13.5px;
   line-height: 1.72;
   color: #718096;
-  flex-grow: 1;
   margin-bottom: 20px;
   transition: color 0.4s;
 }
@@ -179,23 +202,71 @@
   color: rgba(255, 255, 255, 0.72);
 }
 
-/* ── View Details link ────────────────────────────────────────── */
-.viewDetails {
+/* ── Highlights ── */
+.highlights {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 24px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  flex-grow: 1;
+}
+
+.highlights li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-size: 14px;
+  color: #4a5568;
+  font-weight: 500;
+}
+
+.cardActive .highlights li {
+  color: #fff;
+}
+
+.highlights li svg {
+  flex-shrink: 0;
+  stroke: var(--color-primary);
+}
+
+.cardActive .highlights li svg {
+  stroke: #fff;
+}
+
+/* ── Action Button ── */
+.actionBtn {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  font-size: 13.5px;
+  justify-content: center;
+  gap: 8px;
+  font-size: 14px;
   font-weight: 600;
   color: var(--color-secondary);
+  background: #f0f4f3;
+  border: none;
+  border-radius: 8px;
+  padding: 12px 20px;
+  cursor: pointer;
   text-decoration: none;
-  transition: color 0.25s, gap 0.25s;
+  transition: background 0.3s, color 0.3s, transform 0.25s;
+  align-self: flex-start;
 }
 
-.viewDetails:hover {
-  gap: 10px;
+.actionBtn:hover {
+  background: var(--color-primary);
+  color: #fff;
+  transform: translateY(-2px);
 }
 
-.cardActive .viewDetails {
+.cardActive .actionBtn {
+  background: var(--color-primary);
+  color: #fff;
+}
+
+.cardActive .actionBtn:hover {
+  background: #fff;
   color: var(--color-primary);
 }
 
@@ -239,19 +310,35 @@
 
 /* ── Responsive ───────────────────────────────────────────────── */
 @media (max-width: 1100px) {
-  .cardsWrapper {
-    grid-template-columns: repeat(3, 1fr);
+  .card {
+    flex: 0 0 calc(33.333% - 14px);
   }
 }
 
 @media (max-width: 700px) {
-  .cardsWrapper {
-    grid-template-columns: 1fr 1fr;
+  .card {
+    flex: 0 0 calc(50% - 10px);
   }
 }
 
 @media (max-width: 480px) {
-  .cardsWrapper {
-    grid-template-columns: 1fr;
+  .card {
+    flex: 0 0 100%;
+    min-width: unset;
+  }
+  .container {
+    padding: 0 16px;
+  }
+  
+  .medicalDecorTopLeft {
+    width: 90px;
+    height: 90px;
+    left: 0;
+  }
+  
+  .medicalDecor {
+    width: 100px;
+    height: 100px;
+    right: 0;
   }
 }

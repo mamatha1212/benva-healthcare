@@ -8,14 +8,14 @@
 }
 
 .topBarInner {
-  max-width: 1280px;
+  max-width: 1350px;
   margin: 0 auto;
   padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   font-size: 13px;
-  color: rgba(255,255,255,0.65);
+  color: rgba(255, 255, 255, 0.65);
 }
 
 .topBarLeft {
@@ -42,8 +42,8 @@
   width: 28px;
   height: 28px;
   border-radius: 50%;
-  background: rgba(255,255,255,0.07);
-  color: rgba(255,255,255,0.7);
+  background: rgba(255, 255, 255, 0.07);
+  color: rgba(255, 255, 255, 0.7);
   text-decoration: none;
   transition: background 0.3s, color 0.3s;
 }
@@ -55,22 +55,22 @@
 
 /* Main nav */
 .mainNav {
-  background: var(--color-dark);
+  background: #ffffff;
   backdrop-filter: blur(10px);
   position: sticky;
   top: 0;
   z-index: 100;
-  border-bottom: 1px solid rgba(255,255,255,0.06);
+  border-bottom: 1px solid rgba(0, 0, 0, 0.06);
 }
 
 .navInner {
-  max-width: 1280px;
+  max-width: 1350px;
   margin: 0 auto;
   padding: 0 24px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 72px;
+  height: 60px;
 }
 
 /* Logo */
@@ -81,7 +81,17 @@
   text-decoration: none;
 }
 
-.logoIcon { display: flex; align-items: center; }
+.logoImage {
+  height: 70px;
+  width: auto;
+  transform: scale(2.2);
+  transform-origin: left center;
+}
+
+.logoIcon {
+  display: flex;
+  align-items: center;
+}
 
 .logoText {
   font-family: var(--font-heading);
@@ -106,24 +116,26 @@
   gap: 4px;
 }
 
-.navItem { position: relative; }
+.navItem {
+  position: relative;
+}
 
 .navLink {
   display: flex;
   align-items: center;
   gap: 4px;
   padding: 8px 14px;
-  color: rgba(255,255,255,0.85);
+  color: var(--color-dark);
   text-decoration: none;
   font-size: 14.5px;
-  font-weight: 500;
+  font-weight: 600;
   border-radius: 6px;
   transition: color 0.2s, background 0.2s;
 }
 
 .navLink:hover {
   color: var(--color-primary);
-  background: rgba(232, 72, 30, 0.07);
+  background: rgba(220, 38, 38, 0.07);
 }
 
 /* Right actions */
@@ -139,17 +151,18 @@
   justify-content: center;
   width: 40px;
   height: 40px;
-  background: rgba(255,255,255,0.06);
-  border: 1px solid rgba(255,255,255,0.1);
+  background: rgba(0, 0, 0, 0.04);
+  border: 1px solid rgba(0, 0, 0, 0.1);
   border-radius: 50%;
-  color: #fff;
+  color: var(--color-dark);
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
+  transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .searchBtn:hover {
   background: var(--color-primary);
   border-color: var(--color-primary);
+  color: #fff;
 }
 
 .donateBtn {
@@ -188,29 +201,65 @@
   display: block;
   width: 24px;
   height: 2px;
-  background: #fff;
+  background: var(--color-dark);
   border-radius: 2px;
   transition: 0.3s;
 }
 
 /* Responsive */
 @media (max-width: 900px) {
-  .topBarLeft { display: none; }
+  .topBarLeft {
+    display: none;
+  }
+
+  .topBarInner {
+    justify-content: center;
+  }
 
   .navLinks {
     display: none;
     position: absolute;
-    top: 72px;
+    top: 100%;
     left: 0;
     right: 0;
     flex-direction: column;
-    background: var(--color-dark);
+    background: #ffffff;
     padding: 16px 24px;
     gap: 4px;
-    border-top: 1px solid rgba(255,255,255,0.06);
+    border-top: 1px solid rgba(0, 0, 0, 0.06);
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
   }
 
-  .navLinks.open { display: flex; }
+  .navLinks.open {
+    display: flex;
+  }
 
-  .hamburger { display: flex; }
+  .hamburger {
+    display: flex;
+  }
+}
+
+@media (max-width: 500px) {
+  .topBar {
+    padding: 3px;
+  }
+
+  .logoImage {
+    transform: scale(1.6);
+    margin-left: -24px;
+  }
+
+  .navActions {
+    gap: 8px;
+  }
+
+  .donateBtn {
+    padding: 6px 14px;
+    font-size: 12px;
+  }
+
+  .navInner {
+    padding: 0 12px;
+    height: 45px;
+  }
 }

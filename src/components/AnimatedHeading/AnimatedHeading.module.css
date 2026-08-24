@@ -1,0 +1,17 @@
+.animatedHeading {
+  font-size: clamp(24px, 4vw, 44px) !important;
+  font-family: 'Playfair Display', serif; /* Standardise font family too if needed, but inheriting is fine. Let's just set size */
+}
+
+.cursor {
+  display: inline-block;
+  margin-left: 4px;
+  animation: blink 0.8s step-end infinite;
+  color: var(--color-primary);
+  font-weight: 300;
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
