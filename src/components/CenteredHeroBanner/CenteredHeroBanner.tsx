@@ -125,7 +125,7 @@ export default function CenteredHeroBanner() {
          <div className={styles.buttons}>
             <a href="#premium-checkup" className={styles.btnAction}>
               <div className={styles.btnIcon}>
-                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#e83e8c" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M14 6L2 18" />
                   <path d="M18 10L14 6" />
                   <path d="M22 6C22 8 20 10 18 10C16 10 14 8 14 6C14 4 16 2 18 2C20 2 22 4 22 6Z" />
@@ -136,11 +136,16 @@ export default function CenteredHeroBanner() {
                 <span className={styles.btnSmallText}>Book</span>
                 <span className={styles.btnLargeText}>Health Checkup</span>
               </div>
+              <div className={styles.btnArrow}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
+              </div>
             </a>
 
             <a href="#services-grid" className={styles.btnAction}>
               <div className={styles.btnIcon}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
                   <path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16" />
                   <line x1="12" y1="11" x2="12" y2="17" />
@@ -150,6 +155,11 @@ export default function CenteredHeroBanner() {
               <div className={styles.btnTextWrapper}>
                 <span className={styles.btnSmallText}>Order</span>
                 <span className={styles.btnLargeText}>Medicines</span>
+              </div>
+              <div className={styles.btnArrow}>
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="9 18 15 12 9 6"></polyline>
+                </svg>
               </div>
             </a>
           </div>

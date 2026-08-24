@@ -104,42 +104,74 @@
 }
 
 .btnAction {
-  background: #ffffff;
-  border-radius: 12px;
-  padding: 12px 24px;
+  background: linear-gradient(135deg, #7dd3fc 0%, #0284c7 100%);
+  border-radius: 50px;
+  padding: 6px 20px 6px 6px;
   display: flex;
   align-items: center;
-  justify-content: center;
-  width: 240px;
+  justify-content: flex-start;
+  width: 250px;
   gap: 16px;
   text-decoration: none;
   transition: all 0.3s ease;
-  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 10px 20px rgba(2, 132, 199, 0.3);
+  color: #ffffff;
 }
 
 .btnAction:hover {
   transform: translateY(-3px);
-  box-shadow: 0 15px 30px rgba(56, 189, 248, 0.15);
+  box-shadow: 0 15px 30px rgba(2, 132, 199, 0.4);
+}
+
+.btnIcon {
+  background: #ffffff;
+  border-radius: 50%;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  color: #0284c7;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+.btnIcon svg {
+  width: 24px;
+  height: 24px;
 }
 
 .btnTextWrapper {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  flex: 1;
 }
 
 .btnSmallText {
-  color: #64748b;
-  font-size: 12px;
-  font-weight: 600;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 9px;
+  font-weight: 700;
   text-transform: uppercase;
+  letter-spacing: 1px;
   margin-bottom: 2px;
 }
 
 .btnLargeText {
-  color: #0f172a;
-  font-size: 16px;
+  color: #ffffff;
+  font-size: 14px;
   font-weight: 800;
+  text-align: left !important;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.btnArrow {
+  color: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.8;
 }
 
 /* ORBITAL SYSTEM */
@@ -466,5 +498,44 @@ A better way is simply: */
     top: 50%;
     margin-top: 180px;
     /* 160px radius + 20px gap */
+    width: 100%;
+    padding: 0 10px;
+  }
+
+  .buttons {
+    flex-wrap: nowrap;
+    gap: 8px;
+    width: 100%;
+    justify-content: center;
+  }
+
+  .btnAction {
+    width: auto;
+    flex: 1;
+    padding: 4px 8px 4px 4px;
+    gap: 6px;
+  }
+
+  .btnIcon {
+    width: 32px;
+    height: 32px;
+  }
+
+  .btnIcon svg {
+    width: 16px;
+    height: 16px;
+  }
+
+  .btnSmallText {
+    font-size: 7px;
+  }
+
+  .btnLargeText {
+    font-size: 9px;
+  }
+
+  .btnArrow svg {
+    width: 12px;
+    height: 12px;
   }
 }
