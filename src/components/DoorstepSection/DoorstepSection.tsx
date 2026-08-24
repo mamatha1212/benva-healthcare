@@ -61,47 +61,51 @@ export default function DoorstepSection() {
         <p className={styles.subtitle}>Professional Home Sample Collection Service</p>
       </div>
 
-      <div className={`${styles.pillGrid} ${mounted ? styles.fadeInUp : ''}`} style={{ animationDelay: '0.2s' }}>
+      <div className={`${styles.cardsGrid} ${mounted ? styles.fadeInUp : ''}`} style={{ animationDelay: '0.2s' }}>
         
-        {/* Pill 1 */}
-        <div className={styles.pillCard}>
-          <div className={styles.pillIcon} style={{ color: '#22c55e' }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        {/* Left Card */}
+        <div className={styles.mainCard}>
+          <div className={styles.pillItem}>
+            <div className={styles.pillIcon} style={{ color: '#22c55e' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+            </div>
+            <span className={styles.pillText}>Certified Phlebotomists</span>
           </div>
-          <div className={styles.pillText}>
-            <h4>Certified Phlebotomists</h4>
+
+          <div className={styles.pillItem}>
+            <div className={styles.pillIcon} style={{ color: '#94a3b8' }}>
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><path d="M12 18v-6"/><circle cx="12" cy="18" r="3"/></svg>
+            </div>
+            <span className={styles.pillText}>NABL Partner Labs</span>
           </div>
         </div>
 
-        {/* Pill 2 */}
-        <div className={styles.pillCard}>
-          <div className={styles.pillIcon} style={{ color: '#ef4444' }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+        {/* Right Card */}
+        <div className={styles.mainCard}>
+          <div className={styles.listItem}>
+            <div className={styles.listIconWrap}>
+              <div className={styles.listIcon} style={{ color: '#ef4444' }}>
+                <svg viewBox="0 0 24 24" fill="currentColor" stroke="none"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>
+              </div>
+            </div>
+            <div className={styles.listContent}>
+              <h4>Home Sample Collection</h4>
+              <span>ANDHRA PRADESH & TELANGANA</span>
+            </div>
           </div>
-          <div className={styles.pillText}>
-            <h4>Home Sample Collection</h4>
-            <span>ANDHRA PRADESH & TELANGANA</span>
-          </div>
-        </div>
 
-        {/* Pill 3 */}
-        <div className={styles.pillCard}>
-          <div className={styles.pillIcon} style={{ color: '#3b82f6' }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2l.5-.5a4 4 0 0 0 5.56-5.56l7.95-7.95a2.12 2.12 0 0 0-3-3l-7.95 7.95a4 4 0 0 0-5.56 5.56l-.5.5Z"/></svg>
-          </div>
-          <div className={styles.pillText}>
-            <h4>NABL Partner Labs</h4>
-          </div>
-        </div>
+          <div className={styles.divider}></div>
 
-        {/* Pill 4 */}
-        <div className={styles.pillCard}>
-          <div className={styles.pillIcon} style={{ color: '#eab308' }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.5 20.5 19 12a2.828 2.828 0 1 0-4-4L6.5 16.5a2.828 2.828 0 1 0 4 4z"/><path d="m16.5 10.5-6 6"/></svg>
-          </div>
-          <div className={styles.pillText}>
-            <h4>Medicine Delivery</h4>
-            <span>AVAILABLE ACROSS INDIA</span>
+          <div className={styles.listItem}>
+            <div className={styles.listIconWrap}>
+              <div className={styles.listIcon} style={{ color: '#eab308' }}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10.5 20.5 19 12a2.828 2.828 0 1 0-4-4L6.5 16.5a2.828 2.828 0 1 0 4 4z"/><path d="m16.5 10.5-6 6"/></svg>
+              </div>
+            </div>
+            <div className={styles.listContent}>
+              <h4>Medicine Delivery</h4>
+              <span>AVAILABLE ACROSS INDIA</span>
+            </div>
           </div>
         </div>
 

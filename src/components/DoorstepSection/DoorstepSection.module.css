@@ -44,8 +44,8 @@
   font-weight: 500;
 }
 
-/* Pill Grid */
-.pillGrid {
+/* Cards Grid */
+.cardsGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 20px;
@@ -56,25 +56,32 @@
   opacity: 0;
 }
 
-.pillCard {
+.mainCard {
   background: #ffffff;
   border-radius: 16px;
-  padding: 20px 24px;
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+}
+
+/* Left Card Pill Items */
+.pillItem {
+  background: #f0fdfa; /* light blue/cyan */
+  border-radius: 12px;
+  padding: 16px 20px;
   display: flex;
   align-items: center;
   gap: 16px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
 }
-
-.pillCard:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
+.pillItem:last-child {
+  background: #f0f9ff;
 }
 
 .pillIcon {
-  width: 44px;
-  height: 44px;
+  width: 24px;
+  height: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -82,24 +89,61 @@
 }
 
 .pillText {
+  font-size: 16px;
+  font-weight: 700;
+  color: #0369a1; /* matching text color to pill tone */
+}
+
+/* Right Card List Items */
+.listItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 8px 0;
+}
+
+.listIconWrap {
+  width: 48px;
+  height: 48px;
+  border-radius: 50%;
+  background: #f8fafc;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.listIcon {
+  width: 24px;
+  height: 24px;
+}
+
+.listContent {
   display: flex;
   flex-direction: column;
 }
 
-.pillText h4 {
+.listContent h4 {
   font-size: 16px;
   font-weight: 700;
   color: #0f172a;
   margin: 0;
 }
 
-.pillText span {
-  font-size: 12px;
+.listContent span {
+  font-size: 11px;
   font-weight: 600;
-  color: #64748b;
+  color: #94a3b8;
   margin-top: 4px;
-  letter-spacing: 0.5px;
   text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.divider {
+  height: 1px;
+  width: 100%;
+  background: #f1f5f9;
+  margin: 4px 0;
 }
 
 /* Locations Timeline */
@@ -236,7 +280,7 @@
 
 /* Responsive */
 @media (max-width: 992px) {
-  .pillGrid {
+  .cardsGrid {
     grid-template-columns: 1fr;
     max-width: 600px;
   }
