@@ -1,5 +1,5 @@
 .section {
-  padding: 80px 20px;
+  padding: 60px 20px;
   background-color: #f8fafc;
   display: flex;
   flex-direction: column;
@@ -198,40 +198,62 @@
 /* Responsive */
 @media (max-width: 992px) {
   .sliderContainer {
-    flex-direction: column;
+    position: relative;
+    display: block;
   }
   .navBtn {
     position: absolute;
     top: 50%;
     transform: translateY(-50%);
+    width: 40px;
+    height: 40px;
+    background: rgba(255, 255, 255, 0.95);
   }
-  .navBtn:first-child { left: -20px; }
-  .navBtn:last-child { right: -20px; }
+  .navBtn:first-child { left: 10px; }
+  .navBtn:last-child { right: 10px; }
   
   .bannerWrapper {
     height: auto;
-    min-height: 500px;
+    min-height: 300px;
   }
   .bannerSlide {
-    flex-direction: column-reverse;
-    text-align: center;
-    padding: 40px 20px;
-    justify-content: center;
+    flex-direction: row;
+    text-align: left;
+    padding: 30px 50px;
+    justify-content: space-between;
+    gap: 20px;
   }
   .contentSide {
-    align-items: center;
-    max-width: 100%;
+    align-items: flex-start;
+    max-width: 60%;
   }
   .imageSide {
-    margin-bottom: 40px;
-    justify-content: center;
+    margin-bottom: 0;
+    justify-content: flex-end;
+    max-width: 40%;
   }
 }
 
 @media (max-width: 600px) {
-  .title { font-size: 28px; }
-  .desc { font-size: 15px; }
-  .tagWrap { font-size: 16px; }
-  .bannerWrapper { min-height: 550px; }
-  .iconGlow svg { width: 80px; height: 80px; }
+  .section { padding: 60px 12px; }
+  .header { margin-bottom: 16px; }
+  .header h2 { font-size: 22px; }
+  
+  .bannerWrapper { min-height: 165px; border-radius: 16px; }
+  .bannerSlide { padding: 14px 14px; gap: 8px; align-items: center; }
+  
+  .contentSide { max-width: 72%; }
+  .imageSide { max-width: 28%; justify-content: center; }
+  
+  .title { font-size: 16px; margin-bottom: 4px; line-height: 1.2; letter-spacing: -0.2px; }
+  .desc { font-size: 11px; margin-bottom: 8px; padding: 0; line-height: 1.35; color: #475569; }
+  .tagWrap { font-size: 11px; margin-bottom: 10px; letter-spacing: 0.5px; }
+  .ctaBtn { padding: 7px 14px; font-size: 12px; border-radius: 6px; }
+  
+  .iconGlow svg { width: 44px; height: 44px; }
+  .navBtn { display: none; }
+  
+  .dots { margin-top: 14px; gap: 6px; }
+  .dot { width: 6px; height: 6px; }
+  .dotActive { width: 16px; }
 }

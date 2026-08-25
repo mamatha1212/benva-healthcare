@@ -1,4 +1,3 @@
-import Navbar from '@/components/Navbar/Navbar';
 import HeroBanner from '@/components/HeroBanner/HeroBanner';
 import VolunteerSection from '@/components/VolunteerSection/VolunteerSection';
 import AboutSection from '@/components/AboutSection/AboutSection';
@@ -17,12 +16,10 @@ import TestimonialSection from '@/components/TestimonialSection/TestimonialSecti
 import FaqSection from '@/components/FaqSection/FaqSection';
 import ContactSection from '@/components/ContactSection/ContactSection';
 import StatsSection from '@/components/StatsSection/StatsSection';
-import Footer from '@/components/Footer/Footer';
 
 export default function Home() {
   return (
     <main>
-      <Navbar />
       <HeroBanner />
       <WhatWeDoSection />
       <AboutSection />
@@ -40,7 +37,7 @@ export default function Home() {
       <FaqSection />
       <ContactSection />
       <StatsSection />
-      <Footer />
     </main>
   );
 }
+

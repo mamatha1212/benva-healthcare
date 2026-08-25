@@ -116,6 +116,9 @@
   transition: all 0.3s ease;
   box-shadow: 0 10px 20px rgba(2, 132, 199, 0.3);
   color: #ffffff;
+  border: none;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 .btnAction:hover {
@@ -378,7 +381,8 @@ A better way is simply: */
   white-space: nowrap;
 }
 
-.satText a {
+.satText a,
+.satLinkBtn {
   background: #38bdf8;
   color: #020617;
   padding: 6px 16px;
@@ -387,6 +391,10 @@ A better way is simply: */
   font-weight: 700;
   text-decoration: none;
   pointer-events: auto;
+  border: none;
+  cursor: pointer;
+  display: inline-block;
+  font-family: inherit;
 }
 
 /* Hover Effects */

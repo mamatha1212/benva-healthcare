@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import styles from './ModernHeroBanner.module.css';
 
 const slide = {
@@ -69,7 +70,7 @@ export default function ModernHeroBanner() {
              </div>
              <h3>Premium Checkup</h3>
              <p>Complete body profile</p>
-             <a href="#premium-checkup" className={styles.cardBtn}>Book Now</a>
+             <Link href="/health-packages" className={styles.cardBtn}>Book Now</Link>
           </div>
 
           {/* Left Floating Card */}

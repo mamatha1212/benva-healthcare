@@ -1,12 +1,9 @@
 import React from 'react';
 import styles from '../legal.module.css';
-import Navbar from '@/components/Navbar/Navbar';
-import Footer from '@/components/Footer/Footer';
 
 export default function PrivacyPage() {
   return (
     <>
-      <Navbar />
       <main className={styles.pageWrapper}>
         <div className={styles.container}>
           <h1 className={styles.title}>Privacy Policy</h1>
@@ -58,7 +55,7 @@ export default function PrivacyPage() {
         </div>
         </div>
       </main>
-      <Footer />
     </>
   );
 }
+

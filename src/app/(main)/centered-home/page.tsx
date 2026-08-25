@@ -1,7 +1,5 @@
-import Navbar from '@/components/Navbar/Navbar';
-import ModernHeroBanner from '@/components/ModernHeroBanner/ModernHeroBanner';
+import CenteredHeroBanner from '@/components/CenteredHeroBanner/CenteredHeroBanner';
 import AboutSection from '@/components/AboutSection/AboutSection';
-import PremiumCheckupSection from '@/components/PremiumCheckupSection/PremiumCheckupSection';
 import BookingFormSection from '@/components/BookingFormSection/BookingFormSection';
 import WhatWeDoSection from '@/components/WhatWeDoSection/WhatWeDoSection';
 import ServicesGridSection from '@/components/ServicesGridSection/ServicesGridSection';
@@ -16,16 +14,16 @@ import TestimonialSection from '@/components/TestimonialSection/TestimonialSecti
 import FaqSection from '@/components/FaqSection/FaqSection';
 import ContactSection from '@/components/ContactSection/ContactSection';
 import StatsSection from '@/components/StatsSection/StatsSection';
-import Footer from '@/components/Footer/Footer';
 
-export default function ModernHome() {
+export default function CenteredHome() {
   return (
     <main>
-      <Navbar />
-      <ModernHeroBanner />
-      <WhatWeDoSection />
+      <CenteredHeroBanner />
+      {/* We add a small wrapper to handle the overlap gracefully if WhatWeDoSection starts immediately */}
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <WhatWeDoSection />
+      </div>
       <AboutSection />
-      <PremiumCheckupSection />
       <ServicesGridSection />
       <HomeHealthcareSection />
       <BookingFormSection />
@@ -39,7 +37,7 @@ export default function ModernHome() {
       <FaqSection />
       <ContactSection />
       <StatsSection />
-      <Footer />
     </main>
   );
 }
+

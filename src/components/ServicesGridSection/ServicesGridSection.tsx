@@ -3,8 +3,8 @@ import React from 'react';
 import styles from './ServicesGridSection.module.css';
 
 export default function ServicesGridSection() {
-  const whatsappNumber = "919876543210"; 
-  const medicineMsg = "Hello BENVA Healthcare,%0AI would like to order medicines.%0APlease assist me with the process.";
+  const whatsappNumber = "919111145556"; 
+  const medicineMsg = encodeURIComponent("Hello BENVA Healthcare, I would like to share my prescription to order medicines.");
   const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${medicineMsg}`;
 
   const checkIcon = (

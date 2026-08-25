@@ -1,12 +1,9 @@
 import React from 'react';
 import styles from '../legal.module.css';
-import Navbar from '@/components/Navbar/Navbar';
-import Footer from '@/components/Footer/Footer';
 
 export default function DisclaimerPage() {
   return (
     <>
-      <Navbar />
       <main className={styles.pageWrapper}>
         <div className={styles.container}>
           <h1 className={styles.title}>Disclaimer</h1>
@@ -39,7 +36,7 @@ export default function DisclaimerPage() {
         </div>
         </div>
       </main>
-      <Footer />
     </>
   );
 }
+

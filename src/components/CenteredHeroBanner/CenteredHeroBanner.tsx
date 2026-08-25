@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import styles from './CenteredHeroBanner.module.css';
 
 export default function CenteredHeroBanner() {
@@ -71,7 +72,7 @@ export default function CenteredHeroBanner() {
                  </div>
                  <div className={styles.satText}>
                    <h3>Lab Tests</h3>
-                   <a href="#premium-checkup">Book Now</a>
+                   <Link href="/health-packages">Book Now</Link>
                  </div>
               </div>
            </div>
@@ -93,7 +94,14 @@ export default function CenteredHeroBanner() {
                  </div>
                  <div className={styles.satText}>
                    <h3>Pharmacy</h3>
-                   <a href="#services-grid">Order Now</a>
+                    <button onClick={(e) => {
+                      e.preventDefault();
+                      const el = document.getElementById('services-grid');
+                      if (el) {
+                        const y = el.getBoundingClientRect().top + window.scrollY - 100;
+                        window.scrollTo({ top: y, behavior: 'smooth' });
+                      }
+                    }} className={styles.satLinkBtn}>Order Now</button>
                  </div>
               </div>
            </div>
@@ -112,7 +120,14 @@ export default function CenteredHeroBanner() {
                  </div>
                  <div className={styles.satText}>
                    <h3>Home Care</h3>
-                   <a href="#home-healthcare">Explore</a>
+                    <button onClick={(e) => {
+                      e.preventDefault();
+                      const el = document.getElementById('home-healthcare');
+                      if (el) {
+                        const y = el.getBoundingClientRect().top + window.scrollY - 100;
+                        window.scrollTo({ top: y, behavior: 'smooth' });
+                      }
+                    }} className={styles.satLinkBtn}>Explore</button>
                  </div>
               </div>
            </div>
@@ -123,7 +138,7 @@ export default function CenteredHeroBanner() {
       {/* Bottom Content Block */}
       <div className={`${styles.bottomContentBlock} ${mounted ? styles.fadeInUp : ''}`}>
          <div className={styles.buttons}>
-            <a href="#premium-checkup" className={styles.btnAction}>
+            <Link href="/health-packages" className={styles.btnAction}>
               <div className={styles.btnIcon}>
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M14 6L2 18" />
@@ -141,9 +156,19 @@ export default function CenteredHeroBanner() {
                   <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
               </div>
-            </a>
+            </Link>
 
-            <a href="#services-grid" className={styles.btnAction}>
+            <button 
+              onClick={(e) => {
+                e.preventDefault();
+                const el = document.getElementById('services-grid');
+                if (el) {
+                  const y = el.getBoundingClientRect().top + window.scrollY - 100;
+                  window.scrollTo({ top: y, behavior: 'smooth' });
+                }
+              }} 
+              className={styles.btnAction}
+            >
               <div className={styles.btnIcon}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
@@ -161,7 +186,7 @@ export default function CenteredHeroBanner() {
                   <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
               </div>
-            </a>
+            </button>
           </div>
       </div>
     </section>

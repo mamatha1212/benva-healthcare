@@ -1,4 +1,3 @@
-import Navbar from '@/components/Navbar/Navbar';
 import SplitHeroBanner from '@/components/SplitHeroBanner/SplitHeroBanner';
 import AboutSection from '@/components/AboutSection/AboutSection';
 import PremiumCheckupSection from '@/components/PremiumCheckupSection/PremiumCheckupSection';
@@ -16,12 +15,10 @@ import TestimonialSection from '@/components/TestimonialSection/TestimonialSecti
 import FaqSection from '@/components/FaqSection/FaqSection';
 import ContactSection from '@/components/ContactSection/ContactSection';
 import StatsSection from '@/components/StatsSection/StatsSection';
-import Footer from '@/components/Footer/Footer';
 
 export default function VariantHome() {
   return (
     <main>
-      <Navbar />
       <SplitHeroBanner />
       <WhatWeDoSection />
       <AboutSection />
@@ -39,7 +36,7 @@ export default function VariantHome() {
       <FaqSection />
       <ContactSection />
       <StatsSection />
-      <Footer />
     </main>
   );
 }
+

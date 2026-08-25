@@ -1,7 +1,7 @@
 .section {
   position: relative;
   background-color: #02559d;
-  padding: 80px 20px;
+  padding: 60px 20px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -282,16 +282,162 @@
 @media (max-width: 992px) {
   .cardsGrid {
     grid-template-columns: 1fr;
-    max-width: 600px;
+    max-width: 500px;
   }
 }
 
 @media (max-width: 768px) {
-  .section { padding: 50px 20px; }
+  .section { padding: 60px 20px; }
   .heading { font-size: 28px; }
   .timelineCircle { width: 32px; height: 32px; }
   .timelineNode::before { top: 16px; }
   .timelineWrapper { padding: 0 30px; }
+}
+
+@media (max-width: 600px) {
+  .section {
+    padding: 60px 14px;
+  }
+
+  .sectionHeader {
+    margin-bottom: 20px;
+  }
+
+  .heading {
+    font-size: 22px;
+    margin-bottom: 4px;
+    line-height: 1.25;
+  }
+
+  .subtitle {
+    font-size: 13px;
+    opacity: 0.9;
+  }
+
+  .cardsGrid {
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .mainCard {
+    padding: 12px 14px;
+    border-radius: 14px;
+    gap: 8px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+  }
+
+  /* Make Card 1 pills sit side-by-side on mobile */
+  .mainCard:first-child {
+    flex-direction: row;
+    gap: 10px;
+  }
+
+  .pillItem {
+    flex: 1;
+    padding: 10px 8px;
+    gap: 6px;
+    border-radius: 10px;
+    justify-content: center;
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .pillIcon {
+    width: 20px;
+    height: 20px;
+  }
+
+  .pillText {
+    font-size: 11px;
+    line-height: 1.25;
+    text-align: center;
+  }
+
+  /* Card 2 compact styling */
+  .listItem {
+    padding: 4px 0;
+    gap: 10px;
+  }
+
+  .listIconWrap {
+    width: 32px;
+    height: 32px;
+  }
+
+  .listIcon {
+    width: 16px;
+    height: 16px;
+  }
+
+  .listContent h4 {
+    font-size: 13px;
+  }
+
+  .listContent span {
+    font-size: 10px;
+  }
+
+  .divider {
+    margin: 2px 0;
+  }
+
+  /* Timeline tile redesign */
+  .locationsTile {
+    padding: 16px 12px;
+    border-radius: 14px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.12);
+  }
+
+  .locationsHeader {
+    margin-bottom: 12px;
+    gap: 6px;
+  }
+
+  .locationPin {
+    font-size: 16px;
+  }
+
+  .locationsHeader h3 {
+    font-size: 15px;
+  }
+
+  .timelineNav {
+    display: none;
+  }
+
+  .timelineWrapper {
+    padding: 0;
+  }
+
+  .timelineScroll {
+    gap: 16px;
+    padding: 6px 0;
+  }
+
+  .timelineNode {
+    min-width: 75px;
+    gap: 6px;
+  }
+
+  .timelineCircle {
+    width: 26px;
+    height: 26px;
+  }
+
+  .timelineInnerCircle {
+    width: 8px;
+    height: 8px;
+  }
+
+  .timelineNode::before {
+    top: 13px;
+    height: 2px;
+  }
+
+  .timelineCity {
+    font-size: 11px;
+  }
 }
 
 .fadeInUp {

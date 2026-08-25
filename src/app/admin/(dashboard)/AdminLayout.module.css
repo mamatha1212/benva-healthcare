@@ -12,15 +12,17 @@
   color: #fff;
   display: flex;
   flex-direction: column;
-  flex-shrink: 0;
-  position: sticky;
+  position: fixed;
   top: 0;
+  left: 0;
   height: 100vh;
+  z-index: 50;
 }
 
 .logoContainer {
   padding: 16px 24px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  flex-shrink: 0;
 }
 
 .logo {
@@ -31,6 +33,19 @@
 .nav {
   padding: 24px 16px;
   flex-grow: 1;
+  overflow-y: auto;
+}
+
+/* Custom scrollbar for sidebar nav */
+.nav::-webkit-scrollbar {
+  width: 4px;
+}
+.nav::-webkit-scrollbar-track {
+  background: transparent;
+}
+.nav::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 4px;
 }
 
 .navHeader {
@@ -69,10 +84,14 @@
 .navIcon {
   width: 20px;
   height: 20px;
+  flex-shrink: 0;
 }
 
 .sidebarFooter {
-  padding: 0 16px 24px 16px;
+  padding: 16px;
+  flex-shrink: 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.05);
+  background-color: #0f172a;
 }
 
 .logoutBtn {
@@ -101,6 +120,7 @@
 .logoutBtn svg {
   width: 20px;
   height: 20px;
+  flex-shrink: 0;
 }
 
 /* Main Content */
@@ -109,6 +129,7 @@
   display: flex;
   flex-direction: column;
   min-width: 0; /* Prevents overflow in flex children */
+  margin-left: 280px;
 }
 
 .topbar {

@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import styles from './HeroBanner.module.css';
 
 const slides = [
@@ -126,7 +127,7 @@ export default function HeroBanner() {
 
           {/* CTA Buttons */}
           <div className={styles.buttons}>
-            <a href="#premium-checkup" className={styles.btnAction}>
+            <Link href="/health-packages" className={styles.btnAction}>
               <div className={styles.btnIcon}>
                 <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="var(--color-primary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M14 6L2 18" />
@@ -139,7 +140,7 @@ export default function HeroBanner() {
                 <span className={styles.btnSmallText}>Book</span>
                 <span className={styles.btnLargeText}>Health Checkup</span>
               </div>
-            </a>
+            </Link>
 
             <a href="#services-grid" className={styles.btnAction}>
               <div className={styles.btnIcon}>

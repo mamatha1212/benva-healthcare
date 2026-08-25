@@ -1,6 +1,7 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import Image from 'next/image';
+import Link from 'next/link';
 import styles from './SplitHeroBanner.module.css';
 
 const slide = {
@@ -39,9 +40,9 @@ export default function SplitHeroBanner() {
           </p>
 
           <div className={`${styles.buttons} ${mounted ? styles.fadeInUp : ''}`} style={{ animationDelay: '0.4s' }}>
-            <a href="#premium-checkup" className={styles.btnPrimary}>
+            <Link href="/health-packages" className={styles.btnPrimary}>
               Book Health Checkup
-            </a>
+            </Link>
             <a href="#services-grid" className={styles.btnSecondary}>
               Order Medicines
             </a>

@@ -32,7 +32,10 @@ const services = [
     desc: 'Upload your doctor\'s prescription and get authentic medicines delivered to your doorstep.',
     tag: 'FLAT 15% OFF',
     buttonText: 'Order Now',
-    buttonAction: () => window.open('https://wa.me/919876543210', '_blank'),
+    buttonAction: () => {
+      const msg = encodeURIComponent("Hello BENVA Healthcare, I would like to share my prescription to order medicines.");
+      window.open(`https://wa.me/919111145556?text=${msg}`, '_blank');
+    },
     bgColor: '#f0f9ff',
     accentColor: '#0284c7'
   },

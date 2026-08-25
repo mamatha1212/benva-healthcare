@@ -1,7 +1,7 @@
 .section {
   position: relative;
   background: #1a2542; /* Blue background */
-  padding: 100px 0 120px;
+  padding: 60px 0 60px;
   overflow: hidden;
   font-family: 'Inter', sans-serif;
 }
