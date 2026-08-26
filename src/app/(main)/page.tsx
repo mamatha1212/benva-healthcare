@@ -1,7 +1,5 @@
-import HeroBanner from '@/components/HeroBanner/HeroBanner';
-import VolunteerSection from '@/components/VolunteerSection/VolunteerSection';
+import CenteredHeroBanner from '@/components/CenteredHeroBanner/CenteredHeroBanner';
 import AboutSection from '@/components/AboutSection/AboutSection';
-import PremiumCheckupSection from '@/components/PremiumCheckupSection/PremiumCheckupSection';
 import BookingFormSection from '@/components/BookingFormSection/BookingFormSection';
 import WhatWeDoSection from '@/components/WhatWeDoSection/WhatWeDoSection';
 import MembershipFormSection from '@/components/MembershipFormSection/MembershipFormSection';
@@ -18,10 +16,11 @@ import StatsSection from '@/components/StatsSection/StatsSection';
 export default function Home() {
   return (
     <main>
-      <HeroBanner />
-      <WhatWeDoSection />
+      <CenteredHeroBanner />
+      <div style={{ position: 'relative', zIndex: 1 }}>
+        <WhatWeDoSection />
+      </div>
       <AboutSection />
-      <PremiumCheckupSection />
       <BookingFormSection />
       <MembershipFormSection />
       <HomeHealthcareFormSection />
@@ -36,4 +35,3 @@ export default function Home() {
     </main>
   );
 }
-

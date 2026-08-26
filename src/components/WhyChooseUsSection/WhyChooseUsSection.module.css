@@ -1,191 +1,258 @@
+/* ── Why Choose BENVA Healthcare Section ─────────────────────────── */
 .section {
-  padding: 60px 24px;
-  background-color: #f8fafc;
+  padding: 100px 0;
+  background: #0a0f1e;
   font-family: 'Inter', sans-serif;
   position: relative;
   overflow: hidden;
 }
 
-.pattern {
+/* subtle grid lines bg */
+.section::before {
+  content: '';
   position: absolute;
   inset: 0;
-  background-size: 380px 380px;
-  background-repeat: repeat;
-  opacity: 0.3;
+  background-image:
+    linear-gradient(rgba(255,255,255,0.03) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.03) 1px, transparent 1px);
+  background-size: 60px 60px;
   pointer-events: none;
-  z-index: 0;
 }
 
 .container {
   max-width: 1200px;
   margin: 0 auto;
+  padding: 0 24px;
   position: relative;
   z-index: 1;
 }
 
+/* ── Header ── */
 .header {
-  text-align: center;
   margin-bottom: 64px;
+  max-width: 640px;
+}
+
+.eyebrow {
+  display: inline-block;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 3px;
+  text-transform: uppercase;
+  color: #60a5fa;
+  margin-bottom: 20px;
 }
 
 .title {
-  font-size: 40px;
-  font-weight: 800;
-  color: #0f172a;
-  margin-bottom: 16px;
-  letter-spacing: -0.5px;
+  font-size: clamp(32px, 4vw, 52px);
+  font-weight: 900;
+  color: #f8fafc;
+  line-height: 1.1;
+  margin: 0;
+  font-family: var(--font-heading, 'Inter', sans-serif);
 }
 
-.subtitle {
-  font-size: 18px;
-  color: #64748b;
-  max-width: 600px;
-  margin: 0 auto;
-  line-height: 1.6;
+.accent {
+  background: linear-gradient(90deg, #60a5fa, #818cf8);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
 }
 
-.contentWrapper {
-  display: flex;
-  gap: 32px;
-  align-items: flex-start;
-}
-
-.cardsGrid {
-  flex: 1;
+/* ── Bento Grid ── */
+.bento {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-  gap: 24px;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
 }
 
+/* ── Feature Card ── */
 .card {
-  background: #ffffff;
-  padding: 32px 24px;
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-  border: 1px solid #f1f5f9;
-}
-
-.card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.08);
-}
-
-.iconWrapper {
-  width: 56px;
-  height: 56px;
-  background: #eff6ff;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.07);
   border-radius: 16px;
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.3s ease;
+  cursor: default;
   display: flex;
+  flex-direction: row;
   align-items: center;
-  justify-content: center;
-  margin-bottom: 24px;
-  color: var(--color-primary);
+  gap: 18px;
 }
 
-.icon {
-  width: 28px;
-  height: 28px;
+.card::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(circle at 0% 50%, var(--c, #3b82f6), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.4s ease;
+  border-radius: inherit;
+}
+
+.card:hover,
+.cardActive {
+  border-color: var(--c, #3b82f6);
+  transform: translateY(-3px);
+  box-shadow: 0 0 0 1px var(--c, #3b82f6), 0 12px 30px rgba(0,0,0,0.3);
+}
+
+.card:hover::after,
+.cardActive::after {
+  opacity: 0.06;
+}
+
+/* Left column: emoji + number */
+.cardLeft {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+  width: 44px;
+}
+
+.cardEmoji {
+  font-size: 22px;
+  line-height: 1;
+}
+
+.cardNum {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 1px;
+  color: rgba(255,255,255,0.25);
+  font-family: monospace;
+  transition: color 0.3s;
+}
+
+.card:hover .cardNum {
+  color: var(--c, #3b82f6);
+}
+
+/* Right column: title + desc */
+.cardRight {
+  flex: 1;
+  position: relative;
+  z-index: 1;
 }
 
 .cardTitle {
-  font-size: 18px;
+  font-size: 15px;
   font-weight: 700;
-  color: #1e293b;
-  margin-bottom: 12px;
+  color: #f1f5f9;
+  margin: 0 0 4px;
+  line-height: 1.3;
 }
 
 .cardDesc {
-  font-size: 14px;
+  font-size: 12px;
   color: #64748b;
-  line-height: 1.6;
+  line-height: 1.5;
+  margin: 0;
+  transition: color 0.3s;
 }
 
-.sidebarBox {
-  width: 360px;
-  background: #0f172a;
+.card:hover .cardDesc {
+  color: #94a3b8;
+}
+
+.cardBar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 2px;
+  width: 0;
+  background: var(--c, #3b82f6);
+  border-radius: 0 0 0 16px;
+  transition: width 0.4s ease;
+}
+
+.card:hover .cardBar {
+  width: 100%;
+}
+
+/* ── Summary Card (full width) ── */
+.summaryCard {
+  grid-column: 1 / -1;
+  background: linear-gradient(135deg, rgba(96, 165, 250, 0.08), rgba(129, 140, 248, 0.06));
+  border: 1px solid rgba(96, 165, 250, 0.2);
   border-radius: 24px;
-  padding: 40px 32px;
-  color: #ffffff;
-  flex-shrink: 0;
-  position: sticky;
-  top: 100px;
-}
-
-.highlightsContainer {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-.highlightRow {
-  display: flex;
+  padding: 40px 48px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 48px;
   align-items: center;
-  gap: 12px;
 }
 
-.checkIcon {
-  width: 20px;
-  height: 20px;
-  color: #10b981;
-  flex-shrink: 0;
+.summaryLeft {}
+
+.summaryHeading {
+  font-size: 18px;
+  font-weight: 700;
+  color: #f8fafc;
+  margin: 0 0 20px;
 }
 
-.highlightText {
-  font-size: 15px;
+.pills {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.pill {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cbd5e1;
+  font-size: 13px;
   font-weight: 500;
-  color: #e2e8f0;
+  padding: 6px 16px;
+  border-radius: 50px;
 }
 
-.divider {
-  height: 1px;
-  background: rgba(255, 255, 255, 0.1);
-  margin-bottom: 32px;
-}
+.summaryRight {}
 
-.sidebarDesc {
-  font-size: 14px;
+.summaryText {
+  font-size: 15px;
   color: #94a3b8;
   line-height: 1.7;
-  margin-bottom: 32px;
+  margin: 0 0 28px;
 }
 
-.exploreBtn {
-  width: 100%;
-  padding: 16px;
-  background: var(--color-primary);
-  color: #ffffff;
-  border: none;
-  border-radius: 12px;
-  font-size: 16px;
+.cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: linear-gradient(135deg, #3b82f6, #6366f1);
+  color: #fff;
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-size: 15px;
   font-weight: 700;
+  border: none;
   cursor: pointer;
-  transition: all 0.2s ease;
-  letter-spacing: 0.5px;
+  transition: all 0.25s ease;
+  box-shadow: 0 8px 24px rgba(99, 102, 241, 0.3);
 }
 
-.exploreBtn:hover {
-  background: #d43b14;
+.cta:hover {
   transform: translateY(-2px);
+  box-shadow: 0 12px 32px rgba(99, 102, 241, 0.45);
 }
 
-@media (max-width: 992px) {
-  .contentWrapper {
-    flex-direction: column;
-  }
-  
-  .sidebarBox {
-    width: 100%;
-    position: static;
-  }
-}
-
-@media (max-width: 768px) {
-  .title {
-    font-size: 32px;
-  }
-  .cardsGrid {
+/* ── Responsive ── */
+@media (max-width: 900px) {
+  .bento { grid-template-columns: repeat(2, 1fr); }
+  .summaryCard {
     grid-template-columns: 1fr;
+    gap: 32px;
+    padding: 32px 28px;
   }
+}
+
+@media (max-width: 600px) {
+  .section { padding: 60px 0; }
+  .bento { grid-template-columns: 1fr; }
 }
