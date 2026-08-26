@@ -43,9 +43,9 @@ export default function SplitHeroBanner() {
             <Link href="/health-packages" className={styles.btnPrimary}>
               Book Health Checkup
             </Link>
-            <a href="#services-grid" className={styles.btnSecondary}>
+            <Link href="/medicines" className={styles.btnSecondary}>
               Order Medicines
-            </a>
+            </Link>
           </div>
           
           {/* Trust indicators */}

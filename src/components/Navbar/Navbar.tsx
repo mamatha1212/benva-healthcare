@@ -48,26 +48,21 @@ export default function Navbar() {
 
           {/* Nav Links */}
           <ul className={`${styles.navLinks} ${menuOpen ? styles.open : ''}`}>
-            {navLinks.map((link) => (
-              <li key={link} className={styles.navItem}>
-                <a 
-                  href={link === 'Home' ? '/' : '#'} 
-                  onClick={(e) => {
-                    if (link === 'Medicines') {
-                      e.preventDefault();
-                      const el = document.getElementById('services-grid');
-                      if (el) {
-                        const y = el.getBoundingClientRect().top + window.scrollY - 100;
-                        window.scrollTo({ top: y, behavior: 'smooth' });
-                      }
-                    }
-                  }}
-                  className={styles.navLink}
-                >
-                  {link}
-                </a>
-              </li>
-            ))}
+            {navLinks.map((link) => {
+              const href =
+                link === 'Home' ? '/' :
+                link === 'Medicines' ? '/medicines' :
+                link === 'Membership Card' ? '/membership' :
+                link === 'Home Healthcare' ? '/home-healthcare' :
+                '#';
+              return (
+                <li key={link} className={styles.navItem}>
+                  <a href={href} className={styles.navLink}>
+                    {link}
+                  </a>
+                </li>
+              );
+            })}
           </ul>
 
           {/* Right Actions */}

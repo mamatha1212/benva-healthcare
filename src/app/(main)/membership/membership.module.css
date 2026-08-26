@@ -1,0 +1,152 @@
+/* ── Membership Page Hero ───────────────────────────────────────── */
+.hero {
+  position: relative;
+  background: linear-gradient(135deg, #0f172a 0%, #02559d 50%, #5b21b6 100%);
+  padding: 120px 24px 80px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2;
+  max-width: 780px;
+  margin: 0 auto;
+}
+
+.heroBadge {
+  display: inline-block;
+  background: rgba(167, 139, 250, 0.2);
+  border: 1px solid rgba(167, 139, 250, 0.5);
+  color: #c4b5fd;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 8px 20px;
+  border-radius: 50px;
+  margin-bottom: 24px;
+  text-transform: uppercase;
+}
+
+.heroTitle {
+  font-size: clamp(40px, 6vw, 64px);
+  font-weight: 900;
+  font-family: var(--font-heading);
+  color: #fff;
+  line-height: 1.1;
+  margin-bottom: 20px;
+}
+
+.heroAccent {
+  color: #a78bfa;
+  position: relative;
+}
+
+.heroAccent::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #a78bfa, #7c3aed);
+  border-radius: 2px;
+}
+
+.heroSubtitle {
+  font-size: 18px;
+  color: #cbd5e1;
+  line-height: 1.7;
+  margin-bottom: 48px;
+  font-weight: 400;
+  max-width: 620px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Perks row */
+.heroPerks {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 24px;
+  flex-wrap: wrap;
+}
+
+.perkItem {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  padding: 10px 20px;
+  border-radius: 50px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #e2e8f0;
+  backdrop-filter: blur(8px);
+}
+
+.perkIcon {
+  font-size: 18px;
+}
+
+/* Decorative circles */
+.heroDecor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.circle1 {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.15) 0%, transparent 70%);
+  top: -150px;
+  right: -150px;
+}
+
+.circle2 {
+  position: absolute;
+  width: 350px;
+  height: 350px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.12) 0%, transparent 70%);
+  bottom: -100px;
+  left: -80px;
+}
+
+.circle3 {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  top: 40px;
+  left: 10%;
+  animation: floatCircle 8s ease-in-out infinite;
+}
+
+@keyframes floatCircle {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-20px); }
+}
+
+/* ── Responsive ─────────────────────────────────────────────────── */
+@media (max-width: 640px) {
+  .hero {
+    padding: 100px 20px 60px;
+  }
+
+  .heroPerks {
+    gap: 12px;
+  }
+
+  .perkItem {
+    font-size: 13px;
+    padding: 8px 14px;
+  }
+}

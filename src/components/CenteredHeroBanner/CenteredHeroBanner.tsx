@@ -94,14 +94,7 @@ export default function CenteredHeroBanner() {
                  </div>
                  <div className={styles.satText}>
                    <h3>Pharmacy</h3>
-                    <button onClick={(e) => {
-                      e.preventDefault();
-                      const el = document.getElementById('services-grid');
-                      if (el) {
-                        const y = el.getBoundingClientRect().top + window.scrollY - 100;
-                        window.scrollTo({ top: y, behavior: 'smooth' });
-                      }
-                    }} className={styles.satLinkBtn}>Order Now</button>
+                   <Link href="/medicines" className={styles.satLinkBtn}>Order Now</Link>
                  </div>
               </div>
            </div>
@@ -158,17 +151,7 @@ export default function CenteredHeroBanner() {
               </div>
             </Link>
 
-            <button 
-              onClick={(e) => {
-                e.preventDefault();
-                const el = document.getElementById('services-grid');
-                if (el) {
-                  const y = el.getBoundingClientRect().top + window.scrollY - 100;
-                  window.scrollTo({ top: y, behavior: 'smooth' });
-                }
-              }} 
-              className={styles.btnAction}
-            >
+            <Link href="/medicines" className={styles.btnAction}>
               <div className={styles.btnIcon}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="2" y="7" width="20" height="14" rx="2" ry="2" />
@@ -186,7 +169,7 @@ export default function CenteredHeroBanner() {
                   <polyline points="9 18 15 12 9 6"></polyline>
                 </svg>
               </div>
-            </button>
+            </Link>
           </div>
       </div>
     </section>

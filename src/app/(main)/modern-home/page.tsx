@@ -5,7 +5,6 @@ import BookingFormSection from '@/components/BookingFormSection/BookingFormSecti
 import WhatWeDoSection from '@/components/WhatWeDoSection/WhatWeDoSection';
 import ServicesGridSection from '@/components/ServicesGridSection/ServicesGridSection';
 import MembershipFormSection from '@/components/MembershipFormSection/MembershipFormSection';
-import HomeHealthcareSection from '@/components/HomeHealthcareSection/HomeHealthcareSection';
 import HomeHealthcareFormSection from '@/components/HomeHealthcareFormSection/HomeHealthcareFormSection';
 import WhyChooseUsSection from '@/components/WhyChooseUsSection/WhyChooseUsSection';
 import DoorstepSection from '@/components/DoorstepSection/DoorstepSection';
@@ -24,7 +23,6 @@ export default function ModernHome() {
       <AboutSection />
       <PremiumCheckupSection />
       <ServicesGridSection />
-      <HomeHealthcareSection />
       <BookingFormSection />
       <MembershipFormSection />
       <HomeHealthcareFormSection />

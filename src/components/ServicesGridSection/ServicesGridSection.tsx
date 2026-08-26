@@ -23,9 +23,9 @@ export default function ServicesGridSection() {
   return (
     <section className={styles.section} id="services-grid">
       <div className={styles.container}>
-        <div className={styles.grid}>
+        <div className={styles.singleGrid}>
 
-          {/* ── CARD 1: Order Medicines ── */}
+          {/* ── CARD: Order Medicines ── */}
           <div className={styles.card}>
             {watermark}
             
@@ -58,54 +58,12 @@ export default function ServicesGridSection() {
                 <div className={styles.benefitItem}><div className={styles.benefitIcon}>{checkIcon}</div> Dedicated Support</div>
               </div>
 
-              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className={styles.actionBtn}>
+              <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className={styles.whatsappBtn}>
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path>
                 </svg>
                 Send Prescription On WhatsApp
               </a>
-            </div>
-          </div>
-
-
-          {/* ── CARD 2: Membership Card ── */}
-          <div className={styles.card}>
-            {watermark}
-            
-            <div className={styles.imageArea}>
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/images/membership-card.png" alt="Membership Card" className={styles.mainImage} />
-              <div className={styles.infoBox}>
-                <div className={styles.infoIcon}>
-                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M22 12h-4l-3 9L9 3l-3 9H2" />
-                  </svg>
-                </div>
-                <div className={styles.infoText}>
-                  <span className={styles.infoTitle}>Family Friendly</span>
-                  <span className={styles.infoDesc}>Secure your family's health with our priority support.</span>
-                </div>
-              </div>
-            </div>
-
-            <div className={styles.contentArea}>
-              <h2 className={styles.heading}>BENVA Membership Card</h2>
-              <p className={styles.subHeading}>Exclusive Healthcare Benefits For You And Your Family.</p>
-              
-              <div className={styles.benefitsList}>
-                <div className={styles.benefitItem}><div className={styles.benefitIcon}>{checkIcon}</div> Diagnostic Discounts</div>
-                <div className={styles.benefitItem}><div className={styles.benefitIcon}>{checkIcon}</div> Priority Support</div>
-                <div className={styles.benefitItem}><div className={styles.benefitIcon}>{checkIcon}</div> Healthcare Guidance</div>
-                <div className={styles.benefitItem}><div className={styles.benefitIcon}>{checkIcon}</div> Partner Benefits</div>
-              </div>
-
-              <button className={styles.actionBtn} onClick={() => window.dispatchEvent(new Event('openMembershipModal'))}>
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
-                  <circle cx="12" cy="7" r="4" />
-                </svg>
-                Apply For Membership
-              </button>
             </div>
           </div>
 

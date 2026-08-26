@@ -116,7 +116,7 @@ export default function MembershipFormSection() {
         {!showSuccess ? (
           <>
             <div className={styles.header}>
-              <AnimatedHeading className={styles.heading}>Apply For BENVA Healthcare Membership</AnimatedHeading>
+              <h2 className={styles.heading}>Apply For BENVA Healthcare Membership</h2>
               <p className={styles.subHeading}>Fill In Your Details And Our Team Will Contact You Regarding Membership Registration.</p>
             </div>
 
