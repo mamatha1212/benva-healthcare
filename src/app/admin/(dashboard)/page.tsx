@@ -14,7 +14,7 @@ export const dynamic = 'force-dynamic';
 export default async function AdminDashboard({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; page?: string; status?: string; search?: string; membershipType?: string; district?: string; state?: string }>;
+  searchParams: Promise<{ tab?: string; page?: string; status?: string; search?: string; membershipType?: string; district?: string; state?: string; package?: string; year?: string; month?: string }>;
 }) {
   const params = await searchParams;
   const tab = params.tab || 'all';
