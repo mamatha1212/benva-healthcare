@@ -162,7 +162,7 @@ export default function MembershipFormSection() {
                   <div className={styles.inputGroup}>
                     <label>District *</label>
                     <select name="district" value={formData.district} onChange={handleChange} disabled={!formData.state}>
-                      <option value="">Select District</option>
+                      <option value="">{formData.state ? 'Select District' : 'Please select state first'}</option>
                       {formData.state === 'Andhra Pradesh' && DISTRICTS_AP.map(d => <option key={d} value={d}>{d}</option>)}
                       {formData.state === 'Telangana' && DISTRICTS_TS.map(d => <option key={d} value={d}>{d}</option>)}
                     </select>

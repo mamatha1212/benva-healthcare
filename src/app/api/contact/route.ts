@@ -43,7 +43,7 @@ export async function POST(req: Request) {
 
     const adminInfo = await transporter.sendMail({
       from: '"BENVA Healthcare System" <noreply@benvahealthcare.com>',
-      to: 'admin@benvahealthcare.com',
+      to: 'mamatha14031995@gmail.com',
       subject: `New Contact Request: ${data.fullName}`,
       html: `
         <h2>New Contact Message</h2>

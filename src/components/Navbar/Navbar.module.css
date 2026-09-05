@@ -55,8 +55,7 @@
 
 /* Main nav */
 .mainNav {
-  background: #ffffff;
-  backdrop-filter: blur(10px);
+  background: #ffffff; /* White header */
   position: sticky;
   top: 0;
   z-index: 100;
@@ -70,7 +69,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  height: 60px;
+  height: 50px; /* Slimmer height */
 }
 
 /* Logo */
@@ -97,7 +96,7 @@
   font-family: var(--font-heading);
   font-size: 22px;
   font-weight: 800;
-  color: #fff;
+  color: #0f172a; /* Dark text on white */
   letter-spacing: -0.5px;
 }
 
@@ -105,7 +104,7 @@
   font-family: var(--font-heading);
   font-size: 22px;
   font-weight: 800;
-  color: var(--color-primary);
+  color: #02559d; /* Blue accent */
   letter-spacing: -0.5px;
 }
 
@@ -124,18 +123,18 @@
   display: flex;
   align-items: center;
   gap: 4px;
-  padding: 8px 14px;
-  color: var(--color-dark);
+  padding: 4px 10px; /* Slimmer padding */
+  color: #0f172a; /* Dark text for white bg */
   text-decoration: none;
-  font-size: 14.5px;
+  font-size: 14px;
   font-weight: 600;
   border-radius: 6px;
   transition: color 0.2s, background 0.2s;
 }
 
 .navLink:hover {
-  color: var(--color-primary);
-  background: rgba(220, 38, 38, 0.07);
+  color: #02559d;
+  background: #f0f9ff; /* Light blue hover */
 }
 
 /* Right actions */
@@ -149,41 +148,40 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  background: rgba(0, 0, 0, 0.04);
-  border: 1px solid rgba(0, 0, 0, 0.1);
+  width: 36px; /* Slightly smaller */
+  height: 36px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
   border-radius: 50%;
-  color: var(--color-dark);
+  color: #0f172a; /* Dark icon */
   cursor: pointer;
   transition: background 0.2s, border-color 0.2s, color 0.2s;
 }
 
 .searchBtn:hover {
-  background: var(--color-primary);
-  border-color: var(--color-primary);
+  background: #02559d;
   color: #fff;
 }
 
 .donateBtn {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 22px;
-  background: var(--color-primary);
-  color: #fff;
+  gap: 6px;
+  padding: 8px 16px; /* Slimmer button */
+  background: #02559d; /* Blue button */
+  color: #ffffff; /* White text */
   text-decoration: none;
   border-radius: 30px;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 700;
   transition: background 0.2s, transform 0.2s, box-shadow 0.2s;
-  box-shadow: 0 4px 16px rgba(232, 72, 30, 0.35);
+  box-shadow: 0 4px 10px rgba(2, 85, 157, 0.2);
 }
 
 .donateBtn:hover {
-  background: var(--color-primary-dark);
+  background: #024580;
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(232, 72, 30, 0.5);
+  box-shadow: 0 6px 15px rgba(2, 85, 157, 0.3);
 }
 
 /* Hamburger */
@@ -201,7 +199,7 @@
   display: block;
   width: 24px;
   height: 2px;
-  background: var(--color-dark);
+  background: #0f172a; /* Dark hamburger */
   border-radius: 2px;
   transition: 0.3s;
 }
@@ -254,8 +252,8 @@
   }
 
   .donateBtn {
-    padding: 6px 14px;
-    font-size: 12px;
+    padding: 6px 12px;
+    font-size: 10px;
   }
 
   .navInner {

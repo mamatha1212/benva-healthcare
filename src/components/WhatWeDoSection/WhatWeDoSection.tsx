@@ -1,6 +1,8 @@
 'use client';
 import React, { useState, useEffect, useCallback } from 'react';
 import styles from './WhatWeDoSection.module.css';
+import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
+import ScrollReveal from '../ScrollReveal/ScrollReveal';
 
 const services = [
   {
@@ -132,7 +134,7 @@ export default function WhatWeDoSection() {
     <section className={styles.section} id="services">
       <div className={styles.container}>
         <div className={styles.header}>
-          <h2>Our Healthcare Services</h2>
+          <AnimatedHeading as="h2" className={styles.heading}>Our Healthcare Services</AnimatedHeading>
         </div>
 
         <div className={styles.sliderContainer}>
@@ -140,7 +142,8 @@ export default function WhatWeDoSection() {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
           </button>
 
-          <div className={styles.bannerWrapper}>
+          <ScrollReveal animation="fadeUp" duration={0.8} style={{ width: '100%' }}>
+            <div className={styles.bannerWrapper}>
             {services.map((svc, idx) => {
               const isActive = idx === activeIndex;
               return (
@@ -171,7 +174,8 @@ export default function WhatWeDoSection() {
                 </div>
               );
             })}
-          </div>
+            </div>
+          </ScrollReveal>
 
           <button className={styles.navBtn} onClick={nextSlide} aria-label="Next slide">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>

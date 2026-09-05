@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import styles from './FaqSection.module.css';
 import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
+import ScrollReveal from '../ScrollReveal/ScrollReveal';
 
 const faqs = [
   {
@@ -48,6 +49,7 @@ const faqs = [
 
 export default function FaqSection() {
   const [openIndex, setOpenIndex] = useState<number | null>(null);
+  const [showAll, setShowAll] = useState(false);
 
   const toggleFaq = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
@@ -70,7 +72,7 @@ export default function FaqSection() {
               <div className={styles.diamond} />
               <div className={styles.line} />
             </div>
-            <span className={styles.tagline}>Frequently Asked Questions</span>
+            <span className={styles.tagline}>FAQs</span>
             <div className={styles.lineRight}>
               <div className={styles.line} />
               <div className={styles.diamond} />
@@ -81,44 +83,57 @@ export default function FaqSection() {
 
         {/* FAQ Accordion */}
         <div className={styles.accordionContainer}>
-          <div className={styles.accordionGrid}>
+          <div className={`${styles.accordionGrid} ${showAll ? styles.expanded : ''}`}>
             {faqs.map((faq, index) => {
               const isOpen = openIndex === index;
               return (
-                <div 
-                  key={index} 
-                  className={`${styles.accordionItem} ${isOpen ? styles.active : ''}`}
-                >
-                  <button 
-                    className={styles.accordionButton} 
-                    onClick={() => toggleFaq(index)}
-                    aria-expanded={isOpen}
-                  >
-                    <span className={styles.questionText}>{faq.question}</span>
-                    <span className={styles.iconWrapper}>
-                      <svg 
-                        className={`${styles.icon} ${isOpen ? styles.iconOpen : ''}`} 
-                        viewBox="0 0 24 24" 
-                        fill="none" 
-                        stroke="currentColor" 
-                        strokeWidth="2"
-                      >
-                        <polyline points="6 9 12 15 18 9"></polyline>
-                      </svg>
-                    </span>
-                  </button>
+                <ScrollReveal key={index} animation="fadeUp" delay={(index % 5) * 0.1}>
                   <div 
-                    className={styles.accordionContent}
-                    style={{ maxHeight: isOpen ? '200px' : '0' }}
+                    className={`${styles.accordionItem} ${isOpen ? styles.active : ''}`}
                   >
-                    <div className={styles.answerText}>
-                      {faq.answer}
+                    <button 
+                      className={styles.accordionButton} 
+                      onClick={() => toggleFaq(index)}
+                      aria-expanded={isOpen}
+                    >
+                      <span className={styles.questionText}>{faq.question}</span>
+                      <span className={styles.iconWrapper}>
+                        <svg 
+                          className={`${styles.icon} ${isOpen ? styles.iconOpen : ''}`} 
+                          viewBox="0 0 24 24" 
+                          fill="none" 
+                          stroke="currentColor" 
+                          strokeWidth="2"
+                        >
+                          <polyline points="6 9 12 15 18 9"></polyline>
+                        </svg>
+                      </span>
+                    </button>
+                    <div 
+                      className={styles.accordionContent}
+                      style={{ maxHeight: isOpen ? '200px' : '0' }}
+                    >
+                      <div className={styles.answerText}>
+                        {faq.answer}
+                      </div>
                     </div>
                   </div>
-                </div>
+                </ScrollReveal>
               );
             })}
           </div>
+          
+          {/* View More Button for Mobile */}
+          {!showAll && (
+            <div className={styles.viewMoreContainer}>
+              <button 
+                className={styles.viewMoreButton} 
+                onClick={() => setShowAll(true)}
+              >
+                View More FAQs
+              </button>
+            </div>
+          )}
         </div>
       </div>
     </section>

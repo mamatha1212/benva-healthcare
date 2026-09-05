@@ -4,17 +4,21 @@ import styles from './FloatingContactButtons.module.css';
 
 export default function FloatingContactButtons() {
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (phoneNumber.length >= 10) {
+      setIsSubmitting(true);
       try {
         const response = await fetch('/api/callback', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ mobile: phoneNumber }),
+          body: JSON.stringify({ fullName, mobile: phoneNumber }),
         });
         
         if (response.ok) {
@@ -22,11 +26,14 @@ export default function FloatingContactButtons() {
           setTimeout(() => {
             setIsModalOpen(false);
             setIsSubmitted(false);
+            setFullName('');
             setPhoneNumber('');
           }, 3000);
         }
       } catch (error) {
         console.error("Failed to submit callback request", error);
+      } finally {
+        setIsSubmitting(false);
       }
     }
   };
@@ -69,6 +76,17 @@ export default function FloatingContactButtons() {
                 <h3 className={styles.modalTitle}>Request a Callback</h3>
                 <p className={styles.modalSubtitle}>We will call you in 10 mins.</p>
 
+                <div className={styles.inputGroup} style={{ marginBottom: '16px' }}>
+                  <input
+                    type="text"
+                    className={styles.phoneInput}
+                    placeholder="Your Name"
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    required
+                  />
+                </div>
+
                 <div className={styles.inputGroup}>
                   <div className={styles.countryCode}>+91</div>
                   <input
@@ -81,8 +99,8 @@ export default function FloatingContactButtons() {
                   />
                 </div>
 
-                <button type="submit" className={styles.submitBtn}>
-                  Submit
+                <button type="submit" className={styles.submitBtn} disabled={isSubmitting}>
+                  {isSubmitting ? 'Submitting...' : 'Submit'}
                 </button>
               </form>
             ) : (

@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import styles from './Footer.module.css';
+import ScrollReveal from '../ScrollReveal/ScrollReveal';
 
 export default function Footer() {
   return (
@@ -10,7 +11,7 @@ export default function Footer() {
         <div className={styles.grid}>
           
           {/* Column 1: About & Contact */}
-          <div className={styles.col}>
+          <ScrollReveal animation="fadeUp" delay={0.1} className={styles.col}>
             <div className={styles.logoGroup}>
               <img src="/images/Benva%20NEW.png" alt="Benva Healthcare" style={{ height: '70px', width: 'auto', transform: 'scale(2.5)', transformOrigin: 'left center' }} />
             </div>
@@ -23,53 +24,53 @@ export default function Footer() {
               <p><strong>Email:</strong> Benvahealthcaresupport@gmail.com</p>
               <p><strong>Service Areas:</strong> Andhra Pradesh & Telangana</p>
             </div>
-          </div>
+          </ScrollReveal>
 
           {/* Column 2: Quick Links */}
-          <div className={styles.col}>
+          <ScrollReveal animation="fadeUp" delay={0.3} className={styles.col}>
             <h3 className={styles.heading}>
               Quick Links
               <div className={styles.headingLine} />
             </h3>
             <ul className={styles.linkList}>
               <li><a href="/">Home</a></li>
-              <li><a href="#lab-tests">Health Packages</a></li>
-              <li><a href="#checkups">Medicines</a></li>
-              <li><a href="#services-grid">Membership Card</a></li>
-              <li><a href="#home-healthcare">Home Healthcare</a></li>
-              <li><a href="#about">About Us</a></li>
-              <li><a href="#contact">Contact Us</a></li>
+              <li><a href="/about">About Us</a></li>
+              <li><a href="/services">All Services</a></li>
+              <li><a href="/contact">Contact Us</a></li>
+              <li><a href="/service-areas">Check Service Availability</a></li>
+              <li><a href="/#faq">FAQ</a></li>
             </ul>
-          </div>
+          </ScrollReveal>
 
           {/* Column 3: Services */}
-          <div className={styles.col}>
+          <ScrollReveal animation="fadeUp" delay={0.5} className={styles.col}>
             <h3 className={styles.heading}>
               Services
               <div className={styles.headingLine} />
             </h3>
             <ul className={styles.linkList}>
-              <li><a href="#premium-checkup">Full Body Health Checkup</a></li>
-              <li><a href="#doorstep">Home Sample Collection</a></li>
-              <li><a href="#checkups">Medicines Assistance</a></li>
-              <li><a href="#">Teleconsultation</a></li>
-              <li><a href="#services-grid">Membership Card</a></li>
-              <li><a href="#home-healthcare">Home Healthcare Services</a></li>
+              <li><a href="/health-packages">Full Body Health Checkup</a></li>
+              <li><a href="#">Home Sample Collection</a></li>
+              <li><a href="/medicines">Medicines</a></li>
+              <li><a href="/contact">Teleconsultation</a></li>
+              <li><a href="/membership">Membership Card</a></li>
+              <li><a href="/home-healthcare">Home Healthcare Services</a></li>
+              <li><a href="/diet-plan">Diet Plan</a></li>
             </ul>
-          </div>
+          </ScrollReveal>
 
           {/* Column 4: Legal & Social */}
-          <div className={styles.col}>
+          <ScrollReveal animation="fadeUp" delay={0.7} className={styles.col}>
             <h3 className={styles.heading}>
               Legal Links
               <div className={styles.headingLine} />
             </h3>
             <ul className={styles.linkList}>
-              <li><a href="/privacy-policy">Privacy Policy</a></li>
-              <li><a href="/terms-conditions">Terms & Conditions</a></li>
-              <li><a href="/refund-policy">Refund Policy</a></li>
-              <li><a href="/cancellation-policy">Cancellation Policy</a></li>
-              <li><a href="/disclaimer">Disclaimer</a></li>
+              <li><a href="/pages/privacy-policy">Privacy Policy</a></li>
+              <li><a href="/pages/terms-conditions">Terms & Conditions</a></li>
+              <li><a href="/pages/refund-policy">Refund Policy</a></li>
+              <li><a href="/pages/cancellation-policy">Cancellation Policy</a></li>
+              <li><a href="/pages/disclaimer">Disclaimer</a></li>
             </ul>
 
             <h3 className={styles.heading} style={{ marginTop: '30px' }}>
@@ -107,17 +108,10 @@ export default function Footer() {
                 </svg>
               </a>
             </div>
-          </div>
+          </ScrollReveal>
 
         </div>
 
-        {/* Important Disclaimer */}
-        <div className={styles.disclaimerSection}>
-          <h4>Important Disclaimer</h4>
-          <p>
-            BENVA Healthcare acts as a healthcare aggregator and facilitator. Laboratory testing, medicine services, teleconsultation and healthcare services are provided through respective healthcare partners and service providers.
-          </p>
-        </div>
 
       </div>
       
@@ -126,11 +120,6 @@ export default function Footer() {
         <div className={styles.bottomContainer}>
           <div className={styles.copyright}>
             © 2026 BENVA Healthcare. All Rights Reserved.
-          </div>
-          <div className={styles.footerLinks}>
-            <a href="/privacy-policy">Privacy Policy</a>
-            <a href="/terms-conditions">Terms & Conditions</a>
-            <a href="/disclaimer">Disclaimer</a>
           </div>
         </div>
       </div>

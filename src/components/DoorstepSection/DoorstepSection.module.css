@@ -1,12 +1,29 @@
 .section {
   position: relative;
-  background-color: #02559d;
-  padding: 60px 20px;
+  background: #f8fafc; /* Light background */
+  padding: 60px 20px; 
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   overflow: hidden;
+}
+
+.container {
+  max-width: 1050px;
+  width: 100%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 10;
+}
+
+.topRow {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  gap: 60px;
 }
 
 .bgGlow {
@@ -16,67 +33,74 @@
   transform: translate(-50%, -50%);
   width: 800px;
   height: 800px;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, rgba(2, 85, 157, 0) 70%);
+  background: radial-gradient(circle, rgba(2, 85, 157, 0.04) 0%, rgba(2, 85, 157, 0) 70%); /* Subtle blue glow */
   pointer-events: none;
   z-index: 1;
 }
 
 .sectionHeader {
-  text-align: center;
-  margin-bottom: 50px;
+  text-align: left; /* Left align for side-by-side */
+  margin-bottom: 0;
   opacity: 0;
   z-index: 10;
   width: 100%;
 }
 
 .heading {
-  font-size: clamp(32px, 5vw, 48px);
+  font-family: var(--font-heading);
+  font-size: clamp(26px, 4vw, 52px);
   font-weight: 800;
-  color: #ffffff;
-  margin-bottom: 12px;
-  line-height: 1.2;
+  line-height: 1.12;
+  color: var(--color-dark);
+  margin-bottom: 22px;
 }
 
 .subtitle {
-  font-size: 18px;
-  color: #e0f2fe;
+  font-size: 18px; 
+  color: #64748b; /* Slate text */
   font-weight: 500;
 }
 
 /* Cards Grid */
 .cardsGrid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
+  display: flex;
+  flex-direction: column; /* Stack cards vertically in right column */
   gap: 20px;
-  max-width: 1000px;
   width: 100%;
   z-index: 10;
-  margin-bottom: 60px;
+  margin-bottom: 0; 
   opacity: 0;
 }
 
 .mainCard {
-  background: #ffffff;
+  background: #ffffff; /* Light card */
+  border: 1px solid #e2e8f0;
+  border-left: 5px solid #02559d;
   border-radius: 16px;
-  padding: 16px 20px;
+  padding: 20px 24px;
   display: flex;
-  flex-direction: column;
-  justify-content: center;
-  gap: 12px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  align-items: center;
+  justify-content: space-between; 
+  gap: 20px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+  transition: transform 0.3s ease, box-shadow 0.3s ease, border-color 0.3s ease;
+}
+.mainCard:hover {
+  transform: translateY(-4px);
+  border-color: #cbd5e1;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.08);
 }
 
 /* Left Card Pill Items */
 .pillItem {
-  background: #f0fdfa; /* light blue/cyan */
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 12px 16px;
   display: flex;
   align-items: center;
   gap: 12px;
-}
-.pillItem:last-child {
-  background: #f0f9ff;
+  flex: 1;
 }
 
 .pillIcon {
@@ -89,9 +113,9 @@
 }
 
 .pillText {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 700;
-  color: #0369a1; /* matching text color to pill tone */
+  color: #334155; 
 }
 
 /* Right Card List Items */
@@ -106,7 +130,7 @@
   width: 36px;
   height: 36px;
   border-radius: 50%;
-  background: #f8fafc;
+  background: #f1f5f9;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -133,26 +157,29 @@
 .listContent span {
   font-size: 11px;
   font-weight: 600;
-  color: #94a3b8;
+  color: #64748b;
   margin-top: 2px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
 
 .divider {
-  height: 1px;
-  width: 100%;
-  background: #f1f5f9;
-  margin: 4px 0;
+  height: 40px;
+  width: 1px;
+  background: #e2e8f0;
+  margin: 0 10px;
 }
 
 /* Locations Timeline */
 .locationsTile {
   width: 100%;
-  max-width: 1000px;
   overflow: hidden;
-  padding: 40px 24px 20px 24px;
+  padding: 24px 24px 12px 24px; 
   opacity: 0;
+  background: #ffffff; 
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
 }
 
 .locationsHeader {
@@ -160,7 +187,7 @@
   align-items: center;
   justify-content: center;
   gap: 8px;
-  margin-bottom: 30px;
+  margin-bottom: 20px; 
 }
 
 .locationPin {
@@ -168,9 +195,9 @@
 }
 
 .locationsHeader h3 {
-  font-size: 22px;
-  color: #ffffff;
-  font-weight: 700;
+  font-size: 20px; 
+  color: #0f172a; 
+  font-weight: 800;
 }
 
 /* Timeline Styles */
@@ -214,8 +241,8 @@
   top: 18px;
   left: -16px;
   right: -16px;
-  height: 3px;
-  background-color: rgba(255,255,255,0.3);
+  height: 2px;
+  background-color: #cbd5e1;
   z-index: -1;
 }
 
@@ -244,9 +271,9 @@
 }
 
 .timelineCity {
-  color: #e0f2fe;
+  color: #475569; 
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px; 
   text-align: center;
   white-space: nowrap;
 }
@@ -278,33 +305,72 @@
 .navLeft { left: -10px; }
 .navRight { right: -10px; }
 
+/* CTA Wrapper inside locations tile */
+.ctaWrapper {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
+  padding-bottom: 8px;
+}
+
+.enquireBtn {
+  background: #0ea5e9;
+  color: #ffffff;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 28px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 15px rgba(14, 165, 233, 0.3);
+}
+
+.enquireBtn:hover {
+  background: #0284c7;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(14, 165, 233, 0.4);
+}
+
 /* Responsive */
 @media (max-width: 992px) {
-  .cardsGrid {
+  .topRow {
     grid-template-columns: 1fr;
-    max-width: 500px;
+    gap: 10px;
+  }
+  .sectionHeader {
+    text-align: center;
   }
 }
 
 @media (max-width: 768px) {
   .section { padding: 60px 20px; }
-  .heading { font-size: 28px; }
+  .heading { font-size: 32px; }
   .timelineCircle { width: 32px; height: 32px; }
   .timelineNode::before { top: 16px; }
   .timelineWrapper { padding: 0 30px; }
+  .mainCard {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .divider {
+    height: 1px;
+    width: 100%;
+    margin: 10px 0;
+  }
 }
 
 @media (max-width: 600px) {
   .section {
-    padding: 60px 14px;
+    padding: 30px 14px;
   }
 
   .sectionHeader {
-    margin-bottom: 20px;
+    margin-bottom: 12px;
   }
 
   .heading {
-    font-size: 22px;
+    font-size: 20px;
     margin-bottom: 4px;
     line-height: 1.25;
   }
@@ -315,15 +381,15 @@
   }
 
   .cardsGrid {
-    gap: 12px;
+    gap: 4px;
     margin-bottom: 20px;
   }
 
   .mainCard {
-    padding: 12px 14px;
-    border-radius: 14px;
-    gap: 8px;
-    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.1);
+    padding: 8px 10px;
+    border-radius: 10px;
+    gap: 6px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
   }
 
   /* Make Card 1 pills sit side-by-side on mobile */
@@ -334,9 +400,9 @@
 
   .pillItem {
     flex: 1;
-    padding: 10px 8px;
-    gap: 6px;
-    border-radius: 10px;
+    padding: 6px 4px;
+    gap: 4px;
+    border-radius: 8px;
     justify-content: center;
     flex-direction: column;
     text-align: center;
@@ -355,13 +421,13 @@
 
   /* Card 2 compact styling */
   .listItem {
-    padding: 4px 0;
-    gap: 10px;
+    padding: 2px 0;
+    gap: 8px;
   }
 
   .listIconWrap {
-    width: 32px;
-    height: 32px;
+    width: 28px;
+    height: 28px;
   }
 
   .listIcon {
@@ -383,14 +449,14 @@
 
   /* Timeline tile redesign */
   .locationsTile {
-    padding: 16px 12px;
-    border-radius: 14px;
+    padding: 10px 10px;
+    border-radius: 10px;
     background: rgba(255, 255, 255, 0.08);
     border: 1px solid rgba(255, 255, 255, 0.12);
   }
 
   .locationsHeader {
-    margin-bottom: 12px;
+    margin-bottom: 8px;
     gap: 6px;
   }
 

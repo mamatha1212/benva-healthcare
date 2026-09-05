@@ -4,30 +4,39 @@ import React from 'react';
 import Link from 'next/link';
 import { deletePackage } from './actions';
 import PackageForm from './PackageForm';
+import LeadsPagination from '@/components/LeadsPagination/LeadsPagination';
 
 export const dynamic = 'force-dynamic';
 
-export default async function PackagesDashboard({ searchParams }: { searchParams: Promise<{ editId?: string }> }) {
+export default async function PackagesDashboard({ searchParams }: { searchParams: Promise<{ editId?: string, page?: string }> }) {
   const resolvedParams = await searchParams;
+  const page = parseInt(resolvedParams?.page || '1');
+  const pageSize = 10;
   
-  const packages = await prisma.healthPackage.findMany({
+  const allPackages = await prisma.healthPackage.findMany({
     orderBy: { createdAt: 'desc' }
   });
 
-  const editPackage = resolvedParams?.editId ? packages.find(p => p.id === resolvedParams.editId) : null;
+  const totalPackages = allPackages.length;
+  const totalPages = Math.ceil(totalPackages / pageSize) || 1;
+  const currentPage = Math.min(Math.max(page, 1), totalPages);
+
+  const paginatedPackages = allPackages.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+  const editPackage = resolvedParams?.editId ? allPackages.find(p => p.id === resolvedParams.editId) : null;
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Manage Health Checkup Options</h1>
-        <p className={styles.subtitle}>Showing {packages.length} total packages.</p>
+        <p className={styles.subtitle}>Showing {paginatedPackages.length} of {totalPackages} total packages.</p>
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '30px', alignItems: 'start' }}>
         
         {/* Table List */}
         <div className={styles.tableContainer} style={{ margin: 0 }}>
-          {packages.length === 0 ? (
+          {allPackages.length === 0 ? (
             <div className={styles.emptyState}>No health packages found. Add one on the right.</div>
           ) : (
             <table className={styles.table}>
@@ -40,7 +49,7 @@ export default async function PackagesDashboard({ searchParams }: { searchParams
                 </tr>
               </thead>
               <tbody>
-                {packages.map((pkg) => (
+                {paginatedPackages.map((pkg) => (
                   <tr key={pkg.id} className={styles.tr}>
                     <td className={styles.td}>
                       {pkg.image && <img src={pkg.image} alt={pkg.title} style={{ width: '60px', height: '60px', objectFit: 'contain', background: '#f8fafc', borderRadius: '8px' }} />}
@@ -65,6 +74,8 @@ export default async function PackagesDashboard({ searchParams }: { searchParams
               </tbody>
             </table>
           )}
+          
+          <LeadsPagination currentPage={currentPage} totalPages={totalPages} />
         </div>
 
         {/* Add Form (Always on right) */}

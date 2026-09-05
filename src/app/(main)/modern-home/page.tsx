@@ -9,11 +9,10 @@ import HomeHealthcareFormSection from '@/components/HomeHealthcareFormSection/Ho
 import WhyChooseUsSection from '@/components/WhyChooseUsSection/WhyChooseUsSection';
 import DoorstepSection from '@/components/DoorstepSection/DoorstepSection';
 import WorkProcessSection from '@/components/WorkProcessSection/WorkProcessSection';
-import ServiceAreasSection from '@/components/ServiceAreasSection/ServiceAreasSection';
+
 import TestimonialSection from '@/components/TestimonialSection/TestimonialSection';
 import FaqSection from '@/components/FaqSection/FaqSection';
 import ContactSection from '@/components/ContactSection/ContactSection';
-import StatsSection from '@/components/StatsSection/StatsSection';
 
 export default function ModernHome() {
   return (
@@ -29,11 +28,10 @@ export default function ModernHome() {
       <WhyChooseUsSection />
       <DoorstepSection />
       <WorkProcessSection />
-      <ServiceAreasSection />
+
       <TestimonialSection />
       <FaqSection />
       <ContactSection />
-      <StatsSection />
     </main>
   );
 }

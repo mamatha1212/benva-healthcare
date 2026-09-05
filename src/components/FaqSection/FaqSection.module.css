@@ -1,6 +1,6 @@
 .section {
   position: relative;
-  background: #1a2542; /* Blue background */
+  background: #02559d; /* Requested blue background */
   padding: 60px 0 60px;
   overflow: hidden;
   font-family: 'Inter', sans-serif;
@@ -61,7 +61,7 @@
 .tagline {
   font-size: 17px;
   font-weight: 700;
-  color: var(--color-primary);
+  color: #ffffff; /* Changed to white */
   font-style: italic;
   letter-spacing: 0.5px;
 }
@@ -82,22 +82,24 @@
 .accordionGrid {
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  gap: 20px;
-  align-items: start; /* Prevent stretching */
+  gap: 24px;
+  align-items: start;
 }
 
 .accordionItem {
   background: #ffffff;
   border: 1px solid rgba(255, 255, 255, 0.1);
-  border-radius: 12px;
+  border-left: 5px solid #0ea5e9;
+  border-radius: 16px; /* Not completely rounded */
   overflow: hidden;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.1);
+  position: relative; /* For the decorative blue bg */
 }
 
 .accordionItem.active {
   border-color: var(--color-primary);
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 15px 35px rgba(0, 0, 0, 0.15);
 }
 
 .accordionButton {
@@ -105,12 +107,35 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 20px 24px;
+  padding: 16px 24px; /* Reduced from 28px 40px to make it slim */
   background: none;
   border: none;
   cursor: pointer;
   text-align: left;
   transition: background-color 0.2s ease;
+  position: relative;
+  z-index: 1;
+}
+
+/* Large decorative blue background on the right side, matching the reference's green circle */
+.accordionButton::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  right: -30px;
+  width: 100px; /* Reduced from 160px */
+  height: 100px;
+  background: rgba(14, 165, 233, 0.1); /* Soft blue bg */
+  border-radius: 50%;
+  transform: translateY(-50%);
+  z-index: -1;
+  transition: all 0.3s ease;
+  pointer-events: none;
+}
+
+.accordionItem.active .accordionButton::before {
+  background: rgba(14, 165, 233, 0.2);
+  transform: translateY(-50%) scale(1.1);
 }
 
 .accordionButton:hover {
@@ -122,10 +147,11 @@
 }
 
 .questionText {
-  font-size: 16px;
+  font-size: 15px; /* Reduced from 18px */
   font-weight: 700;
   color: #1e293b;
-  padding-right: 16px;
+  padding-right: 20px;
+  z-index: 1;
 }
 
 .active .questionText {
@@ -134,30 +160,32 @@
 
 .iconWrapper {
   flex-shrink: 0;
-  width: 32px;
+  width: 32px; /* Reduced from 44px */
   height: 32px;
   border-radius: 50%;
-  background: #f1f5f9;
+  background: var(--color-primary); /* Blue bg for icon */
   display: flex;
   align-items: center;
   justify-content: center;
-  color: #64748b;
+  color: #ffffff;
   transition: all 0.3s ease;
+  z-index: 1;
+  box-shadow: 0 4px 10px rgba(14, 165, 233, 0.3);
 }
 
 .active .iconWrapper {
-  background: var(--color-primary);
-  color: #ffffff;
+  background: #0284c7; /* Darker blue when active */
+  transform: rotate(180deg);
 }
 
 .icon {
-  width: 18px;
+  width: 18px; /* Reduced from 24px */
   height: 18px;
   transition: transform 0.3s ease;
 }
 
 .iconOpen {
-  transform: rotate(180deg);
+  /* Handled by wrapper rotation now for a smoother effect */
 }
 
 .accordionContent {
@@ -173,16 +201,73 @@
 }
 
 @media (max-width: 768px) {
+  .section {
+    padding: 32px 0 40px;
+  }
+  .header {
+    margin-bottom: 24px; /* Drastically reduce space between header and grid */
+  }
   .accordionContainer {
     /* padding: 24px; */
   }
   .accordionGrid {
     grid-template-columns: 1fr;
+    gap: 12px;
+  }
+  .accordionGrid:not(.expanded) > div:nth-child(n+5) {
+    display: none;
   }
   .accordionButton {
-    padding: 16px;
+    padding: 12px 16px;
+  }
+  .questionText {
+    font-size: 14px;
+    padding-right: 12px;
+  }
+  .iconWrapper {
+    width: 28px;
+    height: 28px;
+  }
+  .icon {
+    width: 14px;
+    height: 14px;
+  }
+  .accordionButton::before {
+    width: 80px;
+    height: 80px;
+    right: -20px;
   }
   .answerText {
     padding: 0 16px 16px;
+    font-size: 14px;
+  }
+  
+  .viewMoreContainer {
+    display: flex;
+    justify-content: center;
+    margin-top: 24px;
+  }
+  
+  .viewMoreButton {
+    background: transparent;
+    color: #ffffff;
+    border: 1px solid rgba(255, 255, 255, 0.3);
+    padding: 12px 24px;
+    border-radius: 24px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s ease;
+  }
+  
+  .viewMoreButton:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #ffffff;
+  }
+}
+
+@media (min-width: 769px) {
+  .viewMoreContainer {
+    display: none !important;
   }
 }

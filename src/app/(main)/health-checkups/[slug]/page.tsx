@@ -2,7 +2,8 @@ import { prisma } from '@/lib/prisma';
 import { notFound } from 'next/navigation';
 import styles from '@/components/PremiumCheckupSection/PremiumCheckupSection.module.css';
 import AnimatedHeading from '@/components/AnimatedHeading/AnimatedHeading';
-import Link from 'next/link';
+import BookCheckupButton from '@/components/PremiumCheckupSection/BookCheckupButton';
+import BookingFormSection from '@/components/BookingFormSection/BookingFormSection';
 import React from 'react';
 
 const checkIcon = (
@@ -22,27 +23,20 @@ export default async function PackageDetailsPage({ params }: { params: Promise<{
   const resolvedParams = await params;
   
   const pkg = await prisma.healthPackage.findUnique({
-    where: { slug: resolvedParams.slug }
+    where: { slug: resolvedParams.slug },
+    include: { 
+      profiles: { 
+        include: { parameters: { orderBy: { createdAt: 'asc' } } },
+        orderBy: { createdAt: 'asc' } 
+      } 
+    }
   });
 
   if (!pkg) {
     notFound();
   }
 
-  // Hardcoded for now as per request
-  const tests = [
-    { name: 'Complete Blood Count (CBC)', params: '22 Parameters' },
-    { name: 'Thyroid Profile', params: '3 Parameters' },
-    { name: 'Liver Function Profile', params: '11 Parameters' },
-    { name: 'Kidney Function Profile', params: '3 Parameters' },
-    { name: 'Lipid Profile', params: '7 Parameters' },
-    { name: 'Diabetes Profile', params: '2 Parameters' },
-    { name: 'HbA1c', params: 'Diabetes Monitoring' },
-    { name: 'Vitamin Profile', params: 'Vitamin D, B12' },
-    { name: 'Iron Profile', params: '4 Parameters' },
-    { name: 'Calcium Test', params: 'Bone Health' },
-    { name: 'Urine Examination', params: '18 Parameters' },
-  ];
+  // Tests are now fetched dynamically from pkg.tests
 
   return (
     <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
@@ -68,13 +62,7 @@ export default async function PackageDetailsPage({ params }: { params: Promise<{
                   <div>{simpleCheckIcon} Trusted Partner Labs</div>
                 </div>
 
-                <Link href="#contact" className={styles.mainBtn}>
-                  Book Health Checkup
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <line x1="5" y1="12" x2="19" y2="12"></line>
-                    <polyline points="12 5 19 12 12 19"></polyline>
-                  </svg>
-                </Link>
+                <BookCheckupButton title={pkg.title} price={pkg.price} />
               </div>
             </div>
 
@@ -89,12 +77,22 @@ export default async function PackageDetailsPage({ params }: { params: Promise<{
               <div className={styles.testsSection}>
                 <h3 className={styles.sectionTitle}>Tests Included</h3>
                 <div className={styles.testsGrid}>
-                  {tests.map((test, idx) => (
-                    <div key={idx} className={styles.testItem}>
-                      <span className={styles.testName}>{test.name}</span>
-                      <span className={styles.testParams}>{test.params}</span>
-                    </div>
-                  ))}
+                  {pkg.profiles && pkg.profiles.length > 0 ? pkg.profiles.map((profile, idx) => (
+                    <details key={idx} className={styles.testAccordion}>
+                      <summary className={styles.testAccordionSummary}>
+                        {profile.name} ({profile.parameters.length})
+                      </summary>
+                      <div className={styles.testAccordionContent}>
+                        <ul className={styles.testParamList}>
+                          {profile.parameters.map((p, pIdx) => (
+                            <li key={pIdx} className={styles.testParamItem}>{p.name}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </details>
+                  )) : (
+                    <div style={{ color: '#64748b', fontStyle: 'italic', padding: '10px' }}>No tests added yet.</div>
+                  )}
                 </div>
               </div>
 
@@ -141,6 +139,9 @@ export default async function PackageDetailsPage({ params }: { params: Promise<{
           </div>
         </div>
       </section>
+
+      {/* Render the modal which listens to openBookingModal event */}
+      <BookingFormSection />
     </div>
   );
 }

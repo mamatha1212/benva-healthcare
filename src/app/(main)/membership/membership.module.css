@@ -1,7 +1,7 @@
 /* ── Membership Page Hero ───────────────────────────────────────── */
 .hero {
   position: relative;
-  background: linear-gradient(135deg, #0f172a 0%, #02559d 50%, #5b21b6 100%);
+  background: linear-gradient(135deg, #0f172a 0%, #02559d 100%);
   padding: 120px 24px 80px;
   overflow: hidden;
   text-align: center;
@@ -14,81 +14,232 @@
   margin: 0 auto;
 }
 
-.heroBadge {
-  display: inline-block;
-  background: rgba(167, 139, 250, 0.2);
-  border: 1px solid rgba(167, 139, 250, 0.5);
-  color: #c4b5fd;
-  font-size: 14px;
-  font-weight: 700;
-  letter-spacing: 1px;
-  padding: 8px 20px;
+
+
+.heroApplyBtn {
+  margin-top: 32px;
+  background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+  color: #ffffff;
+  border: none;
   border-radius: 50px;
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+  animation: pulseHighlight 2s infinite;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.heroApplyBtn svg {
+  transition: transform 0.3s ease;
+}
+
+.heroApplyBtn:hover {
+  background: linear-gradient(90deg, #0ea5e9, #0284c7);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.heroApplyBtn:hover svg {
+  transform: translateX(4px);
+}
+
+@keyframes pulseHighlight {
+  0% { box-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
+  50% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.5), 0 0 20px rgba(56, 189, 248, 0.3); }
+  100% { box-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
+}
+
+/* ── Banner Section ── */
+.banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  width: 100%;
   margin-bottom: 24px;
+}
+
+.bannerDecor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.1;
+}
+
+.bannerCircle1 {
+  position: absolute;
+  top: -100px;
+  left: -50px;
+  width: 300px;
+  height: 300px;
+  background: radial-gradient(circle, #fff 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.bannerCircle2 {
+  position: absolute;
+  bottom: -150px;
+  right: -50px;
+  width: 400px;
+  height: 400px;
+  background: radial-gradient(circle, #fff 0%, transparent 70%);
+  border-radius: 50%;
+}
+
+.bannerTitle {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 900;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 0 24px 0;
+  text-shadow: 0 4px 10px rgba(0,0,0,0.4);
+}
+
+.bannerContent {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  width: 100%;
+}
+
+/* Pricing Box (Left) */
+.pricingBox {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 24px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  backdrop-filter: blur(10px);
+}
+
+.annualText {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #e2e8f0;
+  margin-bottom: 8px;
   text-transform: uppercase;
 }
 
-.heroTitle {
-  font-size: clamp(40px, 6vw, 64px);
+.priceDisplay {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.currency {
+  font-size: 40px;
   font-weight: 900;
-  font-family: var(--font-heading);
-  color: #fff;
-  line-height: 1.1;
-  margin-bottom: 20px;
+  color: #fbbf24; /* Gold */
 }
 
-.heroAccent {
-  color: #a78bfa;
+.amount {
+  font-size: 80px;
+  font-weight: 900;
+  color: #fbbf24;
+  line-height: 1;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.perYear {
+  font-size: 18px;
+  font-weight: 700;
+  color: #e2e8f0;
+  text-transform: uppercase;
+}
+
+.dailyCost {
+  background: #fbbf24;
+  color: #0f172a;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-top: 12px;
+}
+
+/* Value Box (Right) */
+.valueBox {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #0f172a;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.actualPriceText {
+  font-size: 14px;
+  font-weight: 800;
+  color: #475569;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.strikethroughPrice {
+  font-size: 48px;
+  font-weight: 900;
+  color: #0f172a;
   position: relative;
+  line-height: 1;
+  margin-bottom: 12px;
 }
 
-.heroAccent::after {
+.strikethroughPrice::after {
   content: '';
   position: absolute;
-  bottom: -4px;
-  left: 0;
-  right: 0;
+  top: 50%;
+  left: -10%;
+  right: -10%;
   height: 4px;
-  background: linear-gradient(90deg, #a78bfa, #7c3aed);
-  border-radius: 2px;
+  background-color: #ef4444; /* Red strike */
+  transform: translateY(-50%) rotate(-5deg);
 }
 
-.heroSubtitle {
+.saveBadge {
+  background: #ef4444;
+  color: #ffffff;
+  padding: 8px 24px;
+  border-radius: 8px;
   font-size: 18px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.bannerFooter {
+  margin-top: 32px;
+  font-size: 18px;
+  font-weight: 500;
   color: #cbd5e1;
-  line-height: 1.7;
-  margin-bottom: 48px;
-  font-weight: 400;
-  max-width: 620px;
-  margin-left: auto;
-  margin-right: auto;
-}
-
-/* Perks row */
-.heroPerks {
   display: flex;
   align-items: center;
-  justify-content: center;
-  gap: 24px;
-  flex-wrap: wrap;
+  gap: 16px;
 }
 
-.perkItem {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px solid rgba(255, 255, 255, 0.15);
-  padding: 10px 20px;
-  border-radius: 50px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #e2e8f0;
-  backdrop-filter: blur(8px);
-}
-
-.perkIcon {
-  font-size: 18px;
+.bannerFooter::before, .bannerFooter::after {
+  content: '';
+  height: 1px;
+  width: 40px;
+  background: #cbd5e1;
 }
 
 /* Decorative circles */
@@ -138,15 +289,62 @@
 /* ── Responsive ─────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .hero {
-    padding: 100px 20px 60px;
+    padding: 32px 16px 40px;
+  }
+  
+  .bannerTitle {
+    font-size: 24px;
+    margin: 0 0 16px 0;
+  }
+  
+  .bannerContent {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .pricingBox, .valueBox {
+    padding: 16px;
+    width: 100%;
   }
 
-  .heroPerks {
-    gap: 12px;
+  .amount {
+    font-size: 48px;
+  }
+  
+  .currency {
+    font-size: 24px;
   }
 
-  .perkItem {
-    font-size: 13px;
-    padding: 8px 14px;
+  .annualText, .actualPriceText {
+    font-size: 14px;
+  }
+
+  .strikethroughPrice {
+    font-size: 32px;
+  }
+
+  .saveBadge {
+    padding: 6px 16px;
+    font-size: 14px;
+  }
+
+  .dailyCost {
+    font-size: 12px;
+    padding: 4px 12px;
+  }
+  
+  .bannerFooter {
+    font-size: 14px;
+    margin-top: 16px;
+  }
+
+  .bannerFooter::before, .bannerFooter::after {
+    width: 20px;
+  }
+
+  .heroApplyBtn {
+    padding: 10px 24px;
+    font-size: 14px;
+    margin-top: 16px;
   }
 }

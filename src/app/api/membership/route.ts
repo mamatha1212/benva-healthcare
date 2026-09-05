@@ -31,9 +31,11 @@ export async function POST(req: Request) {
       }
     });
 
-    // 2. Setup Nodemailer (Using Ethereal for testing/mocking)
+    // 2. (Optional/Disabled) Setup Nodemailer
+    // Generating a test account on every request takes 2-3 seconds, causing slow submissions.
+    // Uncomment and configure with real SMTP credentials in production.
+    /*
     const testAccount = await nodemailer.createTestAccount();
-    
     const transporter = nodemailer.createTransport({
       host: "smtp.ethereal.email",
       port: 587,
@@ -44,28 +46,16 @@ export async function POST(req: Request) {
       },
     });
 
-    // 3. Send Email Notification
     const adminMailOptions = {
       from: '"BENVA System" <no-reply@benva.com>',
       to: "admin@benva.com", 
       subject: "New Membership Enquiry Received",
-      text: `
-New Membership Enquiry
-
-Name: ${fullName}
-Mobile: ${mobile}
-WhatsApp: ${whatsapp}
-Email: ${email || 'N/A'}
-State: ${state}
-District: ${district}
-Area: ${area}
-Pincode: ${pincode}
-Membership Type: ${membershipType}
-      `,
+      text: `...`
     };
 
     const adminInfo = await transporter.sendMail(adminMailOptions);
     console.log("Admin Email sent: %s", nodemailer.getTestMessageUrl(adminInfo));
+    */
 
     return NextResponse.json({ success: true, leadId: lead.id }, { status: 200 });
 

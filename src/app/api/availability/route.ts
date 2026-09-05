@@ -6,9 +6,9 @@ export async function POST(req: Request) {
   try {
     const data = await req.json();
 
-    if (!data.fullName || !data.mobile || !data.district || !data.area) {
+    if (!data.fullName || !data.mobile || !data.pincode) {
       return NextResponse.json(
-        { error: 'All fields are required.' },
+        { error: 'Name, Mobile, and Pincode are required.' },
         { status: 400 }
       );
     }
@@ -19,11 +19,11 @@ export async function POST(req: Request) {
         enquiryType: 'AVAILABILITY',
         fullName: data.fullName,
         mobile: data.mobile,
-        whatsapp: data.mobile, // Use mobile as whatsapp since it's required in schema
-        state: 'N/A', // Default value since it's not collected in this form
-        district: data.district,
-        area: data.area,
-        pincode: '000000', // Default value since it's not collected in this form
+        whatsapp: data.whatsapp || data.mobile, // Use mobile as whatsapp if not provided
+        state: data.requestedState || (data.state !== 'Other' ? data.state : 'Not Listed') || 'N/A',
+        district: data.requestedDistrict || (data.district !== 'Other' ? data.district : 'Not Listed') || 'Not Listed',
+        area: data.requestedArea || (data.area !== 'Other' ? data.area : 'Not Listed') || 'Not Listed',
+        pincode: data.pincode || '000000',
         status: 'New Lead',
       },
     });
@@ -48,8 +48,11 @@ export async function POST(req: Request) {
         <h2>New Area Availability Enquiry</h2>
         <p><strong>Name:</strong> ${data.fullName}</p>
         <p><strong>Mobile:</strong> ${data.mobile}</p>
-        <p><strong>District:</strong> ${data.district}</p>
-        <p><strong>Area / Locality:</strong> ${data.area}</p>
+        <p><strong>WhatsApp:</strong> ${data.whatsapp || data.mobile}</p>
+        <p><strong>State:</strong> ${data.requestedState ? `Requested: ${data.requestedState}` : (data.state || 'N/A')}</p>
+        <p><strong>District:</strong> ${data.requestedDistrict ? `Requested: ${data.requestedDistrict}` : (data.district || 'Not Listed')}</p>
+        <p><strong>Area / Locality:</strong> ${data.requestedArea ? `Requested: ${data.requestedArea}` : (data.area || 'Not Listed')}</p>
+        <p><strong>Pincode:</strong> ${data.pincode}</p>
         <br/>
         <p>Please contact the user to confirm service availability.</p>
       `,

@@ -1,18 +1,22 @@
 'use client';
 import React, { useEffect, useState } from 'react';
 import styles from './DoorstepSection.module.css';
-
-const cities = [
-  'Rajahmundry', 'Kakinada', 'Visakhapatnam', 'Vijayawada', 
-  'Tirupati', 'Nellore', 'Warangal', 'Karimnagar', 'Nizamabad'
-];
+import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
+import ScrollReveal from '../ScrollReveal/ScrollReveal';
+import AvailabilityFormModal from '../ServiceAreasSection/AvailabilityFormModal';
+import { getAreas } from './actions';
 
 export default function DoorstepSection() {
   const [mounted, setMounted] = useState(false);
+  const [cities, setCities] = useState<string[]>([]);
+  const [isModalOpen, setIsModalOpen] = useState(false);
   const scrollRef = React.useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     setMounted(true);
+    getAreas().then(data => {
+      if (data && data.length > 0) setCities(data);
+    });
 
     const scrollContainer = scrollRef.current;
     if (!scrollContainer) return;
@@ -56,12 +60,14 @@ export default function DoorstepSection() {
     <section className={styles.section} id="doorstep">
       <div className={styles.bgGlow}></div>
       
-      <div className={`${styles.sectionHeader} ${mounted ? styles.fadeInUp : ''}`} style={{ animationDelay: '0.1s' }}>
-        <h2 className={styles.heading}>Full Body Health Packages At Your Doorstep</h2>
-        <p className={styles.subtitle}>Professional Home Sample Collection Service</p>
-      </div>
+      <div className={styles.container}>
+        <div className={styles.topRow}>
+          <ScrollReveal animation="fadeUp" delay={0.1} className={styles.sectionHeader}>
+            <AnimatedHeading className={styles.heading}>Full Body Health Packages At Your Doorstep</AnimatedHeading>
+            <p className={styles.subtitle}>Professional Home Sample Collection Service</p>
+          </ScrollReveal>
 
-      <div className={`${styles.cardsGrid} ${mounted ? styles.fadeInUp : ''}`} style={{ animationDelay: '0.2s' }}>
+          <ScrollReveal animation="fadeUp" delay={0.2} className={styles.cardsGrid}>
         
         {/* Left Card */}
         <div className={styles.mainCard}>
@@ -109,10 +115,11 @@ export default function DoorstepSection() {
           </div>
         </div>
 
-      </div>
+        </ScrollReveal>
+        </div>
 
       {/* Locations Timeline Tile */}
-      <div className={`${styles.locationsTile} ${mounted ? styles.fadeInUp : ''}`} style={{ animationDelay: '0.4s' }}>
+      <ScrollReveal animation="fadeUp" delay={0.4} className={styles.locationsTile}>
         <div className={styles.locationsHeader}>
           <span className={styles.locationPin}>📍</span>
           <h3>Serving Andhra Pradesh & Telangana</h3>
@@ -124,7 +131,7 @@ export default function DoorstepSection() {
           </button>
           
           <div className={styles.timelineScroll} ref={scrollRef}>
-            {[...cities, ...cities, ...cities].map((city, index) => {
+            {cities.length > 0 ? [...cities, ...cities, ...cities].map((city, index) => {
               const colors = ['#38bdf8', '#fb923c', '#2dd4bf', '#a78bfa', '#34d399', '#f472b6', '#fbbf24', '#60a5fa', '#f87171'];
               return (
                 <div key={index} className={styles.timelineNode}>
@@ -134,14 +141,28 @@ export default function DoorstepSection() {
                   <span className={styles.timelineCity}>{city}</span>
                 </div>
               );
-            })}
+            }) : (
+              <div style={{ padding: '20px', color: '#64748b' }}>Loading areas...</div>
+            )}
           </div>
 
           <button className={`${styles.timelineNav} ${styles.navRight}`} onClick={() => scroll('right')}>
              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M9 18l6-6-6-6"/></svg>
           </button>
         </div>
+
+        <div className={styles.ctaWrapper}>
+          <button className={styles.enquireBtn} onClick={() => setIsModalOpen(true)}>
+            Check Service Availability
+          </button>
+        </div>
+      </ScrollReveal>
       </div>
+
+      <AvailabilityFormModal 
+        isOpen={isModalOpen} 
+        onClose={() => setIsModalOpen(false)} 
+      />
     </section>
   );
 }

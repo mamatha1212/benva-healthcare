@@ -2,35 +2,23 @@
 
 .section {
   position: relative;
-  background: #fdfdfd;
-  padding: 60px 0 60px;
+  background: linear-gradient(135deg, #f0f7fa 0%, #e0eaf5 100%); /* Softer, slightly blue-tinted background */
+  padding: 80px 0 100px;
   overflow: hidden;
-}
-
-/* Background Decor */
-.bgDecor {
-  position: absolute;
-  top: 0;
-  right: -50px;
-  width: 500px;
-  height: 500px;
-  opacity: 0.15;
-  pointer-events: none;
-  z-index: 0;
+  font-family: 'Inter', sans-serif;
 }
 
 .container {
   position: relative;
   z-index: 1;
-  max-width: 1280px;
+  max-width: 1200px;
   margin: 0 auto;
   padding: 0 32px;
 }
 
-/* ── Header ─────────────────────────────────────────────────── */
 .header {
   text-align: center;
-  margin-bottom: 60px;
+  margin-bottom: 70px;
 }
 
 .taglineWrapper {
@@ -65,195 +53,208 @@
 .tagline {
   font-size: 17px;
   font-weight: 700;
-  color: var(--color-primary);
+  color: #02559d;
   font-style: italic;
   letter-spacing: 0.5px;
 }
 
 .heading {
   font-family: var(--font-heading);
-  font-size: clamp(24px, 4vw, 48px);
-  font-weight: 900;
+  font-size: clamp(26px, 4vw, 52px);
+  font-weight: 800;
+  line-height: 1.12;
   color: var(--color-dark);
+  margin-bottom: 22px;
 }
 
-/* ── Process Grid ────────────────────────────────────────────── */
 .processWrapper {
   position: relative;
-  margin-top: 40px;
-}
-
-/* Dotted Line SVG */
-.dottedLineSvg {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  z-index: 0;
-  pointer-events: none;
+  display: flex;
+  flex-direction: column;
+  gap: 30px;
 }
 
 .grid {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 12px;
-  position: relative;
-  z-index: 1;
-}
-
-/* Individual Card */
-.card {
-  display: grid;
-  grid-template-rows: 1fr 1fr;
-  align-items: center;
-  justify-items: center;
-  gap: 30px;
-  min-height: 400px;
-}
-
-/* Position mapping based on isUp */
-.cardUp .textBlock {
-  grid-row: 1;
-}
-.cardUp .hexagonWrapper {
-  grid-row: 2;
-}
-
-.cardDown .hexagonWrapper {
-  grid-row: 1;
-}
-.cardDown .textBlock {
-  grid-row: 2;
-}
-
-/* Text Block */
-.textBlock {
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  padding: 0 8px;
-}
-
-.numBadge {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  font-family: var(--font-heading);
-  font-size: 26px;
-  font-weight: 900;
-  color: var(--color-dark);
-  margin-bottom: 20px;
-}
-
-.numBadge::after {
-  content: '';
-  width: 32px;
-  height: 3px;
-  background: var(--color-primary);
-  border-radius: 2px;
-  margin-top: 8px;
-}
-
-.title {
-  font-family: var(--font-heading);
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--color-dark);
-  margin-bottom: 12px;
-}
-
-.desc {
-  font-size: 13px;
-  color: #718096;
-  line-height: 1.6;
-}
-
-/* Hexagon Icon */
-.hexagonWrapper {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  width: 100%;
-  height: 100%;
-}
-
-.hexagon {
-  width: 140px;
-  height: 122px;
-  background-image: url('data:image/svg+xml;utf8,<svg viewBox="0 0 100 90" xmlns="http://www.w3.org/2000/svg"><polygon points="25,2 75,2 98,45 75,88 25,88 2,45" fill="white" stroke="%232d7a72" stroke-width="1.5"/></svg>');
-  background-size: contain;
-  background-repeat: no-repeat;
-  background-position: center;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--color-dark);
-  transition: transform 0.3s ease, filter 0.3s ease;
-  filter: drop-shadow(0 4px 12px rgba(0,0,0,0.04));
-}
-
-.card:hover .hexagon {
-  transform: translateY(-5px);
-  filter: drop-shadow(0 8px 24px rgba(45,122,114,0.15));
-  color: var(--color-primary);
-}
-
-.btnContainer {
-  text-align: center;
-  margin-top: 48px;
+  gap: 24px;
   position: relative;
   z-index: 2;
 }
 
-.btn {
-  display: inline-flex;
+/* Connecting Line */
+.connectingLine {
+  position: absolute;
+  top: 40%;
+  left: 5%;
+  right: 5%;
+  height: 2px;
+  background: linear-gradient(90deg, transparent, #38bdf8, transparent); /* Sky blue glow */
+  opacity: 0.6;
+  z-index: 1;
+  transform: translateY(-50%);
+}
+
+.card {
+  background: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(255, 255, 255, 1);
+  border-radius: 20px;
+  padding: 28px 20px; /* Slightly increased for desktop */
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+  transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  box-shadow: 0 10px 30px rgba(14, 165, 233, 0.05); /* Subtle blue shadow */
+  display: flex;
+  flex-direction: column;
   align-items: center;
-  gap: 12px;
-  padding: 16px 40px;
-  background: var(--color-primary);
-  color: #ffffff;
-  border: none;
-  border-radius: 30px;
-  font-size: 16px;
+  justify-content: flex-start;
+}
+
+.card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 20px 40px rgba(14, 165, 233, 0.12); /* Slightly stronger blue shadow on hover */
+  background: #ffffff;
+}
+
+.bgNumber {
+  position: absolute;
+  top: -15px;
+  right: -5px;
+  font-size: 80px; /* Reduced from 100px */
+  font-weight: 900;
+  color: rgba(14, 165, 233, 0.06); /* Sky blue watermark */
+  line-height: 1;
+  z-index: 0;
+  transition: color 0.4s ease;
+  pointer-events: none;
+}
+
+.card:hover .bgNumber {
+  color: rgba(14, 165, 233, 0.12);
+}
+
+.iconWrapper {
+  width: 56px; /* Reduced from 70px */
+  height: 56px;
+  min-width: 56px;
+  background: linear-gradient(135deg, #38bdf8 0%, #0284c7 100%); /* Bright sky blue to deep cerulean */
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #fff;
+  margin-bottom: 16px; /* Reduced from 24px */
+  position: relative;
+  z-index: 1;
+  box-shadow: 0 10px 20px rgba(2, 132, 199, 0.25);
+  transition: transform 0.4s ease, box-shadow 0.4s ease;
+}
+
+.iconWrapper svg {
+  width: 24px;
+  height: 24px;
+}
+
+.card:hover .iconWrapper {
+  transform: scale(1.1) rotate(5deg);
+  box-shadow: 0 15px 25px rgba(2, 132, 199, 0.35);
+}
+
+.textContent {
+  display: flex;
+  flex-direction: column;
+}
+
+.title {
+  font-size: 16px; /* Reduced from 18px */
   font-weight: 700;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  font-family: 'Inter', sans-serif;
-  text-transform: uppercase;
-  letter-spacing: 1px;
+  color: #0f172a;
+  margin-bottom: 8px; /* Reduced from 12px */
+  position: relative;
+  z-index: 1;
 }
 
-.btn:hover {
-  background: #2d7a72;
-  transform: translateY(-2px);
-  box-shadow: 0 10px 20px rgba(0,0,0,0.1);
+.desc {
+  font-size: 13px; /* Reduced from 14px */
+  color: #475569;
+  line-height: 1.5;
+  position: relative;
+  z-index: 1;
 }
 
-/* ── Responsive ───────────────────────────────────────────────── */
-@media (max-width: 1000px) {
+
+
+@media (max-width: 1024px) {
+  .grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .connectingLine {
+    display: none;
+  }
+}
+
+@media (max-width: 768px) {
   .grid {
     grid-template-columns: repeat(2, 1fr);
-    row-gap: 60px;
   }
-
-  .dottedLineSvg {
-    display: none; /* Zigzag SVG doesn't map to 2-col properly */
-  }
-
-  /* Reset ordering for 2-col grid */
-  .card {
-    min-height: auto;
-    grid-template-rows: auto auto;
-    gap: 20px;
-  }
-  .cardUp .textBlock, .cardDown .textBlock { grid-row: 1; }
-  .cardUp .hexagonWrapper, .cardDown .hexagonWrapper { grid-row: 2; }
 }
 
-@media (max-width: 500px) {
+@media (max-width: 600px) {
   .grid {
-    grid-template-columns: 1fr;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+    flex-wrap: nowrap;
+    gap: 16px;
+    padding: 20px 10vw 30px;
+    display: flex;
+    overflow: auto hidden;
+  }
+  .grid::-webkit-scrollbar {
+    display: none;
+  }
+  .grid > div {
+    flex: 0 0 80vw;
+    scroll-snap-align: center;
+  }
+  .card {
+    height: 100%;
+    flex-direction: column;
+    align-items: center;
+    justify-content: flex-start;
+    padding: 30px;
+    text-align: center;
+  }
+  .iconWrapper {
+    width: 48px;
+    height: 48px;
+    min-width: 48px;
+    margin-bottom: 12px;
+    margin-right: 0;
+  }
+  .iconWrapper svg {
+    width: 20px;
+    height: 20px;
+  }
+  .bgNumber {
+    font-size: 70px;
+    top: -15px;
+    right: 5px;
+  }
+  .title {
+    font-size: 15px;
+    margin-bottom: 6px;
+  }
+  .desc {
+    font-size: 12px;
+  }
+  .section {
+    padding: 50px 0px;
+  }
+  .header {
+    margin-bottom: 30px;
   }
 }

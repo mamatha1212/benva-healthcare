@@ -3,56 +3,20 @@
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
 
-// --- Categories ---
-
-export async function addTestCategory(formData: FormData) {
-  const name = formData.get('name') as string;
-  
-  if (!name) return;
-
-  await prisma.testCategory.create({
-    data: { name }
-  });
-
-  revalidatePath('/admin/tests');
-}
-
-export async function updateTestCategory(id: string, formData: FormData) {
-  const name = formData.get('name') as string;
-
-  if (!name) return;
-
-  await prisma.testCategory.update({
-    where: { id },
-    data: { name }
-  });
-
-  revalidatePath('/admin/tests');
-}
-
-export async function deleteTestCategory(formData: FormData) {
-  const id = formData.get('id') as string;
-  if (!id) return;
-
-  await prisma.testCategory.delete({
-    where: { id }
-  });
-
-  revalidatePath('/admin/tests');
-}
-
 // --- Tests ---
 
 export async function addTestItem(formData: FormData) {
   const name = formData.get('name') as string;
-  const categoryId = formData.get('categoryId') as string;
+  const parameters = formData.get('parameters') as string;
+  const packageId = formData.get('packageId') as string;
 
-  if (!name || !categoryId) return;
+  if (!name || !parameters || !packageId) return;
 
-  await prisma.testItem.create({
+  await prisma.packageTest.create({
     data: {
       name,
-      categoryId
+      parameters,
+      packageId
     }
   });
 
@@ -61,12 +25,13 @@ export async function addTestItem(formData: FormData) {
 
 export async function updateTestItem(id: string, formData: FormData) {
   const name = formData.get('name') as string;
+  const parameters = formData.get('parameters') as string;
   
-  if (!name) return;
+  if (!name || !parameters) return;
 
-  await prisma.testItem.update({
+  await prisma.packageTest.update({
     where: { id },
-    data: { name }
+    data: { name, parameters }
   });
 
   revalidatePath('/admin/tests');
@@ -76,7 +41,7 @@ export async function deleteTestItem(formData: FormData) {
   const id = formData.get('id') as string;
   if (!id) return;
 
-  await prisma.testItem.delete({
+  await prisma.packageTest.delete({
     where: { id }
   });
 

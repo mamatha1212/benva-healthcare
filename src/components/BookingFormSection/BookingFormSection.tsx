@@ -33,8 +33,19 @@ export default function BookingFormSection() {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
 
+  const [selectedPackage, setSelectedPackage] = useState({ title: 'BENVA Premium Full Body Health Checkup', price: '1,999' });
+
   useEffect(() => {
-    const handleOpen = () => setIsOpen(true);
+    const handleOpen = (e: Event) => {
+      const customEvent = e as CustomEvent;
+      if (customEvent.detail) {
+        setSelectedPackage({
+          title: customEvent.detail.title || 'BENVA Premium Full Body Health Checkup',
+          price: customEvent.detail.price || '1,999'
+        });
+      }
+      setIsOpen(true);
+    };
     window.addEventListener('openBookingModal', handleOpen);
     return () => window.removeEventListener('openBookingModal', handleOpen);
   }, []);
@@ -66,7 +77,6 @@ export default function BookingFormSection() {
     const newErrors: Record<string, string> = {};
     if (!formData.fullName.trim()) newErrors.fullName = 'Full Name is required';
     if (!formData.mobile.trim()) newErrors.mobile = 'Mobile Number is required';
-    if (!formData.whatsapp.trim()) newErrors.whatsapp = 'WhatsApp Number is required';
     if (!formData.state) newErrors.state = 'State is required';
     if (!formData.district) newErrors.district = 'District is required';
     if (!formData.area.trim()) newErrors.area = 'Area / Locality is required';
@@ -87,7 +97,7 @@ export default function BookingFormSection() {
         const response = await fetch('/api/book-checkup', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(formData)
+          body: JSON.stringify({ ...formData, packageTitle: selectedPackage.title, packagePrice: selectedPackage.price })
         });
 
         if (response.ok) {
@@ -152,7 +162,7 @@ export default function BookingFormSection() {
                 {errors.mobile && <span className={styles.errorText}>{errors.mobile}</span>}
               </div>
               <div className={styles.field}>
-                <label className={styles.label}>WhatsApp Number <span>*</span></label>
+                <label className={styles.label}>WhatsApp Number</label>
                 <input type="tel" name="whatsapp" placeholder="e.g. 9876543210" value={formData.whatsapp} onChange={handleInputChange} className={`${styles.input} ${errors.whatsapp ? styles.error : ''}`} />
                 {errors.whatsapp && <span className={styles.errorText}>{errors.whatsapp}</span>}
               </div>
@@ -179,7 +189,7 @@ export default function BookingFormSection() {
               <div className={styles.field}>
                 <label className={styles.label}>District <span>*</span></label>
                 <select name="district" value={formData.district} onChange={handleInputChange} disabled={!formData.state} className={`${styles.input} ${errors.district ? styles.error : ''}`}>
-                  <option value="">Select District</option>
+                  <option value="">{formData.state ? 'Select District' : 'Please select state first'}</option>
                   {availableDistricts.map(dist => (
                     <option key={dist} value={dist}>{dist}</option>
                   ))}
@@ -225,8 +235,8 @@ export default function BookingFormSection() {
           <div className={styles.formGroup}>
             <div className={styles.groupTitle}>Selected Package</div>
             <div className={styles.packageBox}>
-              <span className={styles.packageTitle}>BENVA Premium Full Body Health Checkup</span>
-              <span className={styles.packagePrice}>₹1,999</span>
+              <span className={styles.packageTitle}>{selectedPackage.title}</span>
+              <span className={styles.packagePrice}>₹{selectedPackage.price}</span>
             </div>
           </div>
 

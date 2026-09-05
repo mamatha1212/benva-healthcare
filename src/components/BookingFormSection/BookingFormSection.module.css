@@ -43,6 +43,7 @@
   cursor: pointer;
   color: #4a5568;
   transition: all 0.2s ease;
+  z-index: 10;
 }
 
 .closeBtn:hover {
@@ -320,6 +321,10 @@
 @media (max-width: 640px) {
   .modalContainer {
     padding: 32px 20px;
+  }
+  
+  .heading {
+    font-size: 28px;
   }
   
   .formGrid {

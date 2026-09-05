@@ -1,6 +1,8 @@
 'use client';
 import React, { useState } from 'react';
 import styles from './WhyChooseUsSection.module.css';
+import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
+import ScrollReveal from '../ScrollReveal/ScrollReveal';
 
 const features = [
   {
@@ -66,10 +68,9 @@ export default function WhyChooseUsSection() {
         {/* ── Header ── */}
         <div className={styles.header}>
           <span className={styles.eyebrow}>Why BENVA?</span>
-          <h2 className={styles.title}>
-            Healthcare made <span className={styles.accent}>simple</span>,<br />
-            delivered with <span className={styles.accent}>trust</span>.
-          </h2>
+          <AnimatedHeading className={styles.title}>
+            Healthcare made simple, delivered with trust.
+          </AnimatedHeading>
         </div>
 
         {/* ── Bento Grid ── */}
@@ -77,10 +78,10 @@ export default function WhyChooseUsSection() {
 
           {/* Feature cards — 6 items */}
           {features.map((f, i) => (
-            <div
-              key={i}
-              className={`${styles.card} ${hovered === i ? styles.cardActive : ''}`}
-              style={{ '--c': f.color } as React.CSSProperties}
+            <ScrollReveal key={i} animation="fadeUp" delay={i * 0.1}>
+              <div
+                className={`${styles.card} ${hovered === i ? styles.cardActive : ''}`}
+                style={{ '--c': f.color } as React.CSSProperties}
               onMouseEnter={() => setHovered(i)}
               onMouseLeave={() => setHovered(null)}
             >
@@ -92,12 +93,14 @@ export default function WhyChooseUsSection() {
                 <h3 className={styles.cardTitle}>{f.title}</h3>
                 <p className={styles.cardDesc}>{f.desc}</p>
               </div>
-              <div className={styles.cardBar} />
-            </div>
+                <div className={styles.cardBar} />
+              </div>
+            </ScrollReveal>
           ))}
 
           {/* Wide summary card */}
-          <div className={styles.summaryCard}>
+          <ScrollReveal animation="fadeUp" delay={0.6} style={{ gridColumn: '1 / -1' }}>
+            <div className={styles.summaryCard}>
             <div className={styles.summaryLeft}>
               <h3 className={styles.summaryHeading}>What we cover</h3>
               <div className={styles.pills}>
@@ -116,6 +119,7 @@ export default function WhyChooseUsSection() {
               </button>
             </div>
           </div>
+          </ScrollReveal>
 
         </div>
       </div>

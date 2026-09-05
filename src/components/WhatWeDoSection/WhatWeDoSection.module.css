@@ -20,10 +20,13 @@
   margin-bottom: 50px;
 }
 
-.header h2 {
-  font-size: clamp(32px, 5vw, 42px);
-  color: #0f172a;
+.heading {
+  font-family: var(--font-heading);
+  font-size: clamp(26px, 4vw, 52px);
   font-weight: 800;
+  line-height: 1.12;
+  color: var(--color-dark);
+  margin-bottom: 22px;
 }
 
 .sliderContainer {
@@ -235,8 +238,8 @@
 }
 
 @media (max-width: 600px) {
-  .section { padding: 60px 12px; }
-  .header { margin-bottom: 16px; }
+  .section { padding: 20px 12px; }
+  .header { margin-bottom: 12px; }
   .header h2 { font-size: 22px; }
   
   .bannerWrapper { min-height: 165px; border-radius: 16px; }

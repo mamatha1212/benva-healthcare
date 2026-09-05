@@ -26,6 +26,8 @@ model Lead {
   membershipType String?
   serviceType    String?
   status         String   @default("New Lead")
+  isCallDone     Boolean  @default(false)
+  remarks        String?
   createdAt      DateTime @default(now())
 }
 
@@ -43,21 +45,67 @@ model HealthPackage {
   isPopular     Boolean  @default(false)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
+  tests         PackageTest[]
+  profiles      TestProfile[]
 }
 
-model TestCategory {
+model PackageTest {
   id          String        @id @default(cuid())
   name        String
+  parameters  String
+  package     HealthPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  packageId   String
   order       Int           @default(0)
   createdAt   DateTime      @default(now())
-  tests       TestItem[]
 }
 
-model TestItem {
-  id          String        @id @default(cuid())
-  name        String
-  category    TestCategory  @relation(fields: [categoryId], references: [id], onDelete: Cascade)
-  categoryId  String
-  order       Int           @default(0)
-  createdAt   DateTime      @default(now())
+model TestProfile {
+  id         String          @id @default(cuid())
+  name       String          @unique
+  parameters TestParameter[]
+  packages   HealthPackage[]
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+}
+
+model TestParameter {
+  id        String      @id @default(cuid())
+  name      String
+  profile   TestProfile @relation(fields: [profileId], references: [id], onDelete: Cascade)
+  profileId String
+  createdAt DateTime    @default(now())
+}
+
+model State {
+  id        String     @id @default(cuid())
+  name      String     @unique
+  districts District[]
+  createdAt DateTime   @default(now())
+}
+
+model District {
+  id        String   @id @default(cuid())
+  name      String   @unique
+  state     State    @relation(fields: [stateId], references: [id], onDelete: Cascade)
+  stateId   String
+  areas     Area[]
+  createdAt DateTime @default(now())
+}
+
+model Area {
+  id         String   @id @default(cuid())
+  name       String
+  district   District @relation(fields: [districtId], references: [id], onDelete: Cascade)
+  districtId String
+  createdAt  DateTime @default(now())
+}
+
+model StaticPage {
+  id        String   @id @default(cuid())
+  title     String
+  slug      String   @unique
+  content   String
+  isActive  Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 }

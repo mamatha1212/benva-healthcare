@@ -1,4 +1,4 @@
-import CenteredHeroBanner from '@/components/CenteredHeroBanner/CenteredHeroBanner';
+import HeroVariant4 from '@/components/HeroVariant4/HeroVariant4';
 import AboutSection from '@/components/AboutSection/AboutSection';
 import BookingFormSection from '@/components/BookingFormSection/BookingFormSection';
 import WhatWeDoSection from '@/components/WhatWeDoSection/WhatWeDoSection';
@@ -7,16 +7,15 @@ import HomeHealthcareFormSection from '@/components/HomeHealthcareFormSection/Ho
 import WhyChooseUsSection from '@/components/WhyChooseUsSection/WhyChooseUsSection';
 import DoorstepSection from '@/components/DoorstepSection/DoorstepSection';
 import WorkProcessSection from '@/components/WorkProcessSection/WorkProcessSection';
-import ServiceAreasSection from '@/components/ServiceAreasSection/ServiceAreasSection';
+
 import TestimonialSection from '@/components/TestimonialSection/TestimonialSection';
 import FaqSection from '@/components/FaqSection/FaqSection';
 import ContactSection from '@/components/ContactSection/ContactSection';
-import StatsSection from '@/components/StatsSection/StatsSection';
 
 export default function Home() {
   return (
     <main>
-      <CenteredHeroBanner />
+      <HeroVariant4 />
       <div style={{ position: 'relative', zIndex: 1 }}>
         <WhatWeDoSection />
       </div>
@@ -27,11 +26,10 @@ export default function Home() {
       <WhyChooseUsSection />
       <DoorstepSection />
       <WorkProcessSection />
-      <ServiceAreasSection />
+
       <TestimonialSection />
       <FaqSection />
       <ContactSection />
-      <StatsSection />
     </main>
   );
 }

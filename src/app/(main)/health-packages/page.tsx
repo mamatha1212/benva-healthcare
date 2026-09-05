@@ -23,7 +23,7 @@ export default async function HealthPackagesPage() {
       </header>
 
       {/* ── Package List ── */}
-      <main className={styles.packageList}>
+      <main id="packages" className={styles.packageList}>
         {packages.map((pkg) => (
           <div 
             key={pkg.id} 

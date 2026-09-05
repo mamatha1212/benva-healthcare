@@ -10,7 +10,6 @@ interface AnimatedHeadingProps {
 
 export default function AnimatedHeading({ children, className = '', as = 'h2' }: AnimatedHeadingProps) {
   const [isVisible, setIsVisible] = useState(false);
-  const [displayedText, setDisplayedText] = useState('');
   const ref = useRef<HTMLHeadingElement>(null);
 
   // Helper to extract text from ReactNode safely
@@ -23,6 +22,7 @@ export default function AnimatedHeading({ children, className = '', as = 'h2' }:
   };
 
   const textContent = extractText(children);
+  const words = textContent.split(' ');
 
   useEffect(() => {
     const observer = new IntersectionObserver(
@@ -41,33 +41,24 @@ export default function AnimatedHeading({ children, className = '', as = 'h2' }:
     return () => observer.disconnect();
   }, []);
 
-  const [isTyping, setIsTyping] = useState(false);
-
-  useEffect(() => {
-    if (isVisible && textContent) {
-      const words = textContent.split(' ');
-      let i = 0;
-      setDisplayedText('');
-      setIsTyping(true);
-      const intervalId = setInterval(() => {
-        setDisplayedText(words.slice(0, i + 1).join(' '));
-        i++;
-        if (i >= words.length) {
-          clearInterval(intervalId);
-          setIsTyping(false);
-        }
-      }, 150); // Speed per word (150ms)
-      
-      return () => clearInterval(intervalId);
-    }
-  }, [isVisible, textContent]);
-
   const Component = as;
 
   return (
-    <Component ref={ref} className={className}>
-      {isVisible ? displayedText : ''}
-      {isTyping && <span className={styles.cursor} >|</span>}
+    <Component ref={ref} className={className} style={{ perspective: '400px' }}>
+      {words.map((word, index) => (
+        <React.Fragment key={index}>
+          <span className={styles.wordWrapper}>
+            <span 
+              className={`${styles.wordInner} ${isVisible ? styles.visible : ''}`} 
+              style={{ transitionDelay: `${index * 0.06}s` }}
+            >
+              {word}
+            </span>
+          </span>
+          {/* Add a regular space outside the wrapper so natural line wrapping works */}
+          {index < words.length - 1 ? ' ' : ''}
+        </React.Fragment>
+      ))}
     </Component>
   );
 }

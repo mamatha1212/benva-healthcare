@@ -6,23 +6,28 @@ import TestAdminClient from './TestAdminClient';
 export const dynamic = 'force-dynamic';
 
 export default async function TestsDashboard() {
-  const categories = await prisma.testCategory.findMany({
+  const packages = await prisma.healthPackage.findMany({
     include: {
-      tests: {
-        orderBy: { createdAt: 'asc' }
+      profiles: {
+        include: { parameters: true }
       }
     },
-    orderBy: { createdAt: 'asc' }
+    orderBy: { createdAt: 'desc' }
+  });
+
+  const profiles = await prisma.testProfile.findMany({
+    include: { parameters: { orderBy: { createdAt: 'asc' } } },
+    orderBy: { createdAt: 'desc' }
   });
 
   return (
     <div className={styles.container}>
       <div className={styles.header}>
         <h1 className={styles.title}>Manage Tests & Categories</h1>
-        <p className={styles.subtitle}>Organize test categories and the individual tests within them.</p>
+        <p className={styles.subtitle}>Organize test profiles and assign them to health packages.</p>
       </div>
 
-      <TestAdminClient categories={categories} />
+      <TestAdminClient packages={packages} profiles={profiles} />
     </div>
   );
 }
