@@ -121,8 +121,8 @@ export default function AvailabilityFormModal({ isOpen, onClose }: AvailabilityF
                     onChange={(e) => setFormData({ ...formData, state: e.target.value, district: '', area: '', requestedState: '', requestedDistrict: '', requestedArea: '' })}
                   >
                     <option value="">Select State</option>
-                    <option value="Andhra Pradesh">Andhra Pradesh</option>
-                    <option value="Telangana">Telangana</option>
+                    {locations.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
+                    <option value="Other">Other / Not Listed</option>
                   </select>
                 </div>
 

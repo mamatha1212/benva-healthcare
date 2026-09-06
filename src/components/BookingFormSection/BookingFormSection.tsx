@@ -2,16 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './BookingFormSection.module.css';
 import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
-
-const DISTRICTS_AP = [
-  'Visakhapatnam', 'Vijayawada', 'Guntur', 'Kakinada', 'Rajahmundry', 
-  'Nellore', 'Kurnool', 'Tirupati', 'Anantapur', 'Eluru', 'Other'
-];
-
-const DISTRICTS_TS = [
-  'Hyderabad', 'Warangal', 'Nizamabad', 'Karimnagar', 'Khammam', 
-  'Ramagundam', 'Mahbubnagar', 'Nalgonda', 'Adilabad', 'Other'
-];
+import { useLocations } from '@/hooks/useLocations';
 
 export default function BookingFormSection() {
   const [isOpen, setIsOpen] = useState(false);
@@ -32,6 +23,9 @@ export default function BookingFormSection() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState('');
+
+  const { locations, loading: locationsLoading } = useLocations();
 
   const [selectedPackage, setSelectedPackage] = useState({ title: 'BENVA Premium Full Body Health Checkup', price: '1,999' });
 
@@ -50,9 +44,7 @@ export default function BookingFormSection() {
     return () => window.removeEventListener('openBookingModal', handleOpen);
   }, []);
 
-  const availableDistricts = 
-    formData.state === 'Andhra Pradesh' ? DISTRICTS_AP : 
-    formData.state === 'Telangana' ? DISTRICTS_TS : [];
+
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
@@ -181,8 +173,7 @@ export default function BookingFormSection() {
                 <label className={styles.label}>State <span>*</span></label>
                 <select name="state" value={formData.state} onChange={handleInputChange} className={`${styles.input} ${errors.state ? styles.error : ''}`}>
                   <option value="">Select State</option>
-                  <option value="Andhra Pradesh">Andhra Pradesh</option>
-                  <option value="Telangana">Telangana</option>
+                  {locations.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                 </select>
                 {errors.state && <span className={styles.errorText}>{errors.state}</span>}
               </div>
@@ -190,15 +181,20 @@ export default function BookingFormSection() {
                 <label className={styles.label}>District <span>*</span></label>
                 <select name="district" value={formData.district} onChange={handleInputChange} disabled={!formData.state} className={`${styles.input} ${errors.district ? styles.error : ''}`}>
                   <option value="">{formData.state ? 'Select District' : 'Please select state first'}</option>
-                  {availableDistricts.map(dist => (
-                    <option key={dist} value={dist}>{dist}</option>
+                  {locations.find(s => s.name === formData.state)?.districts.map((d: any) => (
+                    <option key={d.id} value={d.name}>{d.name}</option>
                   ))}
                 </select>
                 {errors.district && <span className={styles.errorText}>{errors.district}</span>}
               </div>
               <div className={styles.field}>
                 <label className={styles.label}>Area / Locality <span>*</span></label>
-                <input type="text" name="area" placeholder="e.g. Sarpavaram" value={formData.area} onChange={handleInputChange} className={`${styles.input} ${errors.area ? styles.error : ''}`} />
+                <select name="area" value={formData.area} onChange={handleInputChange} disabled={!formData.district} className={`${styles.input} ${errors.area ? styles.error : ''}`}>
+                  <option value="">{formData.district ? 'Select Area' : 'Please select district first'}</option>
+                  {locations.find(s => s.name === formData.state)?.districts.find((d: any) => d.name === formData.district)?.areas.map((a: any) => (
+                    <option key={a.id} value={a.name}>{a.name}</option>
+                  ))}
+                </select>
                 {errors.area && <span className={styles.errorText}>{errors.area}</span>}
               </div>
               <div className={styles.field}>

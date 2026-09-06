@@ -2,22 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './HomeHealthcareFormSection.module.css';
 import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
-
-const DISTRICTS_AP = [
-  'Anantapur', 'Chittoor', 'East Godavari', 'Guntur', 'Krishna', 'Kurnool', 
-  'Prakasam', 'SPSR Nellore', 'Srikakulam', 'Visakhapatnam', 'Vizianagaram', 
-  'West Godavari', 'YSR Kadapa'
-];
-
-const DISTRICTS_TS = [
-  'Adilabad', 'Bhadradri Kothagudem', 'Hyderabad', 'Jagtial', 'Jangaon', 
-  'Jayashankar Bhupalpally', 'Jogulamba Gadwal', 'Kamareddy', 'Karimnagar', 
-  'Khammam', 'Komaram Bheem', 'Mahabubabad', 'Mahabubnagar', 'Mancherial', 
-  'Medak', 'Medchal', 'Mulugu', 'Nagarkurnool', 'Nalgonda', 'Narayanpet', 
-  'Nirmal', 'Nizamabad', 'Peddapalli', 'Rajanna Sircilla', 'Rangareddy', 
-  'Sangareddy', 'Siddipet', 'Suryapet', 'Vikarabad', 'Wanaparthy', 
-  'Warangal Rural', 'Warangal Urban', 'Yadadri Bhuvanagiri'
-];
+import { useLocations } from '@/hooks/useLocations';
 
 const SERVICES = [
   'BP Check At Home',
@@ -40,6 +25,8 @@ export default function HomeHealthcareFormSection() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  const { locations } = useLocations();
 
   useEffect(() => {
     const handleOpen = () => setIsOpen(true);
@@ -165,23 +152,28 @@ export default function HomeHealthcareFormSection() {
                     <label>State *</label>
                     <select name="state" value={formData.state} onChange={handleChange}>
                       <option value="">Select State</option>
-                      <option value="Andhra Pradesh">Andhra Pradesh</option>
-                      <option value="Telangana">Telangana</option>
+                      {locations.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                     </select>
                     {errors.state && <span className={styles.error}>{errors.state}</span>}
                   </div>
                   <div className={styles.inputGroup}>
                     <label>District *</label>
                     <select name="district" value={formData.district} onChange={handleChange} disabled={!formData.state}>
-                      <option value="">Select District</option>
-                      {formData.state === 'Andhra Pradesh' && DISTRICTS_AP.map(d => <option key={d} value={d}>{d}</option>)}
-                      {formData.state === 'Telangana' && DISTRICTS_TS.map(d => <option key={d} value={d}>{d}</option>)}
+                      <option value="">{formData.state ? 'Select District' : 'Please select state first'}</option>
+                      {locations.find(s => s.name === formData.state)?.districts.map((d: any) => (
+                        <option key={d.id} value={d.name}>{d.name}</option>
+                      ))}
                     </select>
                     {errors.district && <span className={styles.error}>{errors.district}</span>}
                   </div>
                   <div className={styles.inputGroup}>
                     <label>Area / Locality *</label>
-                    <input type="text" name="area" value={formData.area} onChange={handleChange} placeholder="e.g. Sarpavaram" />
+                    <select name="area" value={formData.area} onChange={handleChange} disabled={!formData.district}>
+                      <option value="">{formData.district ? 'Select Area' : 'Please select district first'}</option>
+                      {locations.find(s => s.name === formData.state)?.districts.find((d: any) => d.name === formData.district)?.areas.map((a: any) => (
+                        <option key={a.id} value={a.name}>{a.name}</option>
+                      ))}
+                    </select>
                     {errors.area && <span className={styles.error}>{errors.area}</span>}
                   </div>
                   <div className={styles.inputGroup}>

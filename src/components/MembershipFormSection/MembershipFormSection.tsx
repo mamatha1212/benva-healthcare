@@ -18,6 +18,7 @@ const DISTRICTS_TS = [
   'Sangareddy', 'Siddipet', 'Suryapet', 'Vikarabad', 'Wanaparthy', 
   'Warangal Rural', 'Warangal Urban', 'Yadadri Bhuvanagiri'
 ];
+import { useLocations } from '@/hooks/useLocations';
 
 export default function MembershipFormSection() {
   const [isOpen, setIsOpen] = useState(false);
@@ -29,6 +30,8 @@ export default function MembershipFormSection() {
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
+
+  const { locations, loading: locationsLoading } = useLocations();
 
   useEffect(() => {
     const handleOpen = () => setIsOpen(true);
@@ -155,8 +158,7 @@ export default function MembershipFormSection() {
                     <label>State *</label>
                     <select name="state" value={formData.state} onChange={handleChange}>
                       <option value="">Select State</option>
-                      <option value="Andhra Pradesh">Andhra Pradesh</option>
-                      <option value="Telangana">Telangana</option>
+                      {locations.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
                     </select>
                     {errors.state && <span className={styles.error}>{errors.state}</span>}
                   </div>
@@ -164,14 +166,20 @@ export default function MembershipFormSection() {
                     <label>District *</label>
                     <select name="district" value={formData.district} onChange={handleChange} disabled={!formData.state}>
                       <option value="">{formData.state ? 'Select District' : 'Please select state first'}</option>
-                      {formData.state === 'Andhra Pradesh' && DISTRICTS_AP.map(d => <option key={d} value={d}>{d}</option>)}
-                      {formData.state === 'Telangana' && DISTRICTS_TS.map(d => <option key={d} value={d}>{d}</option>)}
+                      {locations.find(s => s.name === formData.state)?.districts.map((d: any) => (
+                        <option key={d.id} value={d.name}>{d.name}</option>
+                      ))}
                     </select>
                     {errors.district && <span className={styles.error}>{errors.district}</span>}
                   </div>
                   <div className={styles.inputGroup}>
                     <label>Area / Locality *</label>
-                    <input type="text" name="area" value={formData.area} onChange={handleChange} placeholder="e.g. Sarpavaram" />
+                    <select name="area" value={formData.area} onChange={handleChange} disabled={!formData.district}>
+                      <option value="">{formData.district ? 'Select Area' : 'Please select district first'}</option>
+                      {locations.find(s => s.name === formData.state)?.districts.find((d: any) => d.name === formData.district)?.areas.map((a: any) => (
+                        <option key={a.id} value={a.name}>{a.name}</option>
+                      ))}
+                    </select>
                     {errors.area && <span className={styles.error}>{errors.area}</span>}
                   </div>
                   <div className={styles.inputGroup}>
