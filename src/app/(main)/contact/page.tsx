@@ -66,10 +66,10 @@ export default function ContactPage() {
       </section>
 
       <div className={styles.container}>
-        <div className={styles.contactWrapper}>
+        <div className={styles.grid}>
           
           {/* Info Column (Left) */}
-          <div className={`${styles.col} ${styles.infoCol}`}>
+          <div className={styles.infoCol}>
             <h3 className={styles.colTitle}>Get in Touch</h3>
             <p className={styles.colDesc}>Choose the best way to reach out to us.</p>
             
@@ -132,7 +132,7 @@ export default function ContactPage() {
           </div>
 
           {/* Form Column (Right) */}
-          <div className={`${styles.col} ${styles.formCol}`}>
+          <div className={styles.formCol}>
             {status === 'success' ? (
               <div className={styles.successState}>
                 <div className={styles.successIcon}>✓</div>
