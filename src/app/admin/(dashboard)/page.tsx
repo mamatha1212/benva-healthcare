@@ -384,11 +384,13 @@ export default async function AdminDashboard({
                 </thead>
                 <tbody>
                   {paginatedLeads.map((lead, index) => {
-                    let contactEmail = '-';
+                    let contactEmail = lead.email || '-';
                     let contactMessage = lead.serviceType || '-';
                     if (tab === 'contact' && typeof contactMessage === 'string' && contactMessage.startsWith('Email: ')) {
                        const parts = contactMessage.split('\n\n');
-                       contactEmail = parts[0].replace('Email: ', '');
+                       if (!lead.email) {
+                           contactEmail = parts[0].replace('Email: ', '');
+                       }
                        contactMessage = parts.slice(1).join('\n\n');
                     }
                     
