@@ -362,6 +362,7 @@ export default async function AdminDashboard({
                             <th className={styles.th}>CONTACT</th>
                             {tab === 'availability' ? (
                               <>
+                                <th className={styles.th}>EMAIL</th>
                                 <th className={styles.th}>STATE</th>
                                 <th className={styles.th}>DISTRICT</th>
                                 <th className={styles.th}>AREA / LOCALITY</th>
@@ -472,6 +473,7 @@ export default async function AdminDashboard({
                               </td>
                               {tab === 'availability' ? (
                                 <>
+                                  <td className={styles.td}>{lead.email || '-'}</td>
                                   <td className={styles.td}>{lead.state}</td>
                                   <td className={styles.td}>{lead.district}</td>
                                   <td className={styles.td}>{lead.area}</td>
