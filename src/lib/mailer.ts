@@ -3,8 +3,8 @@ import nodemailer from 'nodemailer';
 export const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
-    user: process.env.SMTP_EMAIL || 'Benvahealthcaresupport@gmail.com',
-    pass: process.env.SMTP_PASSWORD || 'zoclwjwgghubqbt',
+    user: process.env.SMTP_EMAIL || 'benvahealthcaresupport@gmail.com',
+    pass: process.env.SMTP_PASSWORD || 'oidmiedluhwjyboe',
   },
 });
 
