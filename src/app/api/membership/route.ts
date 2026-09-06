@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import nodemailer from 'nodemailer';
+import { sendAdminEmail, sendUserEmail } from '@/lib/mailer';
 
 export async function POST(req: Request) {
   try {
@@ -31,31 +31,31 @@ export async function POST(req: Request) {
       }
     });
 
-    // 2. (Optional/Disabled) Setup Nodemailer
-    // Generating a test account on every request takes 2-3 seconds, causing slow submissions.
-    // Uncomment and configure with real SMTP credentials in production.
-    /*
-    const testAccount = await nodemailer.createTestAccount();
-    const transporter = nodemailer.createTransport({
-      host: "smtp.ethereal.email",
-      port: 587,
-      secure: false, 
-      auth: {
-        user: testAccount.user, 
-        pass: testAccount.pass, 
-      },
-    });
+    const adminHtml = `
+      <h2>New Membership Enquiry</h2>
+      <p><strong>Name:</strong> ${fullName}</p>
+      <p><strong>Mobile:</strong> ${mobile}</p>
+      <p><strong>WhatsApp:</strong> ${whatsapp}</p>
+      <p><strong>Email:</strong> ${email || 'N/A'}</p>
+      <p><strong>State:</strong> ${state}</p>
+      <p><strong>District:</strong> ${district}</p>
+      <p><strong>Area:</strong> ${area}</p>
+      <p><strong>Pincode:</strong> ${pincode}</p>
+      <p><strong>Membership Type:</strong> ${membershipType}</p>
+    `;
 
-    const adminMailOptions = {
-      from: '"BENVA System" <no-reply@benva.com>',
-      to: "admin@benva.com", 
-      subject: "New Membership Enquiry Received",
-      text: `...`
-    };
+    await sendAdminEmail("New Membership Enquiry Received", adminHtml);
 
-    const adminInfo = await transporter.sendMail(adminMailOptions);
-    console.log("Admin Email sent: %s", nodemailer.getTestMessageUrl(adminInfo));
-    */
+    if (email) {
+      const userHtml = `
+        <p>Dear ${fullName},</p>
+        <p>Thank you for your interest in the BENVA Healthcare ${membershipType} Membership.</p>
+        <p>Our team will contact you shortly to process your request.</p>
+        <br/>
+        <p>Best Regards,<br/>BENVA Healthcare Team</p>
+      `;
+      await sendUserEmail(email, "Membership Enquiry Received - BENVA Healthcare", userHtml);
+    }
 
     return NextResponse.json({ success: true, leadId: lead.id }, { status: 200 });
 

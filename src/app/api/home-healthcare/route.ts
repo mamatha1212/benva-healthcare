@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import nodemailer from 'nodemailer';
+import { sendAdminEmail, sendUserEmail } from '@/lib/mailer';
 
 export async function POST(req: Request) {
   try {
@@ -27,41 +27,31 @@ export async function POST(req: Request) {
       }
     });
 
-    // 2. Setup Nodemailer (Using Ethereal for testing/mocking)
-    const testAccount = await nodemailer.createTestAccount();
-    
-    const transporter = nodemailer.createTransport({
-      host: "smtp.ethereal.email",
-      port: 587,
-      secure: false, 
-      auth: {
-        user: testAccount.user, 
-        pass: testAccount.pass, 
-      },
-    });
+    const adminHtml = `
+      <h2>New Home Healthcare Enquiry</h2>
+      <p><strong>Name:</strong> ${fullName}</p>
+      <p><strong>Mobile:</strong> ${mobile}</p>
+      <p><strong>WhatsApp:</strong> ${whatsapp}</p>
+      <p><strong>Email:</strong> ${email || 'N/A'}</p>
+      <p><strong>State:</strong> ${state}</p>
+      <p><strong>District:</strong> ${district}</p>
+      <p><strong>Area:</strong> ${area}</p>
+      <p><strong>Pincode:</strong> ${pincode}</p>
+      <p><strong>Service Type:</strong> ${serviceType}</p>
+    `;
 
-    // 3. Send Email Notification
-    const adminMailOptions = {
-      from: '"BENVA System" <no-reply@benva.com>',
-      to: "admin@benva.com", 
-      subject: "New Home Healthcare Enquiry Received",
-      text: `
-New Home Healthcare Enquiry
+    await sendAdminEmail("New Home Healthcare Enquiry Received", adminHtml);
 
-Name: ${fullName}
-Mobile: ${mobile}
-WhatsApp: ${whatsapp}
-Email: ${email || 'N/A'}
-State: ${state}
-District: ${district}
-Area: ${area}
-Pincode: ${pincode}
-Service Type: ${serviceType}
-      `,
-    };
-
-    const adminInfo = await transporter.sendMail(adminMailOptions);
-    console.log("Admin Email sent: %s", nodemailer.getTestMessageUrl(adminInfo));
+    if (email) {
+      const userHtml = `
+        <p>Dear ${fullName},</p>
+        <p>Thank you for your enquiry regarding Home Healthcare services.</p>
+        <p>Our team will contact you shortly.</p>
+        <br/>
+        <p>Best Regards,<br/>BENVA Healthcare Team</p>
+      `;
+      await sendUserEmail(email, "Enquiry Received - BENVA Healthcare", userHtml);
+    }
 
     return NextResponse.json({ success: true, leadId: lead.id }, { status: 200 });
 

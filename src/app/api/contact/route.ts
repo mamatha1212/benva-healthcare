@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import nodemailer from 'nodemailer';
+import { sendAdminEmail, sendUserEmail } from '@/lib/mailer';
 
 export async function POST(req: Request) {
   try {
@@ -29,23 +29,10 @@ export async function POST(req: Request) {
       },
     });
 
-    // Send Admin Notification using Nodemailer Ethereal
-    const testAccount = await nodemailer.createTestAccount();
-    const transporter = nodemailer.createTransport({
-      host: testAccount.smtp.host,
-      port: testAccount.smtp.port,
-      secure: testAccount.smtp.secure,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass,
-      },
-    });
-
-    const adminInfo = await transporter.sendMail({
-      from: '"BENVA Healthcare System" <noreply@benvahealthcare.com>',
-      to: 'mamatha14031995@gmail.com',
-      subject: `New Contact Request: ${data.fullName}`,
-      html: `
+    // Send Admin Notification
+    await sendAdminEmail(
+      `New Contact Request: ${data.fullName}`,
+      `
         <h2>New Contact Message</h2>
         <p><strong>Name:</strong> ${data.fullName}</p>
         <p><strong>Mobile:</strong> ${data.mobile}</p>
@@ -53,10 +40,13 @@ export async function POST(req: Request) {
         <blockquote>${data.message}</blockquote>
         <br/>
         <p>Please contact the user to assist them.</p>
-      `,
-    });
+      `
+    );
 
-    console.log("Admin Email sent: %s", nodemailer.getTestMessageUrl(adminInfo));
+    // Send User Notification if email exists (we don't collect email in contact form currently)
+    // if (data.email) {
+    //   await sendUserEmail(data.email, 'We received your message - BENVA Healthcare', ...);
+    // }
 
     return NextResponse.json({ success: true, leadId: lead.id }, { status: 200 });
 

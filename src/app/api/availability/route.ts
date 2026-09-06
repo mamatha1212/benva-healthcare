@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import nodemailer from 'nodemailer';
+import { sendAdminEmail } from '@/lib/mailer';
 
 export async function POST(req: Request) {
   try {
@@ -28,37 +28,20 @@ export async function POST(req: Request) {
       },
     });
 
-    // Send Admin Notification using Nodemailer Ethereal
-    const testAccount = await nodemailer.createTestAccount();
-    const transporter = nodemailer.createTransport({
-      host: testAccount.smtp.host,
-      port: testAccount.smtp.port,
-      secure: testAccount.smtp.secure,
-      auth: {
-        user: testAccount.user,
-        pass: testAccount.pass,
-      },
-    });
+    const adminHtml = `
+      <h2>New Area Availability Enquiry</h2>
+      <p><strong>Name:</strong> ${data.fullName}</p>
+      <p><strong>Mobile:</strong> ${data.mobile}</p>
+      <p><strong>WhatsApp:</strong> ${data.whatsapp || data.mobile}</p>
+      <p><strong>State:</strong> ${data.requestedState ? `Requested: ${data.requestedState}` : (data.state || 'N/A')}</p>
+      <p><strong>District:</strong> ${data.requestedDistrict ? `Requested: ${data.requestedDistrict}` : (data.district || 'Not Listed')}</p>
+      <p><strong>Area / Locality:</strong> ${data.requestedArea ? `Requested: ${data.requestedArea}` : (data.area || 'Not Listed')}</p>
+      <p><strong>Pincode:</strong> ${data.pincode}</p>
+      <br/>
+      <p>Please contact the user to confirm service availability.</p>
+    `;
 
-    const adminInfo = await transporter.sendMail({
-      from: '"BENVA Healthcare System" <noreply@benvahealthcare.com>',
-      to: 'admin@benvahealthcare.com',
-      subject: `New Area Availability Enquiry: ${data.fullName}`,
-      html: `
-        <h2>New Area Availability Enquiry</h2>
-        <p><strong>Name:</strong> ${data.fullName}</p>
-        <p><strong>Mobile:</strong> ${data.mobile}</p>
-        <p><strong>WhatsApp:</strong> ${data.whatsapp || data.mobile}</p>
-        <p><strong>State:</strong> ${data.requestedState ? `Requested: ${data.requestedState}` : (data.state || 'N/A')}</p>
-        <p><strong>District:</strong> ${data.requestedDistrict ? `Requested: ${data.requestedDistrict}` : (data.district || 'Not Listed')}</p>
-        <p><strong>Area / Locality:</strong> ${data.requestedArea ? `Requested: ${data.requestedArea}` : (data.area || 'Not Listed')}</p>
-        <p><strong>Pincode:</strong> ${data.pincode}</p>
-        <br/>
-        <p>Please contact the user to confirm service availability.</p>
-      `,
-    });
-
-    console.log("Admin Email sent: %s", nodemailer.getTestMessageUrl(adminInfo));
+    await sendAdminEmail(`New Area Availability Enquiry: ${data.fullName}`, adminHtml);
 
     return NextResponse.json({ success: true, leadId: lead.id }, { status: 200 });
 
