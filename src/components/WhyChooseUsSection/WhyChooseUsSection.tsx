@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import styles from './WhyChooseUsSection.module.css';
 import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
 import ScrollReveal from '../ScrollReveal/ScrollReveal';
+import Link from 'next/link';
 
 const features = [
   {
@@ -114,9 +115,9 @@ export default function WhyChooseUsSection() {
                 BENVA connects you with trusted healthcare partners for lab tests,
                 home care, medicines and more — all across Andhra Pradesh &amp; Telangana.
               </p>
-              <button className={styles.cta} onClick={() => document.getElementById('services-grid')?.scrollIntoView({ behavior: 'smooth' })}>
+              <Link href="/services" className={styles.cta}>
                 Explore Services →
-              </button>
+              </Link>
             </div>
           </div>
           </ScrollReveal>

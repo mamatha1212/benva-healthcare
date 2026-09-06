@@ -240,7 +240,7 @@ export default function MembershipFormSection() {
               <button className={styles.secondaryBtn} onClick={closeForm}>Back To Home</button>
               <button className={styles.primaryBtn} onClick={() => {
                 closeForm();
-                document.getElementById('services-grid')?.scrollIntoView({ behavior: 'smooth' });
+                window.location.href = '/services';
               }}>
                 Explore Services
               </button>
