@@ -35,6 +35,7 @@ export async function POST(req: Request) {
       `
         <h2>New Contact Message</h2>
         <p><strong>Name:</strong> ${data.fullName}</p>
+        <p><strong>Email:</strong> ${data.email || 'N/A'}</p>
         <p><strong>Mobile:</strong> ${data.mobile}</p>
         <p><strong>Message:</strong></p>
         <blockquote>${data.message}</blockquote>
