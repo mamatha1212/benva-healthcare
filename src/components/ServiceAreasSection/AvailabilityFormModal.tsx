@@ -22,6 +22,7 @@ export default function AvailabilityFormModal({ isOpen, onClose }: AvailabilityF
     district: '',
     area: '',
     pincode: '',
+    email: '',
     requestedState: '',
     requestedDistrict: '',
     requestedArea: '',
@@ -43,7 +44,7 @@ export default function AvailabilityFormModal({ isOpen, onClose }: AvailabilityF
     } else {
       document.body.style.overflow = '';
       setStatus('idle');
-      setFormData({ fullName: '', mobile: '', whatsapp: '', state: '', district: '', area: '', pincode: '', requestedState: '', requestedDistrict: '', requestedArea: '' });
+      setFormData({ fullName: '', mobile: '', whatsapp: '', email: '', state: '', district: '', area: '', pincode: '', requestedState: '', requestedDistrict: '', requestedArea: '' });
     }
     return () => { document.body.style.overflow = ''; };
   }, [isOpen]);
@@ -243,10 +244,7 @@ export default function AvailabilityFormModal({ isOpen, onClose }: AvailabilityF
                             <label className={styles.label}>Which area / locality? *</label>
                             <input type="text" required placeholder="e.g. Kondapur, Hyderabad" className={styles.input} value={formData.requestedArea} onChange={(e) => setFormData({ ...formData, requestedArea: e.target.value })} />
                           </div>
-                          <div className={styles.formGroup}>
-                            <label className={styles.label}>Pincode *</label>
-                            <input type="text" required placeholder="6-digit pincode" pattern="[0-9]{6}" className={styles.input} value={formData.pincode} onChange={(e) => setFormData({ ...formData, pincode: e.target.value })} />
-                          </div>
+                          <div className={styles.formGroup} style={{ visibility: 'hidden' }}></div>
                         </div>
                       ) : null}
                     </>
@@ -260,16 +258,30 @@ export default function AvailabilityFormModal({ isOpen, onClose }: AvailabilityF
                     </div>
                   )}
 
-                  <div className={styles.formGroup} style={{ marginBottom: '16px' }}>
-                    <label className={styles.label}>Name *</label>
-                    <input
-                      type="text"
-                      required
-                      placeholder="Your Full Name"
-                      className={styles.input}
-                      value={formData.fullName}
-                      onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                    />
+                  <div className={styles.row}>
+                    <div className={styles.formGroup}>
+                      <label className={styles.label}>Name *</label>
+                      <input
+                        type="text"
+                        required
+                        placeholder="Your Full Name"
+                        className={styles.input}
+                        value={formData.fullName}
+                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
+                      />
+                    </div>
+                    
+                    <div className={styles.formGroup}>
+                      <label className={styles.label}>Email Address *</label>
+                      <input
+                        type="email"
+                        required
+                        placeholder="e.g. name@gmail.com"
+                        className={styles.input}
+                        value={formData.email}
+                        onChange={(e) => setFormData({ ...formData, email: e.target.value })}
+                      />
+                    </div>
                   </div>
 
                   <div className={styles.row}>
