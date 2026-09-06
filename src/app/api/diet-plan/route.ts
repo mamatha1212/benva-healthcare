@@ -40,7 +40,7 @@ export async function POST(req: Request) {
       <p><strong>District:</strong> ${district}</p>
       <p><strong>Area:</strong> ${area}</p>
       <p><strong>Pincode:</strong> ${pincode}</p>
-      <p><strong>Service Type:</strong> ${serviceType}</p>
+      <p><strong>Service Type:</strong> ${finalServiceType}</p>
     `;
 
     await sendAdminEmail("New Diet Plan Enquiry Received", adminHtml);
