@@ -20,6 +20,7 @@ export async function POST(req: Request) {
         fullName: data.fullName,
         mobile: data.mobile,
         whatsapp: data.mobile, // required in schema
+        email: data.email || null,
         state: 'N/A', // required in schema
         district: 'N/A', // required in schema
         area: 'N/A', // required in schema
