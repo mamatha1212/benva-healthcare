@@ -4,6 +4,7 @@ import styles from './ContactSection.module.css';
 import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
 import ContactForm from '../ContactForm/ContactForm';
 
+export default function ContactSection() {
   return (
     <section className={styles.section} id="contact">
       {/* Background Decor */}
