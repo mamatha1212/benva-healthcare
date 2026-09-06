@@ -1,50 +1,10 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import pageStyles from './ContactPage.module.css';
-import formStyles from '@/components/ContactSection/ContactSection.module.css';
+import ContactForm from '@/components/ContactForm/ContactForm';
 
 export default function ContactPage() {
-  const [formData, setFormData] = useState({
-    fullName: '',
-    mobile: '',
-    email: '',
-    message: '',
-  });
-
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setStatus('loading');
-
-    try {
-      const response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          fullName: formData.fullName,
-          mobile: formData.mobile,
-          email: formData.email,
-          message: formData.message,
-        }),
-      });
-
-      if (response.ok) {
-        setStatus('success');
-        setFormData({ fullName: '', mobile: '', email: '', message: '' });
-      } else {
-        const data = await response.json();
-        alert(`Error: ${data.error || 'Something went wrong.'}`);
-        setStatus('error');
-      }
-    } catch (err) {
-      console.error(err);
-      alert('Network error. Please try again.');
-      setStatus('error');
-    }
-  };
-
   return (
     <div className={pageStyles.pageContainer}>
 
@@ -69,7 +29,7 @@ export default function ContactPage() {
       <div className={pageStyles.container}>
         <div className={pageStyles.grid}>
 
-          {/* Left — Info Column (from contact page design) */}
+          {/* Left — Info Column */}
           <div className={pageStyles.infoCol}>
             <h3 className={pageStyles.colTitle}>Get in Touch</h3>
             <p className={pageStyles.colDesc}>Choose the best way to reach out to us.</p>
@@ -132,92 +92,9 @@ export default function ContactPage() {
             </div>
           </div>
 
-          {/* Right — Form Column (exact same form as home page ContactSection) */}
+          {/* Right — Exact same ContactForm used on home page */}
           <div className={pageStyles.formCol}>
-            <div className={formStyles.formWrapper}>
-              {status === 'success' ? (
-                <div className={formStyles.successState}>
-                  <div className={formStyles.successIcon}>
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <path d="M22 11.08V12a10 10 0 11-5.93-9.14" />
-                      <path d="M22 4L12 14.01l-3-3" />
-                    </svg>
-                  </div>
-                  <h3 className={formStyles.successTitle}>Thank You For Contacting BENVA Healthcare.</h3>
-                  <p className={formStyles.successDesc}>Our Team Will Get Back To You Shortly.</p>
-                  <button className={formStyles.resetBtn} onClick={() => setStatus('idle')}>Send Another Message</button>
-                </div>
-              ) : (
-                <form className={formStyles.form} onSubmit={handleSubmit}>
-                  <h3 className={formStyles.formTitle}>Send a Message</h3>
-
-                  <div className={formStyles.formRow}>
-                    <div className={formStyles.formGroup}>
-                      <label className={formStyles.label}>Full Name *</label>
-                      <input
-                        type="text"
-                        required
-                        placeholder="Your Full Name"
-                        className={formStyles.input}
-                        value={formData.fullName}
-                        onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                      />
-                    </div>
-                    <div className={formStyles.formGroup}>
-                      <label className={formStyles.label}>Mobile Number *</label>
-                      <input
-                        type="tel"
-                        required
-                        placeholder="10-digit mobile number"
-                        pattern="[0-9]{10}"
-                        className={formStyles.input}
-                        value={formData.mobile}
-                        onChange={(e) => setFormData({ ...formData, mobile: e.target.value })}
-                      />
-                    </div>
-                  </div>
-
-                  <div className={formStyles.formGroup}>
-                    <label className={formStyles.label}>Email Address *</label>
-                    <input
-                      type="email"
-                      required
-                      placeholder="Enter your email address"
-                      className={formStyles.input}
-                      value={formData.email}
-                      onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    />
-                  </div>
-
-                  <div className={formStyles.formGroup}>
-                    <label className={formStyles.label}>Message *</label>
-                    <textarea
-                      required
-                      placeholder="How can we help you?"
-                      className={formStyles.textarea}
-                      value={formData.message}
-                      onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    ></textarea>
-                  </div>
-
-                  <div className={formStyles.formFooter}>
-                    <button
-                      type="submit"
-                      className={formStyles.submitBtn}
-                      disabled={status === 'loading'}
-                    >
-                      {status === 'loading' ? 'Sending...' : 'Send Message'}
-                    </button>
-                    <span className={formStyles.privacyNote}>
-                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                        <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
-                      </svg>
-                      Your information is safe with us.
-                    </span>
-                  </div>
-                </form>
-              )}
-            </div>
+            <ContactForm />
           </div>
 
         </div>
