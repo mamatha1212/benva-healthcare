@@ -57,7 +57,6 @@ District: ${district}
 Area: ${area}
 Pincode: ${pincode}
 Service Type: ${serviceType}
-Additional Details: ${remarks}
       `,
     };
 
