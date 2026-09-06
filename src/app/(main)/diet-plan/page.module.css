@@ -1,0 +1,573 @@
+.container {
+  background-color: #f8fafc;
+  min-height: 100vh;
+  font-family: 'Inter', sans-serif;
+  color: #0f172a;
+}
+
+/* ── Diet Plan Page Hero (Membership Card Style) ───────────────────────── */
+.hero {
+  position: relative;
+  background: linear-gradient(135deg, #0f172a 0%, #02559d 100%);
+  padding: 120px 24px 80px;
+  overflow: hidden;
+  text-align: center;
+}
+
+.heroContent {
+  position: relative;
+  z-index: 2;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.heroApplyBtn {
+  margin-top: 32px;
+  background: linear-gradient(90deg, #38bdf8, #0ea5e9);
+  color: #ffffff;
+  border: none;
+  border-radius: 50px;
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: 900;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 0 10px rgba(56, 189, 248, 0.3);
+  animation: pulseHighlight 2s infinite;
+  white-space: nowrap;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.heroApplyBtn svg {
+  transition: transform 0.3s ease;
+}
+
+.heroApplyBtn:hover {
+  background: linear-gradient(90deg, #0ea5e9, #0284c7);
+  transform: translateY(-2px) scale(1.02);
+}
+
+.heroApplyBtn:hover svg {
+  transform: translateX(4px);
+}
+
+@keyframes pulseHighlight {
+  0% { box-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
+  50% { box-shadow: 0 0 15px rgba(56, 189, 248, 0.5), 0 0 20px rgba(56, 189, 248, 0.3); }
+  100% { box-shadow: 0 0 10px rgba(56, 189, 248, 0.3); }
+}
+
+/* ── Banner Section ── */
+.banner {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  position: relative;
+  width: 100%;
+  margin-bottom: 24px;
+}
+
+.bannerDecor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  opacity: 0.1;
+}
+
+.bannerTitle {
+  font-family: var(--font-heading);
+  font-size: 32px;
+  font-weight: 900;
+  color: #ffffff;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  margin: 0 0 24px 0;
+  text-shadow: 0 4px 10px rgba(0,0,0,0.4);
+}
+
+.bannerContent {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  justify-content: center;
+  gap: 32px;
+  width: 100%;
+}
+
+/* Pricing Box (Left) */
+.pricingBox {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 24px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  backdrop-filter: blur(10px);
+  flex: 1;
+}
+
+.annualText {
+  font-size: 16px;
+  font-weight: 700;
+  letter-spacing: 2px;
+  color: #e2e8f0;
+  margin-bottom: 8px;
+  text-transform: uppercase;
+}
+
+.priceDisplay {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.currency {
+  font-size: 40px;
+  font-weight: 900;
+  color: #fbbf24;
+}
+
+.amount {
+  font-size: 80px;
+  font-weight: 900;
+  color: #fbbf24;
+  line-height: 1;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.perYear {
+  font-size: 18px;
+  font-weight: 700;
+  color: #e2e8f0;
+  text-transform: uppercase;
+}
+
+.dailyCost {
+  background: #fbbf24;
+  color: #0f172a;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-top: 12px;
+}
+
+/* Value Box (Right) */
+.valueBox {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  color: #0f172a;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+  flex: 1;
+}
+
+.actualPriceText {
+  font-size: 16px;
+  font-weight: 800;
+  color: #475569;
+  text-transform: uppercase;
+  margin-bottom: 8px;
+  text-align: center;
+}
+
+.strikethroughPrice {
+  font-size: 24px;
+  font-weight: 800;
+  color: #0f172a;
+  line-height: 1.4;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.saveBadge {
+  background: #ef4444;
+  color: #ffffff;
+  padding: 8px 24px;
+  border-radius: 8px;
+  font-size: 16px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.bannerFooter {
+  margin-top: 32px;
+  font-size: 18px;
+  font-weight: 500;
+  color: #cbd5e1;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.bannerFooter::before, .bannerFooter::after {
+  content: '';
+  height: 1px;
+  width: 40px;
+  background: #cbd5e1;
+}
+
+/* Decorative circles */
+.heroDecor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.circle1 {
+  position: absolute;
+  width: 500px;
+  height: 500px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(167, 139, 250, 0.15) 0%, transparent 70%);
+  top: -150px;
+  right: -150px;
+}
+
+.circle2 {
+  position: absolute;
+  width: 350px;
+  height: 350px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(124, 58, 237, 0.12) 0%, transparent 70%);
+  bottom: -100px;
+  left: -80px;
+}
+
+.circle3 {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  border: 1px solid rgba(167, 139, 250, 0.2);
+  top: 40px;
+  left: 10%;
+  animation: floatCircle 8s ease-in-out infinite;
+}
+
+@keyframes floatCircle {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-20px); }
+}
+
+@media (max-width: 640px) {
+  .bannerContent { flex-direction: column; gap: 16px; }
+  .pricingBox, .valueBox { padding: 24px 16px; width: 100%; }
+  .amount { font-size: 56px; }
+  .currency { font-size: 28px; }
+  .bannerTitle { font-size: 24px; }
+}
+
+.wrapper {
+  max-width: 1280px;
+  margin: 0 auto;
+  padding: 60px 24px;
+}
+
+.contentGrid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 60px;
+  align-items: start;
+}
+
+.infoSection {
+  display: flex;
+  flex-direction: column;
+  gap: 40px;
+}
+
+.infoBlock {
+  background: white;
+  padding: 32px;
+  border-radius: 20px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.03);
+  border: 1px solid #f1f5f9;
+}
+
+.blockTitle {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 24px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.featureList {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+}
+
+.featureItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  font-size: 1.05rem;
+  color: #334155;
+  font-weight: 500;
+  line-height: 1.5;
+}
+
+.featureIcon {
+  color: #2563eb;
+  flex-shrink: 0;
+  margin-top: 2px;
+}
+
+.fullWidthSection {
+  max-width: 1000px;
+  margin: 60px auto 80px;
+}
+
+.supportGrid {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 20px;
+}
+
+.supportCard {
+  width: calc(33.333% - 20px);
+  min-width: 250px;
+  background: white;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+  border: 1px solid #f1f5f9;
+  transition: all 0.3s ease;
+  position: relative;
+  overflow: hidden;
+}
+
+.supportCard::before {
+  content: '';
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #3b82f6;
+  border-radius: 4px 0 0 4px;
+  transition: width 0.3s ease;
+}
+
+.supportCard:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 10px 25px rgba(0,0,0,0.08);
+}
+
+.supportCard:hover::before {
+  width: 6px;
+}
+
+.supportIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 48px;
+  height: 48px;
+  background: #eff6ff;
+  color: #2563eb;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.supportText {
+  font-weight: 700;
+  font-size: 1.05rem;
+  color: #1e293b;
+  line-height: 1.3;
+  text-align: left;
+}
+
+.consistencyBox {
+  position: relative;
+  background: linear-gradient(135deg, #1e40af 0%, #3b82f6 100%);
+  padding: 40px;
+  border-radius: 24px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(37,99,235,0.2);
+  margin-top: 40px;
+}
+
+.consistencyBgWatermark {
+  position: absolute;
+  top: -20px;
+  right: -20px;
+  font-size: 180px;
+  font-weight: 900;
+  color: rgba(255,255,255,0.05);
+  line-height: 1;
+  pointer-events: none;
+  font-family: var(--font-heading);
+}
+
+.consistencyContent {
+  position: relative;
+  z-index: 2;
+}
+
+.consistencyTitle {
+  color: #ffffff;
+  font-weight: 900;
+  margin-bottom: 16px;
+  font-size: 1.8rem;
+  letter-spacing: 0.5px;
+  line-height: 1.2;
+}
+
+.consistencyDesc {
+  color: #bfdbfe;
+  margin: 0;
+  font-weight: 500;
+  font-size: 1.15rem;
+  line-height: 1.6;
+}
+
+/* Form Styles */
+.formStickyWrapper {
+  position: sticky;
+  top: 100px;
+}
+
+.formBox {
+  background: white;
+  padding: 40px 32px;
+  border-radius: 24px;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.06);
+  border: 1px solid #e2e8f0;
+}
+
+.formTitle {
+  font-size: 1.75rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin-bottom: 24px;
+  text-align: center;
+}
+
+.formGroup {
+  margin-bottom: 16px;
+}
+
+.label {
+  display: block;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #475569;
+  margin-bottom: 6px;
+}
+
+.input, .select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1.5px solid #cbd5e1;
+  border-radius: 8px;
+  font-size: 0.95rem;
+  color: #0f172a;
+  background: #f8fafc;
+  transition: all 0.2s ease;
+}
+
+.input:focus, .select:focus {
+  outline: none;
+  border-color: #2563eb;
+  background: white;
+  box-shadow: 0 0 0 4px rgba(37,99,235,0.1);
+}
+
+.row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.submitBtn {
+  width: 100%;
+  padding: 16px;
+  background: #2563eb;
+  color: white;
+  border: none;
+  border-radius: 12px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-top: 16px;
+  box-shadow: 0 8px 20px rgba(37,99,235,0.25);
+}
+
+.submitBtn:hover {
+  background: #1d4ed8;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px rgba(37,99,235,0.3);
+}
+
+.submitBtn:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+  transform: none;
+}
+
+.successMessage {
+  padding: 24px;
+  background: #f0fdf4;
+  color: #166534;
+  border-radius: 12px;
+  text-align: center;
+  font-weight: 600;
+  border: 1px solid #bbf7d0;
+}
+
+@media (max-width: 1024px) {
+  .contentGrid {
+    grid-template-columns: 1fr;
+    gap: 40px;
+  }
+  
+  .formStickyWrapper {
+    position: static;
+  }
+}
+
+@media (max-width: 640px) {
+  .hero {
+    padding: 60px 16px 40px;
+  }
+  
+  .wrapper {
+    padding: 40px 16px;
+  }
+  
+  .infoBlock, .formBox, .consistencyBox {
+    padding: 24px;
+  }
+
+  .formTitle {
+    font-size: 1.5rem;
+  }
+}

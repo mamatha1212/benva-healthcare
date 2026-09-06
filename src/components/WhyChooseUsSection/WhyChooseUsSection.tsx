@@ -54,7 +54,7 @@ const highlights = [
   'Partner Pharmacies',
   'Healthcare Professionals',
   'Dedicated Support',
-  'Home Healthcare',
+  // 'Home Healthcare',
   'AP & Telangana',
 ];
 

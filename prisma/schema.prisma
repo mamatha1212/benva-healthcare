@@ -109,3 +109,24 @@ model StaticPage {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
+
+model DietPlan {
+  id          String             @id @default(cuid())
+  title       String
+  duration    String
+  price       String
+  priceUnit   String
+  isActive    Boolean            @default(true)
+  createdAt   DateTime           @default(now())
+  updatedAt   DateTime           @updatedAt
+  benefits    DietPlanBenefit[]
+}
+
+model DietPlanBenefit {
+  id          String    @id @default(cuid())
+  name        String
+  dietPlan    DietPlan  @relation(fields: [dietPlanId], references: [id], onDelete: Cascade)
+  dietPlanId  String
+  order       Int       @default(0)
+  createdAt   DateTime  @default(now())
+}

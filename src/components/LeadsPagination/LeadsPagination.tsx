@@ -15,7 +15,7 @@ export default function LeadsPagination({ currentPage, totalPages }: { currentPa
 
 
   return (
-    <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '32px', alignItems: 'center' }}>
+    <div style={{ display: 'flex', gap: '12px', justifyContent: 'center', marginTop: '32px', marginBottom: '32px', alignItems: 'center' }}>
       <button 
         onClick={() => handlePage(currentPage - 1)} 
         disabled={currentPage === 1}

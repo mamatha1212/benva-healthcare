@@ -88,21 +88,21 @@ const services = [
     bgColor: '#f0fdf4',
     accentColor: '#16a34a'
   },
-  {
-    icon: (
-      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="120" height="120">
-        <path d="M24 14v20M14 24h20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-        <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="2"/>
-      </svg>
-    ),
-    title: 'Home Healthcare',
-    desc: 'Professional nurses, elder care, and physiotherapy support services delivered at your home.',
-    tag: 'EXPERT CARE',
-    buttonText: 'Book Service',
-    buttonAction: () => window.dispatchEvent(new Event('openBookingModal')),
-    bgColor: '#fffbeb',
-    accentColor: '#d97706'
-  },
+  // {
+  //   icon: (
+  //     <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="120" height="120">
+  //       <path d="M24 14v20M14 24h20" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+  //       <circle cx="24" cy="24" r="20" stroke="currentColor" strokeWidth="2"/>
+  //     </svg>
+  //   ),
+  //   title: 'Home Healthcare',
+  //   desc: 'Professional nurses, elder care, and physiotherapy support services delivered at your home.',
+  //   tag: 'EXPERT CARE',
+  //   buttonText: 'Book Service',
+  //   buttonAction: () => window.dispatchEvent(new Event('openBookingModal')),
+  //   bgColor: '#fffbeb',
+  //   accentColor: '#d97706'
+  // },
 ];
 
 export default function WhatWeDoSection() {

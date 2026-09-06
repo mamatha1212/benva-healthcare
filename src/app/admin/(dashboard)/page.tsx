@@ -9,6 +9,8 @@ import ImportExportButtons from '@/components/ImportExportButtons/ImportExportBu
 import LeadRemarksUpdater from '@/components/LeadRemarksUpdater/LeadRemarksUpdater';
 
 // Force dynamic rendering to ensure fresh data
+import LeadsChart from './LeadsChart';
+
 export const dynamic = 'force-dynamic';
 
 export default async function AdminDashboard({
@@ -37,6 +39,7 @@ export default async function AdminDashboard({
   else if (tab === 'availability') baseWhereClause.enquiryType = 'AVAILABILITY';
   else if (tab === 'contact') baseWhereClause.enquiryType = 'CONTACT_US';
   else if (tab === 'callback') baseWhereClause.enquiryType = 'CALLBACK_REQUEST';
+  else if (tab === 'diet-plan') baseWhereClause.enquiryType = 'DIET_PLAN';
 
   const allLeads = await prisma.lead.findMany({
     where: baseWhereClause,
@@ -52,7 +55,7 @@ export default async function AdminDashboard({
   }
   const remarksMap = new Map(rawRemarks.map(r => [r.id, r.remarks]));
 
-  let counters: Record<string, number> = { FM: 1, IM: 1, LD: 1, HC: 1, HH: 1, AV: 1, CU: 1, CB: 1 };
+  let counters: Record<string, number> = { FM: 1, IM: 1, LD: 1, HC: 1, HH: 1, AV: 1, CU: 1, CB: 1, DP: 1 };
 
   const leadsWithId = allLeads.map(lead => {
     let prefix = 'LD';
@@ -66,6 +69,7 @@ export default async function AdminDashboard({
     else if (lead.enquiryType === 'AVAILABILITY') prefix = 'AV';
     else if (lead.enquiryType === 'CONTACT_US') prefix = 'CU';
     else if (lead.enquiryType === 'CALLBACK_REQUEST') prefix = 'CB';
+    else if (lead.enquiryType === 'DIET_PLAN') prefix = 'DP';
     
     if (counters[prefix] === undefined) counters[prefix] = 1;
     const currentCount = counters[prefix]++;
@@ -155,6 +159,7 @@ export default async function AdminDashboard({
     if (tab === 'availability') return 'Area Availability Enquiries';
     if (tab === 'contact') return 'Contact Messages';
     if (tab === 'callback') return 'Callback Requests';
+    if (tab === 'diet-plan') return 'Diet Plan Leads';
     return 'All Leads';
   };
 
@@ -162,48 +167,52 @@ export default async function AdminDashboard({
     <div className={styles.container}>
       {/* Overview Metrics Row for All Leads */}
       {tab === 'all' && (
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-        gap: '16px', 
-        marginBottom: '28px', 
-      }}>
-        {[
-          { label: "All Leads", key: "ALL", color: "#1a202c", bgColor: "#f7fafc", link: "?tab=all" },
-          { label: "Health Checkups", key: "HEALTH_CHECKUP", color: "#38a169", bgColor: "#f0fff4", link: "?tab=checkups" },
-          { label: "Memberships", key: "MEMBERSHIP", color: "#805ad5", bgColor: "#faf5ff", link: "?tab=memberships" },
-          { label: "Home Healthcare", key: "HOME_HEALTHCARE", color: "#3182ce", bgColor: "#ebf8ff", link: "?tab=homecare" },
-          { label: "Area Enquiries", key: "AVAILABILITY", color: "#dd6b20", bgColor: "#fffff0", link: "?tab=availability" },
-          { label: "Contact Form", key: "CONTACT_US", color: "#e53e3e", bgColor: "#fff5f5", link: "?tab=contact" },
-          { label: "Callbacks", key: "CALLBACK_REQUEST", color: "#d69e2e", bgColor: "#fffff0", link: "?tab=callback" }
-        ].map(item => {
-          const count = item.key === "ALL" ? allLeads.length : (typeCountsMap[item.key] || 0);
-          return (
-            <Link key={item.key} href={item.link} style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              background: item.bgColor, 
-              padding: '16px 8px', 
-              borderRadius: '12px', 
-              border: `1px solid ${item.color}40`,
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-              textAlign: 'center',
-              textDecoration: 'none',
-              cursor: 'pointer',
-              transition: 'all 0.2s ease'
-            }}>
-              <span style={{ color: item.color, fontSize: '28px', fontWeight: '900', lineHeight: '1' }}>{count}</span>
-              <span style={{ color: '#4a5568', fontSize: '11px', fontWeight: '800', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{item.label}</span>
-            </Link>
-          );
-        })}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
+        <div style={{ 
+          display: 'grid', 
+          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
+          gap: '16px', 
+        }}>
+          {[
+            { label: "All Leads", key: "ALL", color: "#1a202c", bgColor: "#f7fafc", link: "?tab=all" },
+            { label: "Health Checkups", key: "HEALTH_CHECKUP", color: "#38a169", bgColor: "#f0fff4", link: "?tab=checkups" },
+            { label: "Memberships", key: "MEMBERSHIP", color: "#805ad5", bgColor: "#faf5ff", link: "?tab=memberships" },
+            // { label: "Home Healthcare", key: "HOME_HEALTHCARE", color: "#3182ce", bgColor: "#ebf8ff", link: "?tab=homecare" },
+            { label: "Diet Plans", key: "DIET_PLAN", color: "#d53f8c", bgColor: "#fff5f7", link: "?tab=diet-plan" },
+            { label: "Area Enquiries", key: "AVAILABILITY", color: "#dd6b20", bgColor: "#fffff0", link: "?tab=availability" },
+            { label: "Contact Form", key: "CONTACT_US", color: "#e53e3e", bgColor: "#fff5f5", link: "?tab=contact" },
+            { label: "Callbacks", key: "CALLBACK_REQUEST", color: "#d69e2e", bgColor: "#fffff0", link: "?tab=callback" }
+          ].map(item => {
+            const count = item.key === "ALL" ? allLeads.length : (typeCountsMap[item.key] || 0);
+            return (
+              <Link key={item.key} href={item.link} style={{ 
+                display: 'flex', 
+                flexDirection: 'column', 
+                alignItems: 'center', 
+                justifyContent: 'center',
+                background: item.bgColor, 
+                padding: '16px 8px', 
+                borderRadius: '12px', 
+                border: `1px solid ${item.color}40`,
+                boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
+                textAlign: 'center',
+                textDecoration: 'none',
+                cursor: 'pointer',
+                transition: 'all 0.2s ease'
+              }}>
+                <span style={{ color: item.color, fontSize: '28px', fontWeight: '900', lineHeight: '1' }}>{count}</span>
+                <span style={{ color: '#4a5568', fontSize: '11px', fontWeight: '800', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{item.label}</span>
+              </Link>
+            );
+          })}
+        </div>
+        
+        <LeadsChart leads={allLeads} />
       </div>
       )}
 
       {/* Status Metrics Row for Specific Tabs */}
-      {tab !== 'all' && tab !== 'availability' && tab !== 'checkups' && tab !== 'contact' && tab !== 'callback' && (
+      {tab !== 'all' && tab !== 'availability' && tab !== 'checkups' && tab !== 'contact' && tab !== 'callback' && tab !== 'diet-plan' && (
       <div style={{ 
         display: 'grid', 
         gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
@@ -338,7 +347,7 @@ export default async function AdminDashboard({
                       </>
                     ) : (
                       <>
-                        {tab !== 'availability' && tab !== 'checkups' && tab !== 'callback' && <th className={styles.th}>ID</th>}
+                        {tab !== 'availability' && tab !== 'checkups' && tab !== 'callback' && tab !== 'diet-plan' && <th className={styles.th}>ID</th>}
                         <th className={styles.th}>DATE</th>
                         {tab === 'checkups' ? (
                           <>
@@ -411,20 +420,20 @@ export default async function AdminDashboard({
                         </>
                       ) : (
                         <>
-                          {tab !== 'availability' && tab !== 'checkups' && tab !== 'callback' && (
+                          {tab !== 'availability' && tab !== 'checkups' && tab !== 'callback' && tab !== 'diet-plan' && (
                           <td className={styles.td} style={{ fontWeight: 'bold', color: '#3182ce' }}>
                             {lead.customId}
                           </td>
                           )}
                           <td className={styles.td} suppressHydrationWarning>
                             {new Date(lead.createdAt).toLocaleDateString()}<br/>
-                            {tab !== 'availability' && (
+                            {tab !== 'availability' && tab !== 'diet-plan' && (
                             <span style={{ 
                               fontSize: '12px', 
                               fontWeight: 'bold', 
-                              color: lead.enquiryType === 'MEMBERSHIP' ? '#805ad5' : lead.enquiryType === 'HOME_HEALTHCARE' ? '#3182ce' : lead.enquiryType === 'AVAILABILITY' ? '#dd6b20' : lead.enquiryType === 'CONTACT_US' ? '#e53e3e' : lead.enquiryType === 'CALLBACK_REQUEST' ? '#d69e2e' : '#38a169' 
+                              color: lead.enquiryType === 'MEMBERSHIP' ? '#805ad5' : lead.enquiryType === 'HOME_HEALTHCARE' ? '#3182ce' : lead.enquiryType === 'AVAILABILITY' ? '#dd6b20' : lead.enquiryType === 'CONTACT_US' ? '#e53e3e' : lead.enquiryType === 'CALLBACK_REQUEST' ? '#d69e2e' : lead.enquiryType === 'DIET_PLAN' ? '#d53f8c' : '#38a169' 
                             }}>
-                              {lead.enquiryType === 'MEMBERSHIP' ? 'Membership' : lead.enquiryType === 'HOME_HEALTHCARE' ? 'Home Healthcare' : lead.enquiryType === 'AVAILABILITY' ? 'Area Enquiry' : lead.enquiryType === 'CONTACT_US' ? 'Contact Form' : lead.enquiryType === 'CALLBACK_REQUEST' ? 'Callback Request' : 'Health Checkup'}
+                              {lead.enquiryType === 'MEMBERSHIP' ? 'Membership' : lead.enquiryType === 'HOME_HEALTHCARE' ? 'Home Healthcare' : lead.enquiryType === 'AVAILABILITY' ? 'Area Enquiry' : lead.enquiryType === 'CONTACT_US' ? 'Contact Form' : lead.enquiryType === 'CALLBACK_REQUEST' ? 'Callback Request' : lead.enquiryType === 'DIET_PLAN' ? 'Diet Plan' : 'Health Checkup'}
                             </span>
                             )}
                           </td>
@@ -473,7 +482,7 @@ export default async function AdminDashboard({
                               <td className={styles.td}>
                                 {lead.enquiryType === 'MEMBERSHIP' ? (
                                   <strong style={{ color: 'var(--color-primary)' }}>{lead.membershipType}</strong>
-                                ) : lead.enquiryType === 'HOME_HEALTHCARE' ? (
+                                ) : lead.enquiryType === 'HOME_HEALTHCARE' || lead.enquiryType === 'DIET_PLAN' ? (
                                   <strong style={{ color: 'var(--color-primary)' }}>{lead.serviceType}</strong>
                                 ) : lead.enquiryType === 'AVAILABILITY' ? (
                                   <strong style={{ color: 'var(--color-primary)' }}>Service Area Enquiry</strong>

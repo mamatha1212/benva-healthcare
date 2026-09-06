@@ -50,11 +50,11 @@ export default function Footer() {
             </h3>
             <ul className={styles.linkList}>
               <li><a href="/health-packages">Full Body Health Checkup</a></li>
-              <li><a href="#">Home Sample Collection</a></li>
+
               <li><a href="/medicines">Medicines</a></li>
-              <li><a href="/contact">Teleconsultation</a></li>
+
               <li><a href="/membership">Membership Card</a></li>
-              <li><a href="/home-healthcare">Home Healthcare Services</a></li>
+              {/* <li><a href="/home-healthcare">Home Healthcare Services</a></li> */}
               <li><a href="/diet-plan">Diet Plan</a></li>
             </ul>
           </ScrollReveal>

@@ -2,7 +2,7 @@
 import React, { useState } from 'react';
 import styles from './Navbar.module.css';
 
-const navLinks = ['Home', 'Health Packages', 'Medicines', 'Membership Card', 'Home Healthcare', 'Diet Plan', 'About Us', 'Contact Us'];
+const navLinks = ['Home', 'Health Packages', 'Medicines', 'Membership Card', /*'Home Healthcare',*/ 'Diet Plan', 'About Us', 'Contact Us'];
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);

@@ -22,7 +22,7 @@ export default function Home() {
       <AboutSection />
       <BookingFormSection />
       <MembershipFormSection />
-      <HomeHealthcareFormSection />
+      {/* <HomeHealthcareFormSection /> */}
       <WhyChooseUsSection />
       <DoorstepSection />
       <WorkProcessSection />

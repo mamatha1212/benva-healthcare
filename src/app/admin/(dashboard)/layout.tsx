@@ -20,7 +20,8 @@ function SidebarContent() {
     { name: 'All Leads', path: '/admin', icon: 'M4 6h16M4 12h16M4 18h7' },
     { name: 'Health Checkups', path: '/admin?tab=checkups', icon: 'M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2L21 5.96a2.12 2.12 0 00-3-3L4.5 16.5zM15 5l3 3' },
     { name: 'Memberships', path: '/admin?tab=memberships', icon: 'M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2M9 7a4 4 0 100-8 4 4 0 000 8z' },
-    { name: 'Home Healthcare', path: '/admin?tab=homecare', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+    // { name: 'Home Healthcare', path: '/admin?tab=homecare', icon: 'M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6' },
+    { name: 'Diet Plans', path: '/admin?tab=diet-plan', icon: 'M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z' },
   ];
 
   return (
@@ -93,6 +94,16 @@ function SidebarContent() {
             <path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z" />
           </svg>
           Add Health Checkups Options
+        </Link>
+
+        <Link 
+          href="/admin/diet-plans" 
+          className={`${styles.navItem} ${usePathname().includes('/admin/diet-plans') ? styles.active : ''}`}
+        >
+          <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
+          </svg>
+          Add Diet Plans Options
         </Link>
 
         <Link 
