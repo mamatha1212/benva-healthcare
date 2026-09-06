@@ -48,20 +48,20 @@ const services = [
   //   bgColor: '#fffff0',
   //   span: 'col-span-2 md:col-span-1 lg:col-span-1'
   // },
-  {
-    id: 'home-sample',
-    title: 'Home Sample Collection',
-    description: 'Skip the lab lines. Our trained phlebotomists will visit your home to safely collect your blood samples.',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-      </svg>
-    ),
-    link: '/health-packages',
-    color: '#e53e3e',
-    bgColor: '#fff5f5',
-    span: 'col-span-2 md:col-span-1 lg:col-span-2'
-  },
+  // {
+  //   id: 'home-sample',
+  //   title: 'Home Sample Collection',
+  //   description: 'Skip the lab lines. Our trained phlebotomists will visit your home to safely collect your blood samples.',
+  //   icon: (
+  //     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  //       <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
+  //     </svg>
+  //   ),
+  //   link: '/health-packages',
+  //   color: '#e53e3e',
+  //   bgColor: '#fff5f5',
+  //   span: 'col-span-2 md:col-span-1 lg:col-span-2'
+  // },
   {
     id: 'membership',
     title: 'Membership Cards',
@@ -77,20 +77,20 @@ const services = [
     bgColor: '#faf5ff',
     span: 'col-span-2 md:col-span-1 lg:col-span-1'
   },
-  {
-    id: 'teleconsultation',
-    title: 'Teleconsultation',
-    description: 'Speak with highly qualified doctors instantly from your phone. Get expert medical advice anywhere, anytime.',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
-      </svg>
-    ),
-    link: '/contact',
-    color: '#00b5d8',
-    bgColor: '#e6fffa',
-    span: 'col-span-2 md:col-span-1 lg:col-span-1'
-  },
+  // {
+  //   id: 'teleconsultation',
+  //   title: 'Teleconsultation',
+  //   description: 'Speak with highly qualified doctors instantly from your phone. Get expert medical advice anywhere, anytime.',
+  //   icon: (
+  //     <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+  //       <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
+  //     </svg>
+  //   ),
+  //   link: '/contact',
+  //   color: '#00b5d8',
+  //   bgColor: '#e6fffa',
+  //   span: 'col-span-2 md:col-span-1 lg:col-span-1'
+  // },
   {
     id: 'diet-plan',
     title: 'Customized Diet Plans',

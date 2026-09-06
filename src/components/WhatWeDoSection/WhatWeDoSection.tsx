@@ -58,36 +58,36 @@ const services = [
     bgColor: '#faf5ff',
     accentColor: '#9333ea'
   },
-  {
-    icon: (
-      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="120" height="120">
-        <path d="M24 6C15.163 6 8 13.163 8 22c0 5.637 2.831 10.608 7.151 13.633L14 42h20l-1.151-6.367C37.169 32.608 40 27.637 40 22c0-8.837-7.163-16-16-16z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
-        <path d="M18 42h12M20 22h8M24 18v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      </svg>
-    ),
-    title: 'Home Sample Collection',
-    desc: 'Book safe and hygienic laboratory sample collections from the comfort of your home.',
-    tag: 'FREE COLLECTION',
-    buttonText: 'Book Collection',
-    buttonAction: () => window.dispatchEvent(new Event('openBookingModal')),
-    bgColor: '#fef2f2',
-    accentColor: '#dc2626'
-  },
-  {
-    icon: (
-      <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="120" height="120">
-        <path d="M24 6c-5 0-16 8-16 22 0 8 7 14 16 14s16-6 16-14C40 14 29 6 24 6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-        <path d="M24 18v12M18 24h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
-      </svg>
-    ),
-    title: 'Teleconsultation',
-    desc: 'Connect instantly with highly qualified doctors for healthcare guidance and consultation.',
-    tag: '24/7 AVAILABLE',
-    buttonText: 'Request Consult',
-    buttonAction: () => window.dispatchEvent(new Event('openBookingModal')),
-    bgColor: '#f0fdf4',
-    accentColor: '#16a34a'
-  },
+  // {
+  //   icon: (
+  //     <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="120" height="120">
+  //       <path d="M24 6C15.163 6 8 13.163 8 22c0 5.637 2.831 10.608 7.151 13.633L14 42h20l-1.151-6.367C37.169 32.608 40 27.637 40 22c0-8.837-7.163-16-16-16z" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"/>
+  //       <path d="M18 42h12M20 22h8M24 18v8" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+  //     </svg>
+  //   ),
+  //   title: 'Home Sample Collection',
+  //   desc: 'Book safe and hygienic laboratory sample collections from the comfort of your home.',
+  //   tag: 'FREE COLLECTION',
+  //   buttonText: 'Book Collection',
+  //   buttonAction: () => window.dispatchEvent(new Event('openBookingModal')),
+  //   bgColor: '#fef2f2',
+  //   accentColor: '#dc2626'
+  // },
+  // {
+  //   icon: (
+  //     <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="120" height="120">
+  //       <path d="M24 6c-5 0-16 8-16 22 0 8 7 14 16 14s16-6 16-14C40 14 29 6 24 6z" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+  //       <path d="M24 18v12M18 24h12" stroke="currentColor" strokeWidth="2" strokeLinecap="round"/>
+  //     </svg>
+  //   ),
+  //   title: 'Teleconsultation',
+  //   desc: 'Connect instantly with highly qualified doctors for healthcare guidance and consultation.',
+  //   tag: '24/7 AVAILABLE',
+  //   buttonText: 'Request Consult',
+  //   buttonAction: () => window.dispatchEvent(new Event('openBookingModal')),
+  //   bgColor: '#f0fdf4',
+  //   accentColor: '#16a34a'
+  // },
   // {
   //   icon: (
   //     <svg viewBox="0 0 48 48" fill="none" xmlns="http://www.w3.org/2000/svg" width="120" height="120">
