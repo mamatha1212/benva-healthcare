@@ -24,7 +24,8 @@ export default function ContactPage() {
         body: JSON.stringify({
           fullName: formData.fullName,
           mobile: formData.mobile,
-          message: `Email: ${formData.email}\n\n${formData.message}`
+          email: formData.email,
+          message: formData.message
         }),
       });
 
