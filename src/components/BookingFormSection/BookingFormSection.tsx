@@ -167,8 +167,8 @@ export default function BookingFormSection() {
                 {errors.whatsapp && <span className={styles.errorText}>{errors.whatsapp}</span>}
               </div>
               <div className={styles.field}>
-                <label className={styles.label}>Email Address</label>
-                <input type="email" name="email" placeholder="Optional (e.g. name@gmail.com)" value={formData.email} onChange={handleInputChange} className={styles.input} />
+                <label className={styles.label}>Email Address *</label>
+                <input type="email" required name="email" placeholder="e.g. name@gmail.com" value={formData.email} onChange={handleInputChange} className={styles.input} />
               </div>
             </div>
           </div>

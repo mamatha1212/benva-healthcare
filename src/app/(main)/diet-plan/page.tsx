@@ -211,8 +211,8 @@ export default function DietPlanPage() {
 
                 <div>
                   <div className={styles.formGroup}>
-                    <label className={styles.label}>Email Address</label>
-                    <input type="email" name="email" className={styles.input} value={formData.email} onChange={handleChange} placeholder="Optional" />
+                    <label className={styles.label}>Email Address *</label>
+                    <input type="email" required name="email" className={styles.input} value={formData.email} onChange={handleChange} placeholder="e.g. name@gmail.com" />
                   </div>
                 </div>
 

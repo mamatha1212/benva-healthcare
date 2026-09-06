@@ -141,8 +141,9 @@ export default function MembershipFormSection() {
                     {errors.whatsapp && <span className={styles.error}>{errors.whatsapp}</span>}
                   </div>
                   <div className={styles.inputGroup}>
-                    <label>Email Address</label>
-                    <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="e.g. name@gmail.com (Optional)" />
+                    <label>Email Address *</label>
+                    <input type="email" name="email" required value={formData.email} onChange={handleChange} placeholder="e.g. name@gmail.com" />
+                    {errors.email && <span className={styles.error}>{errors.email}</span>}
                   </div>
                 </div>
               </div>
