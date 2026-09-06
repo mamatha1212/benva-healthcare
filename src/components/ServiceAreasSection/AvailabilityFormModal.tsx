@@ -123,7 +123,6 @@ export default function AvailabilityFormModal({ isOpen, onClose }: AvailabilityF
                   >
                     <option value="">Select State</option>
                     {locations.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                    <option value="Other">Other / Not Listed</option>
                   </select>
                 </div>
 
