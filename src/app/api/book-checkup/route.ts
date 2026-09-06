@@ -45,7 +45,7 @@ export async function POST(req: Request) {
       <p><strong>Price:</strong> ${packagePrice ? (packagePrice.includes('₹') ? packagePrice : `₹${packagePrice}`) : '₹1,999'}</p>
     `;
 
-    sendAdminEmail("New Health Checkup Enquiry Received", adminHtml).catch(e => console.error(e));
+    await sendAdminEmail("New Health Checkup Enquiry Received", adminHtml).catch(e => console.error(e));
 
     if (email) {
       const customerHtml = `
@@ -54,7 +54,7 @@ export async function POST(req: Request) {
         <br/>
         <p>Best Regards,<br/>BENVA Healthcare Team</p>
       `;
-      sendUserEmail(email, "Booking Confirmation - BENVA Healthcare", customerHtml).catch(e => console.error(e));
+      await sendUserEmail(email, "Booking Confirmation - BENVA Healthcare", customerHtml).catch(e => console.error(e));
     }
 
     // Returning success

@@ -35,8 +35,8 @@ export async function POST(req: Request) {
       <p>Please contact the user to assist them.</p>
     `;
 
-    // Fire and forget email
-    sendAdminEmail(`New Callback Request: ${data.mobile}`, adminHtml)
+    // Await email so Vercel doesn't kill it
+    await sendAdminEmail(`New Callback Request: ${data.mobile}`, adminHtml)
       .catch(e => console.error("Email send error", e));
 
     return NextResponse.json({ success: true, leadId: lead.id }, { status: 200 });
