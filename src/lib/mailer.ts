@@ -4,7 +4,7 @@ export const transporter = nodemailer.createTransport({
   service: 'gmail',
   auth: {
     user: process.env.SMTP_EMAIL || 'Benvahealthcaresupport@gmail.com',
-    pass: process.env.SMTP_PASSWORD || 'zocl wjwg ghub qbt',
+    pass: process.env.SMTP_PASSWORD || 'zoclwjwgghubqbt',
   },
 });
 
