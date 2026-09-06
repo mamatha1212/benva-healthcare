@@ -48,8 +48,7 @@ export async function POST(req: Request) {
     if (email) {
       const userHtml = `
         <p>Dear ${fullName},</p>
-        <p>Thank you for your enquiry regarding a Diet Plan.</p>
-        <p>Our team will contact you shortly.</p>
+        <p>Thank you for reaching us, our team will get in touch with you shortly.</p>
         <br/>
         <p>Best Regards,<br/>BENVA Healthcare Team</p>
       `;

@@ -43,10 +43,16 @@ export async function POST(req: Request) {
       `
     );
 
-    // Send User Notification if email exists (we don't collect email in contact form currently)
-    // if (data.email) {
-    //   await sendUserEmail(data.email, 'We received your message - BENVA Healthcare', ...);
-    // }
+    // Send User Notification if email exists
+    if (data.email) {
+      const userHtml = `
+        <p>Dear ${data.fullName},</p>
+        <p>Thank you for reaching us, our team will get in touch with you shortly.</p>
+        <br/>
+        <p>Best Regards,<br/>BENVA Healthcare Team</p>
+      `;
+      await sendUserEmail(data.email, 'Thank You for Contacting Us - BENVA Healthcare', userHtml);
+    }
 
     return NextResponse.json({ success: true, leadId: lead.id }, { status: 200 });
 

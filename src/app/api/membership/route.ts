@@ -49,8 +49,7 @@ export async function POST(req: Request) {
     if (email) {
       const userHtml = `
         <p>Dear ${fullName},</p>
-        <p>Thank you for your interest in the BENVA Healthcare ${membershipType} Membership.</p>
-        <p>Our team will contact you shortly to process your request.</p>
+        <p>Thank you for reaching us, our team will get in touch with you shortly.</p>
         <br/>
         <p>Best Regards,<br/>BENVA Healthcare Team</p>
       `;

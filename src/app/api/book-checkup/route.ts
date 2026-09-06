@@ -50,8 +50,7 @@ export async function POST(req: Request) {
     if (email) {
       const customerHtml = `
         <p>Dear ${fullName},</p>
-        <p>Thank you for submitting your details for the <strong>${packageTitle || 'BENVA Premium Full Body Health Checkup'}</strong>.</p>
-        <p>Our Healthcare Team will contact you shortly to confirm your booking and schedule your home sample collection.</p>
+        <p>Thank you for reaching us, our team will get in touch with you shortly.</p>
         <br/>
         <p>Best Regards,<br/>BENVA Healthcare Team</p>
       `;
