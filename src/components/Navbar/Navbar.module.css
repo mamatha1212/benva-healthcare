@@ -87,6 +87,7 @@
   align-items: center;
   gap: 8px;
   text-decoration: none;
+  margin-left: -24px;
 }
 
 .logoImage {
