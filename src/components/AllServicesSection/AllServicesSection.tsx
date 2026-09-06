@@ -16,7 +16,7 @@ const services = [
     link: '/health-packages',
     color: '#02559d',
     bgColor: '#ebf8ff',
-    span: 'col-span-2 md:col-span-1 lg:col-span-2'
+    span: 'col-span-1'
   },
   {
     id: 'medicines',
@@ -31,7 +31,7 @@ const services = [
     link: '/medicines',
     color: '#38a169',
     bgColor: '#f0fff4',
-    span: 'col-span-2 md:col-span-1 lg:col-span-1'
+    span: 'col-span-1'
   },
   // {
   //   id: 'home-healthcare',
@@ -75,7 +75,7 @@ const services = [
     link: '/membership',
     color: '#805ad5',
     bgColor: '#faf5ff',
-    span: 'col-span-2 md:col-span-1 lg:col-span-1'
+    span: 'col-span-1'
   },
   // {
   //   id: 'teleconsultation',
@@ -104,7 +104,7 @@ const services = [
     link: '/diet-plan',
     color: '#ed8936',
     bgColor: '#fffaf0',
-    span: 'col-span-2 lg:col-span-3'
+    span: 'col-span-1'
   }
 ];
 
