@@ -254,7 +254,7 @@
 
   .logoImage {
     transform: scale(1.6);
-    margin-left: -24px;
+    margin-left: 0px;
   }
 
   .navActions {

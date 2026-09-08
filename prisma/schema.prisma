@@ -130,3 +130,22 @@ model DietPlanBenefit {
   order       Int       @default(0)
   createdAt   DateTime  @default(now())
 }
+
+model ServiceLocation {
+  id           String   @id @default(cuid())
+  state        String
+  sNo          Int
+  officeName   String
+  pincode      String
+  type         String
+  circle       String
+  region       String
+  division     String
+  area         String
+  phleboName   String?
+  phleboMobile String?
+  phlebos      Json?
+  isActive     Boolean  @default(false)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}

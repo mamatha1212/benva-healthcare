@@ -61,13 +61,13 @@ export default function AboutSection() {
           {/* Top-right photo */}
           <div
             className={`${styles.photo} ${styles.photoTop}`}
-            style={{ backgroundImage: 'url(/images/about-top.png)' }}
+            style={{ backgroundImage: 'url(/images/about-team-new.jpg)' }}
           />
 
           {/* Bottom-left photo */}
           <div
             className={`${styles.photo} ${styles.photoBottom}`}
-            style={{ backgroundImage: 'url(/images/about-bottom.png)' }}
+            style={{ backgroundImage: 'url(/images/about-consult-new.jpg)' }}
           />
 
           {/* Years of experience card */}

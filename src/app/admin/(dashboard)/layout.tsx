@@ -142,6 +142,17 @@ function SidebarContent() {
           </svg>
           Manage Static Pages
         </Link>
+        
+        <Link 
+          href="/admin/service-areas" 
+          className={`${styles.navItem} ${usePathname().includes('/admin/service-areas') ? styles.active : ''}`}
+        >
+          <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
+            <circle cx="12" cy="10" r="3" />
+          </svg>
+          Service Areas
+        </Link>
       </nav>
 
       <div className={styles.sidebarFooter}>
