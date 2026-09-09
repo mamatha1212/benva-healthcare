@@ -143,14 +143,14 @@ export default function ServiceAreasClient() {
     setImportStatus('Parsing...');
     const lines = importText.split('\n');
     const records = [];
-    const rowRegex = /^(\d+)\s+(.+?)\s+(\d{6})\s+(PO|BO|HO)\s+(.+?Circle)\s+(.+?Region)\s*(.+?Division)\s*(Urban|Rural)$/i;
+    const rowRegex = /^(?:(\d+)\s+)?(.+?)\s*(\d{6})\s+(PO|BO|HO|SO)\s+(.+?Circle)\s*(.+?Region)\s*(.+?Division)\s*(Urban|Rural)/i;
     
     for (const line of lines) {
       const trimmed = line.trim();
       const match = trimmed.match(rowRegex);
       if (match) {
         records.push({
-          sNo: parseInt(match[1], 10),
+          sNo: match[1] ? parseInt(match[1], 10) : records.length + 1,
           officeName: match[2].trim(),
           pincode: match[3],
           type: match[4].toUpperCase(),

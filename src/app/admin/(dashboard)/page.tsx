@@ -463,6 +463,9 @@ export default async function AdminDashboard({
                             <>
                               <td className={styles.td}>
                                 <strong>{lead.fullName}</strong>
+                                {lead.enquiryType === 'DIET_PLAN' && (
+                                  <><br /><span style={{ fontSize: '12px', color: '#718096' }}>Age: {lead.age || 'N/A'} | {lead.gender || 'N/A'}</span></>
+                                )}
                               </td>
                               <td className={styles.td}>
                                 M: {lead.mobile}
@@ -482,6 +485,9 @@ export default async function AdminDashboard({
                               ) : tab !== 'callback' ? (
                                 <td className={styles.td}>
                                   {lead.area}, {lead.district}
+                                  {lead.enquiryType === 'DIET_PLAN' && (
+                                    <><br /><span style={{ fontSize: '12px', color: '#718096' }}>{lead.state} - {lead.pincode}</span></>
+                                  )}
                                 </td>
                               ) : null}
                               <td className={styles.td}>

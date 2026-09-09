@@ -149,3 +149,63 @@ model ServiceLocation {
   createdAt    DateTime @default(now())
   updatedAt    DateTime @updatedAt
 }
+
+model PatientRecord {
+  id         String        @id @default(cuid())
+  name       String
+  phone      String
+  age        String?
+  gender     String?
+  address    String?
+  consultant String?
+  createdAt  DateTime      @default(now())
+  updatedAt  DateTime      @updatedAt
+  files      PatientFile[]
+  invoices   Invoice[]
+}
+
+model PatientFile {
+  id        String        @id @default(cuid())
+  patient   PatientRecord @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patientId String
+  fileUrl   String
+  fileName  String
+  fileType  String        // e.g., 'PRESCRIPTION', 'BILL', 'REPORT'
+  createdAt DateTime      @default(now())
+}
+
+model Invoice {
+  id          String        @id @default(cuid())
+  patient     PatientRecord @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  patientId   String
+  invoiceNo   String        @unique
+  mrnNo       String?
+  billDate    DateTime      @default(now())
+  payMode     String?
+  totalAmount Float         @default(0)
+  discount    Float         @default(0)
+  cgst        Float         @default(0)
+  sgst        Float         @default(0)
+  paidAmount  Float         @default(0)
+  dueAmount   Float         @default(0)
+  createdAt   DateTime      @default(now())
+  items       InvoiceItem[]
+}
+
+model InvoiceItem {
+  id        String  @id @default(cuid())
+  invoice   Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  invoiceId String
+  itemName  String
+  mfr       String?
+  qty       Float   @default(1)
+  batch     String?
+  exp       String?
+  hsn       String?
+  price     Float   @default(0)
+  discount  Float   @default(0)
+  amount    Float   @default(0)
+  cgst      Float   @default(0)
+  sgst      Float   @default(0)
+  total     Float   @default(0)
+}

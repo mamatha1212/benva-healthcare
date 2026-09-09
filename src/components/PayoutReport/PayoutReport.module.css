@@ -1,0 +1,125 @@
+.reportContainer {
+  font-family: 'Arial', sans-serif;
+  color: #333;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+  padding: 40px;
+  background-color: white;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.logo {
+  max-width: 250px;
+  margin-bottom: 20px;
+}
+
+.title {
+  color: #0b4e8c;
+  font-size: 24px;
+  font-weight: bold;
+  margin-bottom: 5px;
+}
+
+.year {
+  color: #0b4e8c;
+  font-size: 18px;
+  font-weight: bold;
+}
+
+.section {
+  margin-bottom: 25px;
+}
+
+.sectionTitle {
+  color: #0b4e8c;
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 10px;
+  border-bottom: 2px solid #e0e0e0;
+  padding-bottom: 5px;
+}
+
+.infoBox {
+  background-color: #f0f7fd;
+  border-radius: 8px;
+  padding: 15px 20px;
+  margin-bottom: 25px;
+}
+
+.infoRow {
+  display: flex;
+  margin-bottom: 8px;
+}
+
+.infoRow:last-child {
+  margin-bottom: 0;
+}
+
+.infoLabel {
+  font-weight: bold;
+  color: #0b4e8c;
+  width: 180px;
+}
+
+.infoValue {
+  color: #333;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  margin-bottom: 15px;
+  border: 1px solid #e0e0e0;
+}
+
+.table th, .table td {
+  border: 1px solid #e0e0e0;
+  padding: 10px;
+  text-align: left;
+}
+
+.table th {
+  background-color: #f0f7fd;
+  color: #0b4e8c;
+  font-weight: bold;
+}
+
+.table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.statusCompleted {
+  color: #28a745;
+  font-weight: bold;
+}
+
+.statusPending {
+  color: #dc3545;
+  font-weight: bold;
+}
+
+.screenshotContainer {
+  text-align: center;
+  margin-top: 30px;
+}
+
+.screenshot {
+  max-width: 100%;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 5px;
+}
+
+.signature {
+  margin-top: 40px;
+  text-align: left;
+}
+
+.signature p {
+  margin: 5px 0;
+}

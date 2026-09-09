@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import styles from './page.module.css';
+import statesData from '@/lib/statesData.json';
 
 export default function DietPlanPage() {
   const [formData, setFormData] = useState({
@@ -257,11 +258,34 @@ export default function DietPlanPage() {
                 <div className={styles.row}>
                   <div className={styles.formGroup}>
                     <label className={styles.label}>State *</label>
-                    <input type="text" name="state" required className={styles.input} value={formData.state} onChange={handleChange} placeholder="Enter your state" />
+                    <select 
+                      name="state" 
+                      required 
+                      className={styles.select} 
+                      value={formData.state} 
+                      onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value, district: '' }))}
+                    >
+                      <option value="">Select State</option>
+                      {statesData.states.map((s) => (
+                        <option key={s.state} value={s.state}>{s.state}</option>
+                      ))}
+                    </select>
                   </div>
                   <div className={styles.formGroup}>
                     <label className={styles.label}>District *</label>
-                    <input type="text" name="district" required className={styles.input} value={formData.district} onChange={handleChange} placeholder="Enter your district" />
+                    <select 
+                      name="district" 
+                      required 
+                      className={styles.select} 
+                      value={formData.district} 
+                      onChange={handleChange}
+                      disabled={!formData.state}
+                    >
+                      <option value="">Select District</option>
+                      {formData.state && statesData.states.find(s => s.state === formData.state)?.districts.map((d) => (
+                        <option key={d} value={d}>{d}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
 
