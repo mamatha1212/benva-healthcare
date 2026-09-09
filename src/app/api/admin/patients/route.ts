@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import { writeFile, mkdir } from 'fs/promises';
-import { join } from 'path';
 
 export async function GET() {
   try {
@@ -35,40 +33,26 @@ export async function POST(req: NextRequest) {
     });
 
     // Handle files
-    const uploadDir = join(process.cwd(), 'public', 'uploads', 'patients', patient.id);
-    // Create directory if it doesn't exist
-    try {
-      await mkdir(uploadDir, { recursive: true });
-    } catch (e) {
-      // Ignore if directory exists
-    }
-
-    const fileOperations = [];
     const dbRecords: any[] = [];
 
     for (const [key, value] of formData.entries()) {
       if (key === 'files' && value instanceof File && value.size > 0) {
-        fileOperations.push(async () => {
-          const file = value as File;
-          const bytes = await file.arrayBuffer();
-          const buffer = Buffer.from(bytes);
-          
-          const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-          const filePath = join(uploadDir, fileName);
-          await writeFile(filePath, buffer);
-          
-          dbRecords.push({
-            patientId: patient.id,
-            fileName: file.name,
-            fileUrl: `/uploads/patients/${patient.id}/${fileName}`,
-            fileType: 'DOCUMENT',
-          });
+        const file = value as File;
+        const bytes = await file.arrayBuffer();
+        const buffer = Buffer.from(bytes);
+        
+        const base64Data = buffer.toString('base64');
+        const mimeType = file.type || 'application/octet-stream';
+        const dataUri = `data:${mimeType};base64,${base64Data}`;
+        
+        dbRecords.push({
+          patientId: patient.id,
+          fileName: file.name,
+          fileUrl: dataUri,
+          fileType: 'DOCUMENT',
         });
       }
     }
-
-    // Run all file writes concurrently
-    await Promise.all(fileOperations.map(op => op()));
 
     // Bulk insert all file records in one DB roundtrip
     if (dbRecords.length > 0) {

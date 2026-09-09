@@ -88,7 +88,7 @@ export default function PatientList({ initialPatients }: { initialPatients: any[
                     {patient.files && patient.files.length > 0 ? (
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                         {patient.files.map((file: any) => (
-                          <a key={file.id} href={file.fileUrl} target="_blank" rel="noreferrer" style={{ fontSize: '13px', color: '#2563eb', textDecoration: 'underline' }}>
+                          <a key={file.id} href={file.fileUrl} download={file.fileName} target="_blank" rel="noreferrer" style={{ fontSize: '13px', color: '#2563eb', textDecoration: 'underline' }}>
                             {file.fileName}
                           </a>
                         ))}
