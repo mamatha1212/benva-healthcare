@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { put } from '@vercel/blob';
 
 export async function GET() {
   try {
@@ -38,17 +39,16 @@ export async function POST(req: NextRequest) {
     for (const [key, value] of formData.entries()) {
       if (key === 'files' && value instanceof File && value.size > 0) {
         const file = value as File;
-        const bytes = await file.arrayBuffer();
-        const buffer = Buffer.from(bytes);
         
-        const base64Data = buffer.toString('base64');
-        const mimeType = file.type || 'application/octet-stream';
-        const dataUri = `data:${mimeType};base64,${base64Data}`;
+        // Upload the file to Vercel Blob
+        const blob = await put(`patients/${patient.id}/${file.name}`, file, {
+          access: 'public',
+        });
         
         dbRecords.push({
           patientId: patient.id,
           fileName: file.name,
-          fileUrl: dataUri,
+          fileUrl: blob.url,
           fileType: 'DOCUMENT',
         });
       }
