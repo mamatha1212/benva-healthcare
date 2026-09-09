@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 
-export default function AddPatientModal({ onClose, onAdded }: { onClose: () => void, onAdded: (patient: any) => void }) {
+export default function AddPatientModal({ onClose, onAdded, doctors = [] }: { onClose: () => void, onAdded: (patient: any) => void, doctors?: any[] }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const formRef = useRef<HTMLFormElement>(null);
 
@@ -73,7 +73,12 @@ export default function AddPatientModal({ onClose, onAdded }: { onClose: () => v
 
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Consultant</label>
-            <input type="text" name="consultant" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+            <select name="consultant" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white' }}>
+              <option value="">Select Consultant</option>
+              {doctors.map(doc => (
+                <option key={doc.id} value={doc.name}>{doc.name}</option>
+              ))}
+            </select>
           </div>
 
           <div>

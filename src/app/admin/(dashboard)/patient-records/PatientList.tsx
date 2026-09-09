@@ -5,7 +5,7 @@ import AddPatientModal from './AddPatientModal';
 import InvoiceGeneratorModal from './InvoiceGeneratorModal';
 import InvoiceView from './InvoiceView';
 
-export default function PatientList({ initialPatients }: { initialPatients: any[] }) {
+export default function PatientList({ initialPatients, doctors }: { initialPatients: any[], doctors: any[] }) {
   const [patients, setPatients] = useState(initialPatients);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [invoiceModalPatient, setInvoiceModalPatient] = useState<any>(null);
@@ -154,6 +154,7 @@ export default function PatientList({ initialPatients }: { initialPatients: any[
         <AddPatientModal 
           onClose={() => setIsAddModalOpen(false)} 
           onAdded={handlePatientAdded} 
+          doctors={doctors}
         />
       )}
 

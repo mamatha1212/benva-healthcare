@@ -14,9 +14,14 @@ export default async function PatientRecordsAdmin() {
     }
   });
 
+  const doctors = await prisma.doctor.findMany({
+    where: { type: 'CONSULTANT' },
+    orderBy: { name: 'asc' }
+  });
+
   return (
     <div>
-      <PatientList initialPatients={patients} />
+      <PatientList initialPatients={patients} doctors={doctors} />
     </div>
   );
 }
