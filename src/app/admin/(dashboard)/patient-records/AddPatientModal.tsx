@@ -18,13 +18,16 @@ export default function AddPatientModal({ onClose, onAdded }: { onClose: () => v
         body: formData
       });
       
-      if (!res.ok) throw new Error('Failed to add patient');
+      if (!res.ok) {
+        const errData = await res.json().catch(() => null);
+        throw new Error(errData?.error || 'Failed to add patient');
+      }
       
       const newPatient = await res.json();
       onAdded(newPatient);
-    } catch (error) {
+    } catch (error: any) {
       console.error(error);
-      alert('Error adding patient');
+      alert(error.message || 'Error adding patient');
     } finally {
       setIsSubmitting(false);
     }
@@ -34,7 +37,7 @@ export default function AddPatientModal({ onClose, onAdded }: { onClose: () => v
     <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
       <div style={{ background: 'white', padding: '32px', borderRadius: '12px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-          <h2 style={{ margin: 0, fontSize: '24px', color: '#1e293b' }}>Add New Patient Data</h2>
+          <h2 style={{ margin: 0, fontSize: '24px', color: '#1e293b' }}>Add New Patient Data (Live)</h2>
           <button onClick={onClose} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#64748b' }}>&times;</button>
         </div>
         
