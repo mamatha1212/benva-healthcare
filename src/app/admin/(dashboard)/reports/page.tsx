@@ -293,8 +293,21 @@ function ReportsManagementContent() {
           setIsModalOpen(false);
           setFormData({ patientId: '', patientName: '', mobileNumber: '', testName: '', labName: '', reference: '', remarks: '', title: '', needsReminder: false });
         } else {
-          // Keep modal open, clear only file input and title
-          setFormData(prev => ({ ...prev, title: '' }));
+          // Fetch next ID for the next order
+          try {
+            const offset = selectedDate.getTimezoneOffset() * 60000;
+            const localISOTime = (new Date(selectedDate.getTime() - offset)).toISOString();
+            const res = await fetch(`/api/admin/reports/next-id?date=${encodeURIComponent(localISOTime)}`);
+            if (res.ok) {
+              const { nextId } = await res.json();
+              setFormData(prev => ({ ...prev, title: '', patientId: nextId }));
+            } else {
+              setFormData(prev => ({ ...prev, title: '' }));
+            }
+          } catch (e) {
+            console.error('Failed to get next ID', e);
+            setFormData(prev => ({ ...prev, title: '' }));
+          }
         }
         setSelectedFiles(null);
       } else {
@@ -472,6 +485,23 @@ function ReportsManagementContent() {
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
   const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
+
+  const handleOpenUploadModal = async () => {
+    setIsModalOpen(true);
+    if (selectedDate) {
+      try {
+        const offset = selectedDate.getTimezoneOffset() * 60000;
+        const localISOTime = (new Date(selectedDate.getTime() - offset)).toISOString();
+        const res = await fetch(`/api/admin/reports/next-id?date=${encodeURIComponent(localISOTime)}`);
+        if (res.ok) {
+          const { nextId } = await res.json();
+          setFormData(prev => ({ ...prev, patientId: nextId }));
+        }
+      } catch (e) {
+        console.error('Error fetching next ID', e);
+      }
+    }
+  };
 
   return (
     <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
@@ -670,7 +700,7 @@ function ReportsManagementContent() {
               )}
               {view === 'REPORTS' && (
                 <button 
-                  onClick={() => setIsModalOpen(true)}
+                  onClick={handleOpenUploadModal}
                   style={{ background: '#10b981', color: 'white', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', border: 'none' }}
                 >
                   + Upload Reports
