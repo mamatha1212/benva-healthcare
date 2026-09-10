@@ -33,16 +33,6 @@ export default function ServiceabilityCheck({ initialPincode }: { initialPincode
       t += `${loc.officeName} (${loc.type})\n`;
       t += `State: ${loc.state} | Area: ${loc.area}\n`;
       t += `Division: ${loc.division} | Region: ${loc.region}\n`;
-      
-      if (loc.phlebos && Array.isArray(loc.phlebos) && loc.phlebos.length > 0) {
-        t += `Phlebotomist Details:\n`;
-        loc.phlebos.forEach((p: any) => {
-          t += `Name: ${p.name || 'N/A'}, Phone: ${p.mobile || 'N/A'}\n`;
-        });
-      } else if (loc.phleboName || loc.phleboMobile) {
-        t += `Phlebotomist Details:\n`;
-        t += `Name: ${loc.phleboName || 'N/A'}, Phone: ${loc.phleboMobile || 'N/A'}\n`;
-      }
       return t;
     }).join('\n\n');
     
@@ -56,15 +46,6 @@ export default function ServiceabilityCheck({ initialPincode }: { initialPincode
     text += `${loc.officeName} (${loc.type})\n`;
     text += `State: ${loc.state} | Area: ${loc.area}\n`;
     text += `Division: ${loc.division} | Region: ${loc.region}\n`;
-    if (loc.phlebos && Array.isArray(loc.phlebos) && loc.phlebos.length > 0) {
-      text += `Phlebotomist Details:\n`;
-      loc.phlebos.forEach((p: any) => {
-        text += `Name: ${p.name || 'N/A'}, Phone: ${p.mobile || 'N/A'}\n`;
-      });
-    } else if (loc.phleboName || loc.phleboMobile) {
-      text += `Phlebotomist Details:\n`;
-      text += `Name: ${loc.phleboName || 'N/A'}, Phone: ${loc.phleboMobile || 'N/A'}\n`;
-    }
     
     navigator.clipboard.writeText(text);
     setCopiedId(loc.id);
