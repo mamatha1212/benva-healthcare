@@ -28,12 +28,10 @@ export async function addPackage(formData: FormData) {
     const bytes = await imageFile.arrayBuffer();
     const buffer = Buffer.from(bytes);
     
-    // Create a unique filename
-    const uniqueFilename = `${Date.now()}-${imageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-    const filePath = join(process.cwd(), 'public', 'images', 'packages', uniqueFilename);
-    
-    await writeFile(filePath, buffer);
-    imagePath = `/images/packages/${uniqueFilename}`;
+    // Convert to base64 Data URI to support Vercel serverless (read-only filesystem)
+    const base64 = buffer.toString('base64');
+    const mimeType = imageFile.type || 'image/png';
+    imagePath = `data:${mimeType};base64,${base64}`;
   }
 
   await prisma.healthPackage.create({
@@ -72,12 +70,10 @@ export async function updatePackage(id: string, formData: FormData) {
     const bytes = await imageFile.arrayBuffer();
     const buffer = Buffer.from(bytes);
     
-    // Create a unique filename
-    const uniqueFilename = `${Date.now()}-${imageFile.name.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
-    const filePath = join(process.cwd(), 'public', 'images', 'packages', uniqueFilename);
-    
-    await writeFile(filePath, buffer);
-    imagePath = `/images/packages/${uniqueFilename}`;
+    // Convert to base64 Data URI to support Vercel serverless (read-only filesystem)
+    const base64 = buffer.toString('base64');
+    const mimeType = imageFile.type || 'image/png';
+    imagePath = `data:${mimeType};base64,${base64}`;
   }
 
   await prisma.healthPackage.update({
