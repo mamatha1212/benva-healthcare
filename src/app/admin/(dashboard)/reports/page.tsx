@@ -491,11 +491,14 @@ function ReportsManagementContent() {
     } catch(e) { console.error(e); }
   };
 
-  const toggleReportSelection = (id: string) => {
-    const newSelected = new Set(selectedReportIds);
-    if (newSelected.has(id)) newSelected.delete(id);
-    else newSelected.add(id);
-    setSelectedReportIds(newSelected);
+  const toggleReportSelection = (id: string, forceState?: boolean) => {
+    setSelectedReportIds(prev => {
+      const newSelected = new Set(prev);
+      const targetState = forceState !== undefined ? forceState : !newSelected.has(id);
+      if (targetState) newSelected.add(id);
+      else newSelected.delete(id);
+      return newSelected;
+    });
   };
 
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
