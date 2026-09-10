@@ -26,7 +26,7 @@ export default function ServiceabilityCheck({ initialPincode }: { initialPincode
   const [copiedId, setCopiedId] = useState<string | null>(null);
 
   const handleCopy = (loc: LocationData) => {
-    let text = `${loc.officeName} (${loc.type}) - ${loc.isActive ? 'ACTIVE' : 'INACTIVE'}\n`;
+    let text = `${loc.officeName} (${loc.type})\n`;
     text += `State: ${loc.state} | Area: ${loc.area}\n`;
     text += `Division: ${loc.division} | Region: ${loc.region}\n`;
     text += `Phlebotomist Details:\n`;
