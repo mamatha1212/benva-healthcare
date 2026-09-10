@@ -32,7 +32,7 @@ export default async function PackagesDashboard({ searchParams }: { searchParams
         <p className={styles.subtitle}>Showing {paginatedPackages.length} of {totalPackages} total packages.</p>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '30px', alignItems: 'start' }}>
+      <div className={styles.mainLayout}>
         
         {/* Table List */}
         <div className={styles.tableContainer} style={{ margin: 0 }}>

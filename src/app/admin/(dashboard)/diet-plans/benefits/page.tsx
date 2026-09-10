@@ -13,7 +13,7 @@ export default async function DietPlanBenefitsPage() {
 
   return (
     <div className={styles.container}>
-      <div className={styles.header} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className={styles.header} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 className={styles.title}>Manage Diet Plan Details (What You Get)</h1>
           <p className={styles.subtitle}>Select a plan to manage its benefits.</p>

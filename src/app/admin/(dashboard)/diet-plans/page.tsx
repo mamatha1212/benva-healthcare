@@ -28,7 +28,7 @@ export default async function DietPlansDashboard({ searchParams }: { searchParam
 
   return (
     <div className={styles.container}>
-      <div className={styles.header} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <div className={styles.header} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 className={styles.title}>Manage Diet Plans</h1>
           <p className={styles.subtitle}>Showing {paginatedPlans.length} of {totalPlans} total plans.</p>
@@ -42,7 +42,7 @@ export default async function DietPlansDashboard({ searchParams }: { searchParam
         </Link>
       </div>
 
-      <div style={{ display: 'grid', gridTemplateColumns: '1fr 380px', gap: '30px', alignItems: 'start' }}>
+      <div className={styles.mainLayout}>
         
         {/* Table List */}
         <div className={styles.tableContainer} style={{ margin: 0 }}>

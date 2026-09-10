@@ -209,3 +209,37 @@ model InvoiceItem {
   sgst      Float   @default(0)
   total     Float   @default(0)
 }
+
+model Doctor {
+  id        String   @id @default(cuid())
+  name      String
+  type      String   // 'CONSULTANT' or 'DIETICIAN'
+  phone     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ReportYear {
+  id   String @id @default(cuid())
+  year Int    @unique
+}
+
+model ReportFile {
+  id           String   @id @default(cuid())
+  date         DateTime
+  title        String
+  fileUrl      String
+  fileName     String
+  patientName  String?
+  patientId    String?
+  mobileNumber String?
+  testName     String?
+  labName      String?
+  reference    String?
+  remarks      String?
+
+  needsReminder Boolean   @default(false)
+  reminderDate  DateTime?
+
+  createdAt    DateTime @default(now())
+}

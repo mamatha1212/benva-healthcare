@@ -24,6 +24,22 @@
   color: #64748b;
 }
 
+@media (max-width: 768px) {
+  .container {
+    padding: 0;
+  }
+  .title {
+    font-size: 18px;
+    margin-bottom: 2px;
+  }
+  .subtitle {
+    font-size: 12px;
+  }
+  .header {
+    margin-bottom: 12px;
+  }
+}
+
 .emptyState {
   padding: 48px;
   text-align: center;
@@ -45,6 +61,7 @@
 .table {
   width: 100%;
   border-collapse: collapse;
+  min-width: 900px; /* Force minimum width to trigger horizontal scrolling on mobile */
 }
 
 .th {
@@ -78,4 +95,66 @@
   font-weight: 700;
   background: #ebf8ff;
   color: #3182ce;
+}
+
+.metricsGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 16px;
+}
+
+.metricsCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 8px;
+  border-radius: 12px;
+  border: 1px solid transparent;
+  text-align: center;
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+@media (max-width: 768px) {
+  .metricsGrid {
+    display: flex;
+    overflow-x: auto;
+    padding-bottom: 8px;
+    -ms-overflow-style: none;  /* IE and Edge */
+    scrollbar-width: none;  /* Firefox */
+  }
+  .metricsGrid::-webkit-scrollbar {
+    display: none;
+  }
+  .metricsCard {
+    flex: 0 0 auto;
+    min-width: 120px;
+    padding: 12px 8px;
+  }
+}
+
+.mainLayout {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 30px;
+  align-items: start;
+}
+
+.testsGrid {
+  display: grid;
+  grid-template-columns: 300px 1fr;
+  gap: 24px;
+  align-items: start;
+}
+
+@media (max-width: 768px) {
+  .mainLayout {
+    grid-template-columns: 1fr;
+    gap: 24px;
+  }
+  .testsGrid {
+    grid-template-columns: 1fr;
+  }
 }

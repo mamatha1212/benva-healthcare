@@ -11,6 +11,8 @@ import {
   ResponsiveContainer
 } from 'recharts';
 
+import styles from './LeadsChart.module.css';
+
 const SERVICES = [
   { key: 'HEALTH_CHECKUP', name: 'Health Checkups', color: '#38a169' },
   { key: 'MEMBERSHIP', name: 'Memberships', color: '#805ad5' },
@@ -50,38 +52,36 @@ export default function LeadsChart({ leads }: { leads: any[] }) {
   }, [leads]);
 
   return (
-    <div style={{ width: '100%', height: 450, background: 'white', padding: '24px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)', marginTop: '30px' }}>
-      <h3 style={{ marginBottom: '24px', fontSize: '18px', fontWeight: 700, color: '#334155' }}>Monthly Leads Overview (By Service)</h3>
-      <div style={{ width: '100%', height: '350px' }}>
-        <ResponsiveContainer width="100%" height="100%">
-          <BarChart
-            data={data}
-            margin={{ top: 5, right: 20, left: 0, bottom: 25 }}
-          >
-            <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
-            <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 13 }} dy={10} />
-            <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 13 }} dx={-10} allowDecimals={false} />
-            <Tooltip 
-              cursor={{ fill: '#f1f5f9' }}
-              contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
-            />
-            <Legend wrapperStyle={{ paddingTop: '20px' }} />
-            {SERVICES.map((s, idx) => (
-              <Bar 
-                key={s.key} 
-                dataKey={s.name} 
-                stackId="a" 
-                fill={s.color} 
-                maxBarSize={50} 
-                radius={
-                  // Only add radius to top if it's the last item, though stacked radius is tricky in Recharts.
-                  // Defaulting to 0 radius for stacked bars is usually cleaner.
-                  [0, 0, 0, 0]
-                } 
+    <div className={styles.chartContainer}>
+      <h3 className={styles.chartTitle}>Monthly Leads Overview (By Service)</h3>
+      <div className={styles.chartScrollArea}>
+        <div className={styles.chartInner}>
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart
+              data={data}
+              margin={{ top: 5, right: 20, left: 0, bottom: 25 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#e2e8f0" />
+              <XAxis dataKey="name" axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 13 }} dy={10} />
+              <YAxis axisLine={false} tickLine={false} tick={{ fill: '#64748b', fontSize: 13 }} dx={-10} allowDecimals={false} />
+              <Tooltip 
+                cursor={{ fill: '#f1f5f9' }}
+                contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
               />
-            ))}
-          </BarChart>
-        </ResponsiveContainer>
+              <Legend wrapperStyle={{ paddingTop: '20px' }} />
+              {SERVICES.map((s, idx) => (
+                <Bar 
+                  key={s.key} 
+                  dataKey={s.name} 
+                  stackId="a" 
+                  fill={s.color} 
+                  maxBarSize={50} 
+                  radius={[0, 0, 0, 0]} 
+                />
+              ))}
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
       </div>
     </div>
   );

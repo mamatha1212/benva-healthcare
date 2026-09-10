@@ -87,7 +87,7 @@ export default function TestAdminClient({
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
       
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '12px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+      <div style={{ display: 'flex', gap: '12px', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', flexWrap: 'wrap' }}>
         <button 
           onClick={() => setActiveTab('profiles')}
           style={{ 
@@ -109,7 +109,7 @@ export default function TestAdminClient({
       </div>
 
       {activeTab === 'profiles' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '24px', alignItems: 'start' }}>
+        <div className={styles.testsGrid}>
           
           {/* Left: Profiles */}
           <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
@@ -160,11 +160,11 @@ export default function TestAdminClient({
                             <div style={{ fontSize: '14px', fontWeight: selectedProfileId === profile.id ? 600 : 400, color: '#334155' }}>{profile.name}</div>
                             <div style={{ fontSize: '11px', color: '#64748b' }}>{profile.parameters.length} params</div>
                           </div>
-                          <div style={{ display: 'flex', gap: '4px' }}>
-                            <button onClick={(e) => { e.stopPropagation(); setEditingProfileId(profile.id); }} style={{ background: 'transparent', color: '#4f46e5', border: 'none', cursor: 'pointer', fontSize: '12px' }}>Edit</button>
-                            <form action={deleteTestProfile} onClick={e => e.stopPropagation()}>
+                          <div style={{ display: 'flex', gap: '12px', flexShrink: 0, alignItems: 'center' }}>
+                            <button onClick={(e) => { e.stopPropagation(); setEditingProfileId(profile.id); }} style={{ background: 'transparent', color: '#4f46e5', border: 'none', cursor: 'pointer', fontSize: '12px', padding: '4px', fontWeight: 600 }}>Edit</button>
+                            <form action={deleteTestProfile} onClick={e => e.stopPropagation()} style={{ margin: 0 }}>
                               <input type="hidden" name="id" value={profile.id} />
-                              <button type="submit" style={{ background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', fontSize: '12px' }}>Del</button>
+                              <button type="submit" style={{ background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', fontSize: '12px', padding: '4px', fontWeight: 600 }}>Del</button>
                             </form>
                           </div>
                         </div>
@@ -224,11 +224,11 @@ export default function TestAdminClient({
                                 <span style={{ fontSize: '14px', color: '#334155', fontWeight: 500 }}>{param.name}</span>
                               </div>
                               
-                              <div style={{ display: 'flex', gap: '4px' }}>
-                                <button onClick={() => setEditingParameterId(param.id)} style={{ background: 'transparent', color: '#4f46e5', border: 'none', cursor: 'pointer', fontSize: '12px' }}>Edit</button>
-                                <form action={deleteTestParameter}>
+                              <div style={{ display: 'flex', gap: '12px', flexShrink: 0, alignItems: 'center' }}>
+                                <button onClick={() => setEditingParameterId(param.id)} style={{ background: 'transparent', color: '#4f46e5', border: 'none', cursor: 'pointer', fontSize: '12px', padding: '4px', fontWeight: 600 }}>Edit</button>
+                                <form action={deleteTestParameter} style={{ margin: 0 }}>
                                   <input type="hidden" name="id" value={param.id} />
-                                  <button type="submit" style={{ background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
+                                  <button type="submit" style={{ background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', fontSize: '12px', padding: '4px', fontWeight: 600 }}>Delete</button>
                                 </form>
                               </div>
                             </>
@@ -259,7 +259,7 @@ export default function TestAdminClient({
       )}
 
       {activeTab === 'assignment' && (
-        <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '24px', alignItems: 'start' }}>
+        <div className={styles.testsGrid}>
           
           {/* Left: Packages */}
           <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>

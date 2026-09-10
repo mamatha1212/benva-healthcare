@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { createStaticPage, updateStaticPage, deleteStaticPage } from './page-actions';
+import styles from '../page.module.css';
 
 type StaticPage = {
   id: string;
@@ -17,7 +18,7 @@ export default function StaticPageAdminClient({ pages }: { pages: StaticPage[] }
   const selectedPage = pages.find(p => p.id === selectedPageId);
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '300px 1fr', gap: '24px', alignItems: 'start' }}>
+    <div className={styles.testsGrid}>
       
       {/* Left: Pages List */}
       <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
@@ -83,7 +84,7 @@ export default function StaticPageAdminClient({ pages }: { pages: StaticPage[] }
             </div>
 
             <form action={isCreating ? createStaticPage : updateStaticPage.bind(null, selectedPage!.id)} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
                 <div>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#4a5568' }}>Page Title</label>
                   <input 

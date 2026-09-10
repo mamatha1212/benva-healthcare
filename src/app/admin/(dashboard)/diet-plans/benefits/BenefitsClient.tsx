@@ -107,18 +107,18 @@ export default function BenefitsClient({ allPlans }: { allPlans: any[] }) {
             )}
           </div>
 
-          <form onSubmit={handleAdd} style={{ display: 'flex', gap: '12px' }}>
+          <form onSubmit={handleAdd} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
             <input 
               value={newBenefit}
               onChange={(e) => setNewBenefit(e.target.value)}
               placeholder="Type a new benefit... (e.g. 1 Monthly Consultation)" 
               required
-              style={{ flex: 1, padding: '12px 16px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px' }}
+              style={{ flex: 1, minWidth: '200px', padding: '12px 16px', border: '1px solid #e2e8f0', borderRadius: '8px', fontSize: '14px', boxSizing: 'border-box' }}
             />
             <button 
               type="submit" 
               disabled={loading}
-              style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '0 24px', borderRadius: '8px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1 }}
+              style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '12px 24px', borderRadius: '8px', fontWeight: 600, cursor: loading ? 'not-allowed' : 'pointer', opacity: loading ? 0.7 : 1, whiteSpace: 'nowrap', flexShrink: 0 }}
             >
               {loading ? 'Adding...' : 'Add Benefit'}
             </button>

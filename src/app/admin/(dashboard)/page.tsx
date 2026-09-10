@@ -8,7 +8,6 @@ import LeadsPagination from '@/components/LeadsPagination/LeadsPagination';
 import ImportExportButtons from '@/components/ImportExportButtons/ImportExportButtons';
 import LeadRemarksUpdater from '@/components/LeadRemarksUpdater/LeadRemarksUpdater';
 
-// Force dynamic rendering to ensure fresh data
 import LeadsChart from './LeadsChart';
 
 export const dynamic = 'force-dynamic';
@@ -44,6 +43,22 @@ export default async function AdminDashboard({
   const allLeads = await prisma.lead.findMany({
     where: baseWhereClause,
     orderBy: { createdAt: 'asc' }
+  });
+
+  const now = new Date();
+  now.setHours(0,0,0,0);
+  const thirtyDaysFromNow = new Date(now);
+  thirtyDaysFromNow.setDate(now.getDate() + 30);
+  
+  const upcomingReminders = await prisma.reportFile.findMany({
+    where: {
+      needsReminder: true,
+      reminderDate: {
+        gte: new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000), // Up to 30 days overdue
+        lte: thirtyDaysFromNow // Up to 30 days in future
+      }
+    },
+    orderBy: { reminderDate: 'asc' }
   });
 
   // Bypass Prisma Client cache lock to fetch the newly added 'remarks' column
@@ -165,14 +180,37 @@ export default async function AdminDashboard({
 
   return (
     <div className={styles.container}>
+      
+      {/* UPCOMING REMINDERS */}
+      {upcomingReminders.length > 0 && (
+        <div style={{ background: '#fffbeb', border: '1px solid #f59e0b', borderRadius: '12px', padding: '16px 24px', marginBottom: '24px' }}>
+          <h2 style={{ fontSize: '18px', fontWeight: 700, color: '#d97706', margin: '0 0 12px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            🔔 Upcoming Patient Follow-ups
+          </h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '12px' }}>
+            {upcomingReminders.map(report => {
+              const rDate = report.reminderDate ? new Date(report.reminderDate) : new Date();
+              const isOverdue = rDate < now;
+              return (
+                <div key={report.id} style={{ background: 'white', padding: '12px', borderRadius: '8px', borderLeft: `4px solid ${isOverdue ? '#ef4444' : '#10b981'}` }}>
+                  <div style={{ fontWeight: 600, color: isOverdue ? '#ef4444' : '#1e293b' }}>
+                    Patient Follow-up Due on {rDate.toLocaleDateString()}
+                  </div>
+                  <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
+                    <strong>Name:</strong> {report.patientName || 'Unknown'} <br/>
+                    <strong>Mobile:</strong> {report.mobileNumber || 'Not provided'}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       {/* Overview Metrics Row for All Leads */}
       {tab === 'all' && (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '28px' }}>
-        <div style={{ 
-          display: 'grid', 
-          gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-          gap: '16px', 
-        }}>
+        <div className={styles.metricsGrid} style={{ marginBottom: '28px' }}>
           {[
             { label: "All Leads", key: "ALL", color: "#1a202c", bgColor: "#f7fafc", link: "?tab=all" },
             { label: "Health Checkups", key: "HEALTH_CHECKUP", color: "#38a169", bgColor: "#f0fff4", link: "?tab=checkups" },
@@ -185,20 +223,10 @@ export default async function AdminDashboard({
           ].map(item => {
             const count = item.key === "ALL" ? allLeads.length : (typeCountsMap[item.key] || 0);
             return (
-              <Link key={item.key} href={item.link} style={{ 
-                display: 'flex', 
-                flexDirection: 'column', 
-                alignItems: 'center', 
-                justifyContent: 'center',
+              <Link key={item.key} href={item.link} className={styles.metricsCard} style={{ 
                 background: item.bgColor, 
-                padding: '16px 8px', 
-                borderRadius: '12px', 
-                border: `1px solid ${item.color}40`,
+                borderColor: `${item.color}40`,
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-                textAlign: 'center',
-                textDecoration: 'none',
-                cursor: 'pointer',
-                transition: 'all 0.2s ease'
               }}>
                 <span style={{ color: item.color, fontSize: '28px', fontWeight: '900', lineHeight: '1' }}>{count}</span>
                 <span style={{ color: '#4a5568', fontSize: '11px', fontWeight: '800', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{item.label}</span>
@@ -213,16 +241,11 @@ export default async function AdminDashboard({
 
       {/* Status Metrics Row for Specific Tabs */}
       {tab !== 'all' && tab !== 'availability' && tab !== 'checkups' && tab !== 'contact' && tab !== 'callback' && tab !== 'diet-plan' && (
-      <div style={{ 
-        display: 'grid', 
-        gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))',
-        gap: '16px', 
-        marginBottom: '28px', 
-      }}>
+      <div className={styles.metricsGrid} style={{ marginBottom: '28px' }}>
         {["All", "New Lead", "Interested", "Not Interested", "Call not pickup", "Not connected", "Not confirmed by user"].map(status => {
           let color = "#3182ce";
           let bgColor = "#ebf8ff";
-          if (status === "All") { color = "#1a202c"; bgColor = "#f7fafc"; }
+          if (status === "All") { color = "#475569"; bgColor = "#f8fafc"; }
           else if (status === "Interested") { color = "#38a169"; bgColor = "#f0fff4"; }
           else if (status === "Not Interested") { color = "#e53e3e"; bgColor = "#fff5f5"; }
           else if (status === "Call not pickup") { color = "#dd6b20"; bgColor = "#fffff0"; }
@@ -244,19 +267,10 @@ export default async function AdminDashboard({
           const count = status === "All" ? allLeads.length : (countsMap[status] || 0);
 
           return (
-            <Link key={status} href={`?${newParams.toString()}`} style={{ 
-              display: 'flex', 
-              flexDirection: 'column', 
-              alignItems: 'center', 
-              justifyContent: 'center',
-              background: bgColor, 
-              padding: '16px 8px', 
-              borderRadius: '12px', 
-              border: `1px solid ${color}40`,
-              boxShadow: isActive ? `0 0 0 2px ${color}` : '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
-              textAlign: 'center',
-              textDecoration: 'none',
-              cursor: 'pointer',
+            <Link key={status} href={`?${newParams.toString()}`} className={styles.metricsCard} style={{ 
+              background: isActive ? bgColor : '#ffffff', 
+              border: `2px solid ${isActive ? color : '#e2e8f0'}`,
+              boxShadow: isActive ? `0 4px 12px ${color}15` : '0 2px 4px rgba(0,0,0,0.02)',
               opacity: isActive ? 1 : 0.85,
               transform: isActive ? 'scale(1.02)' : 'none',
               transition: 'all 0.2s ease'
@@ -297,15 +311,15 @@ export default async function AdminDashboard({
         </div>
       ) : (
         <>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginBottom: '24px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
             
             {/* Top Row: Title and Actions */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
-              <div className={styles.header} style={{ marginBottom: 0 }}>
-                <h1 className={styles.title} style={{ marginBottom: '4px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'nowrap', gap: '8px' }}>
+              <div className={styles.header} style={{ marginBottom: 0, flexShrink: 1, minWidth: 0, overflow: 'hidden' }}>
+                <h1 className={styles.title} style={{ marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {tab === 'availability' ? `${stateFilter} Enquiries` : getTabTitle()}
                 </h1>
-                <p className={styles.subtitle} style={{ margin: 0 }}>Showing {paginatedLeads.length} of {totalLeads} total entries.</p>
+                <p className={styles.subtitle} style={{ margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Showing {paginatedLeads.length} of {totalLeads} total entries.</p>
               </div>
 
               {/* Action Buttons */}
@@ -315,7 +329,7 @@ export default async function AdminDashboard({
             </div>
 
             {/* Bottom Row: Filters Section */}
-            <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
               <LeadsFilters 
                 availableStates={Array.from(new Set(allLeads.map(l => l.state).filter(s => s && s !== 'N/A' && s !== 'Not Listed')))}
                 availableDistricts={Array.from(new Set(allLeads.filter(l => stateFilter === 'all' || l.state === stateFilter).map(l => l.district).filter(d => d && d !== 'N/A' && d !== 'Not Listed')))} 
@@ -351,15 +365,15 @@ export default async function AdminDashboard({
                         <th className={styles.th}>DATE</th>
                         {tab === 'checkups' ? (
                           <>
-                            <th className={styles.th}>PATIENT DETAILS</th>
+                            <th className={styles.th} style={{ minWidth: '150px' }}>PATIENT DETAILS</th>
                             <th className={styles.th}>CONTACT INFO</th>
-                            <th className={styles.th}>FULL ADDRESS</th>
-                            <th className={styles.th}>PACKAGE DETAILS</th>
+                            <th className={styles.th} style={{ minWidth: '220px' }}>FULL ADDRESS</th>
+                            <th className={styles.th} style={{ minWidth: '180px' }}>PACKAGE DETAILS</th>
                           </>
                         ) : (
                           <>
-                            <th className={styles.th}>NAME</th>
-                            <th className={styles.th}>CONTACT</th>
+                            <th className={styles.th} style={{ minWidth: '150px' }}>NAME</th>
+                            <th className={styles.th} style={{ minWidth: '220px' }}>CONTACT</th>
                             {tab === 'availability' ? (
                               <>
                                 <th className={styles.th}>STATE</th>
@@ -367,9 +381,9 @@ export default async function AdminDashboard({
                                 <th className={styles.th}>AREA / LOCALITY</th>
                               </>
                             ) : tab !== 'callback' ? (
-                              <th className={styles.th}>LOCATION</th>
+                              <th className={styles.th} style={{ minWidth: '200px' }}>LOCATION</th>
                             ) : null}
-                            <th className={styles.th}>{tab === 'availability' ? 'SERVICE' : 'PACKAGE/SERVICE'}</th>
+                            <th className={styles.th} style={{ minWidth: '250px' }}>{tab === 'availability' ? 'SERVICE' : 'PACKAGE/SERVICE'}</th>
                           </>
                         )}
                         {tab !== 'availability' && (
@@ -429,7 +443,7 @@ export default async function AdminDashboard({
                           )}
                           <td className={styles.td} suppressHydrationWarning>
                             {new Date(lead.createdAt).toLocaleDateString()}<br/>
-                            {tab !== 'availability' && tab !== 'diet-plan' && (
+                            {tab !== 'availability' && tab !== 'diet-plan' && tab !== 'checkups' && tab !== 'membership' && tab !== 'callback' && (
                             <span style={{ 
                               fontSize: '12px', 
                               fontWeight: 'bold', 
@@ -446,9 +460,11 @@ export default async function AdminDashboard({
                                 <span style={{ fontSize: '12px', color: '#718096' }}>Age: {lead.age || 'N/A'} | {lead.gender || 'N/A'}</span>
                               </td>
                               <td className={styles.td}>
-                                M: {lead.mobile}<br />
-                                W: {lead.whatsapp}<br />
-                                {lead.email && <span style={{ fontSize: '12px', color: '#718096' }}>{lead.email}</span>}
+                                M: {lead.mobile}
+                                {lead.whatsapp && (
+                                  <><br /><span style={{ color: '#718096', whiteSpace: 'nowrap' }}>W: {lead.whatsapp}</span></>
+                                )}
+                                {lead.email && <><br /><span style={{ fontSize: '12px', color: '#718096', whiteSpace: 'nowrap' }}>E: {lead.email}</span></>}
                               </td>
                               <td className={styles.td}>
                                 {lead.area}, {lead.district}<br />
@@ -470,10 +486,10 @@ export default async function AdminDashboard({
                               <td className={styles.td}>
                                 M: {lead.mobile}
                                 {lead.whatsapp && (
-                                  <><br />W: {lead.whatsapp}</>
+                                  <><br /><span style={{ color: '#718096', whiteSpace: 'nowrap' }}>W: {lead.whatsapp}</span></>
                                 )}
                                 {lead.email && tab === 'availability' && (
-                                  <><br /><span style={{ fontSize: '12px', color: '#718096' }}>E: {lead.email}</span></>
+                                  <><br /><span style={{ fontSize: '12px', color: '#718096', whiteSpace: 'nowrap' }}>E: {lead.email}</span></>
                                 )}
                               </td>
                               {tab === 'availability' ? (

@@ -1,14 +1,19 @@
 'use client';
 
-import React, { Suspense } from 'react';
+import React, { Suspense, useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
 import styles from './AdminLayout.module.css';
 import Image from 'next/image';
 
-function SidebarContent() {
+function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () => void }) {
   const searchParams = useSearchParams();
   const router = useRouter();
+  const pathname = usePathname();
+
+  useEffect(() => {
+    if (onClose) onClose();
+  }, [pathname, searchParams]);
 
   const handleLogout = async () => {
     await fetch('/api/admin/logout', { method: 'POST' });
@@ -25,9 +30,15 @@ function SidebarContent() {
   ];
 
   return (
-    <aside className={styles.sidebar}>
-      <div className={styles.logoContainer}>
+    <aside className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
+      <div className={styles.logoContainer} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <img src="/images/Benva%20NEW.png" alt="BENVA Healthcare" style={{ height: '60px', width: 'auto', transform: 'scale(2)', transformOrigin: 'left center' }} className={styles.logo} />
+        <button className={styles.mobileCloseBtn} onClick={onClose} aria-label="Close Menu">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
       </div>
       
       <nav className={styles.nav}>
@@ -108,6 +119,39 @@ function SidebarContent() {
             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
           </svg>
           Dr payouts
+        </Link>
+
+        <p className={styles.navHeader} style={{ marginTop: '24px' }}>MANAGE DOCTORS</p>
+        <Link 
+          href="/admin/manage-doctors" 
+          className={`${styles.navItem} ${usePathname().includes('/admin/manage-doctors') ? styles.active : ''}`}
+        >
+          <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+            <circle cx="12" cy="7" r="4" />
+          </svg>
+          Manage Doctors
+        </Link>
+
+        <p className={styles.navHeader} style={{ marginTop: '24px' }}>REPORT MANAGEMENT</p>
+        <Link 
+          href="/admin/reports" 
+          onClick={(e) => {
+            if (window.location.pathname === '/admin/reports') {
+              e.preventDefault();
+              window.location.href = '/admin/reports';
+            }
+          }}
+          className={`${styles.navItem} ${usePathname().includes('/admin/reports') ? styles.active : ''}`}
+        >
+          <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+            <polyline points="10 9 9 9 8 9" />
+          </svg>
+          Report Management
         </Link>
 
         <p className={styles.navHeader} style={{ marginTop: '24px' }}>MANAGE CONTENT</p>
@@ -194,20 +238,38 @@ function SidebarContent() {
 }
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  const toggleMobileMenu = () => setIsMobileMenuOpen(!isMobileMenuOpen);
+  const closeMobileMenu = () => setIsMobileMenuOpen(false);
+
   return (
     <div className={styles.layout}>
+      {isMobileMenuOpen && (
+        <div className={styles.overlay} onClick={closeMobileMenu} />
+      )}
+      
       {/* Sidebar with Suspense boundary for useSearchParams */}
       <Suspense fallback={<aside className={styles.sidebar}>Loading...</aside>}>
-        <SidebarContent />
+        <SidebarContent isOpen={isMobileMenuOpen} onClose={closeMobileMenu} />
       </Suspense>
 
       {/* Main Content */}
       <main className={styles.main}>
         <header className={styles.topbar}>
-          <div className={styles.breadcrumb}>
-            <span>Admin</span>
-            <span className={styles.separator}>/</span>
-            <span className={styles.current}>Leads Dashboard</span>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            <button className={styles.hamburgerBtn} onClick={toggleMobileMenu} aria-label="Open Menu">
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <line x1="3" y1="12" x2="21" y2="12"></line>
+                <line x1="3" y1="6" x2="21" y2="6"></line>
+                <line x1="3" y1="18" x2="21" y2="18"></line>
+              </svg>
+            </button>
+            <div className={styles.breadcrumb}>
+              <span>Admin</span>
+              <span className={styles.separator}>/</span>
+              <span className={styles.current}>Leads Dashboard</span>
+            </div>
           </div>
           <div className={styles.userProfile}>
             <div className={styles.avatar}>A</div>

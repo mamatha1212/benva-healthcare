@@ -58,6 +58,7 @@ export default function PackageForm({ initialData }: { initialData?: any }) {
 
       <form 
         ref={formRef}
+        autoComplete="off"
         action={async (formData) => {
           if (initialData) {
             await updatePackage(initialData.id, formData);
@@ -88,7 +89,7 @@ export default function PackageForm({ initialData }: { initialData?: any }) {
           <input name="subtitle" required type="text" style={inputStyle} placeholder="Essential health screening..." value={subtitle} onChange={e => setSubtitle(e.target.value)} />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Original Price (₹)</label>
             <input 
@@ -115,7 +116,7 @@ export default function PackageForm({ initialData }: { initialData?: any }) {
           </div>
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Final Price (₹)</label>
             <input 
@@ -150,7 +151,7 @@ export default function PackageForm({ initialData }: { initialData?: any }) {
           <input name="imageFile" type="file" accept="image/*" required={!initialData} style={{ padding: '8px', border: '1px dashed #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#f8fafc', cursor: 'pointer', width: '100%', boxSizing: 'border-box' }} />
         </div>
 
-        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
             <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Image Layout</label>
             <select name="layout" style={{ ...inputStyle, background: 'white' }} value={layout} onChange={e => setLayout(e.target.value)}>

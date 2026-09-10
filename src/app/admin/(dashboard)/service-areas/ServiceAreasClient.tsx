@@ -189,19 +189,19 @@ export default function ServiceAreasClient() {
 
   return (
     <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
         <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#0f172a', margin: 0 }}>Service Areas ({total})</h2>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <button 
             onClick={handleExport}
             disabled={isExporting}
-            style={{ padding: '8px 16px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: isExporting ? 'not-allowed' : 'pointer' }}
+            style={{ padding: '8px 16px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: isExporting ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}
           >
             {isExporting ? 'Exporting...' : 'Export CSV'}
           </button>
           <button 
             onClick={() => setIsImporting(!isImporting)}
-            style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer' }}
+            style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
           >
             Import Data
           </button>
@@ -262,7 +262,7 @@ export default function ServiceAreasClient() {
       )}
 
       {/* Tabs */}
-      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid #e2e8f0', marginBottom: '24px', overflowX: 'auto', whiteSpace: 'nowrap' }}>
         {['Telangana', 'Andhra Pradesh'].map(tab => (
           <button
             key={tab}
@@ -285,7 +285,7 @@ export default function ServiceAreasClient() {
 
       {/* Table */}
       <div style={{ overflowX: 'auto', width: '100%' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px', whiteSpace: 'nowrap' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '14px', whiteSpace: 'nowrap', minWidth: '1000px' }}>
           <thead>
             <tr style={{ background: '#f8fafc', color: '#475569', borderBottom: '1px solid #e2e8f0' }}>
               <th style={{ padding: '12px' }}>S NO</th>

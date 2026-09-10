@@ -47,14 +47,14 @@ export default function LocationsView({ states }: { states: State[] }) {
   if (isManaging) {
     return (
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
           <div>
             <h1 style={{ fontSize: '24px', fontWeight: 600, color: '#1e293b', margin: '0 0 8px 0' }}>Manage Service Locations</h1>
             <p style={{ color: '#64748b', margin: 0, fontSize: '14px' }}>Add, edit, and delete States, Districts, and Areas.</p>
           </div>
           <button 
             onClick={() => setIsManaging(false)}
-            style={{ padding: '8px 16px', background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', fontWeight: 500 }}
+            style={{ padding: '8px 16px', background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', fontWeight: 500, flexShrink: 0, whiteSpace: 'nowrap' }}
           >
             ← Back to List
           </button>
@@ -66,14 +66,14 @@ export default function LocationsView({ states }: { states: State[] }) {
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
         <div>
           <h1 style={{ fontSize: '24px', fontWeight: 600, color: '#1e293b', margin: '0 0 8px 0' }}>Service Locations</h1>
           <p style={{ color: '#64748b', margin: 0, fontSize: '14px' }}>Overview of all serviced areas.</p>
         </div>
         <button 
           onClick={() => setIsManaging(true)}
-          style={{ padding: '10px 20px', background: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}
+          style={{ padding: '10px 20px', background: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, whiteSpace: 'nowrap' }}
         >
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
@@ -83,14 +83,14 @@ export default function LocationsView({ states }: { states: State[] }) {
         </button>
       </div>
 
-      <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+      <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflowX: 'auto' }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '600px' }}>
           <thead>
             <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-              <th style={{ padding: '16px', fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', width: '60px' }}>S.NO</th>
-              <th style={{ padding: '16px', fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>State</th>
-              <th style={{ padding: '16px', fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>District</th>
-              <th style={{ padding: '16px', fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Area / Locality</th>
+              <th style={{ padding: '16px', fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', width: '60px', minWidth: '60px' }}>S.NO</th>
+              <th style={{ padding: '16px', fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', minWidth: '140px' }}>State</th>
+              <th style={{ padding: '16px', fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', minWidth: '140px' }}>District</th>
+              <th style={{ padding: '16px', fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', minWidth: '200px' }}>Area / Locality</th>
             </tr>
           </thead>
           <tbody>
@@ -101,10 +101,10 @@ export default function LocationsView({ states }: { states: State[] }) {
             ) : (
               flatData.map((row, i) => (
                 <tr key={row.id} style={{ borderBottom: i === flatData.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '16px', fontSize: '14px', color: '#475569', fontWeight: 500 }}>{i + 1}</td>
-                  <td style={{ padding: '16px', fontSize: '14px', color: '#334155', fontWeight: 500 }}>{row.stateName}</td>
-                  <td style={{ padding: '16px', fontSize: '14px', color: '#475569' }}>{row.districtName}</td>
-                  <td style={{ padding: '16px', fontSize: '14px', color: '#475569' }}>{row.areaName}</td>
+                  <td style={{ padding: '16px', fontSize: '14px', color: '#475569', fontWeight: 500, whiteSpace: 'nowrap' }}>{i + 1}</td>
+                  <td style={{ padding: '16px', fontSize: '14px', color: '#334155', fontWeight: 500, whiteSpace: 'nowrap' }}>{row.stateName}</td>
+                  <td style={{ padding: '16px', fontSize: '14px', color: '#475569', whiteSpace: 'nowrap' }}>{row.districtName}</td>
+                  <td style={{ padding: '16px', fontSize: '14px', color: '#475569', whiteSpace: 'nowrap' }}>{row.areaName}</td>
                 </tr>
               ))
             )}
