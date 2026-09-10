@@ -1,11 +1,11 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 
-export default function ReportsManagement() {
+function ReportsManagementContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const [view, setView] = useState<'YEARS' | 'MONTHS' | 'CALENDAR' | 'REPORTS' | 'SEARCH'>('YEARS');
@@ -797,5 +797,13 @@ export default function ReportsManagement() {
       )}
 
     </div>
+  );
+}
+
+export default function ReportsManagement() {
+  return (
+    <Suspense fallback={<div style={{ padding: '24px' }}>Loading reports...</div>}>
+      <ReportsManagementContent />
+    </Suspense>
   );
 }
