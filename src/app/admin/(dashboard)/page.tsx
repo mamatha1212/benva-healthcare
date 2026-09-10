@@ -62,6 +62,10 @@ export default async function AdminDashboard({
     orderBy: { reminderDate: 'asc' }
   });
 
+  const totalPatients = await prisma.patientRecord.count();
+  const totalReports = await prisma.reportFile.count();
+  const totalDoctors = await prisma.doctor.count();
+
   // Bypass Prisma Client cache lock to fetch the newly added 'remarks' column
   let rawRemarks: any[] = [];
   try {
@@ -220,9 +224,16 @@ export default async function AdminDashboard({
             { label: "Diet Plans", key: "DIET_PLAN", color: "#d53f8c", bgColor: "#fff5f7", link: "?tab=diet-plan" },
             { label: "Area Enquiries", key: "AVAILABILITY", color: "#dd6b20", bgColor: "#fffff0", link: "?tab=availability" },
             { label: "Contact Form", key: "CONTACT_US", color: "#e53e3e", bgColor: "#fff5f5", link: "?tab=contact" },
-            { label: "Callbacks", key: "CALLBACK_REQUEST", color: "#d69e2e", bgColor: "#fffff0", link: "?tab=callback" }
+            { label: "Callbacks", key: "CALLBACK_REQUEST", color: "#d69e2e", bgColor: "#fffff0", link: "?tab=callback" },
+            { label: "Dr Payouts", key: "PAYOUTS", color: "#00b894", bgColor: "#e8f8f5", link: "/admin/dr-payouts" },
+            { label: "Reports", key: "REPORTS", color: "#6c5ce7", bgColor: "#f3e5f5", link: "/admin/reports" }
           ].map(item => {
-            const count = item.key === "ALL" ? allLeads.length : (typeCountsMap[item.key] || 0);
+            let count = 0;
+            if (item.key === "ALL") count = allLeads.length;
+            else if (item.key === "PAYOUTS") count = totalDoctors;
+            else if (item.key === "REPORTS") count = totalReports;
+            else count = typeCountsMap[item.key] || 0;
+            
             return (
               <Link key={item.key} href={item.link} className={styles.metricsCard} style={{ 
                 background: item.bgColor, 

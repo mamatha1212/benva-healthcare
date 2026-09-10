@@ -40,7 +40,27 @@ export async function GET(req: NextRequest) {
       },
       orderBy: { createdAt: 'desc' }
     });
-    return NextResponse.json(reports);
+    const patientIds = Array.from(new Set(reports.map(r => r.patientId).filter(Boolean))) as string[];
+    let invoices: any[] = [];
+    if (patientIds.length > 0) {
+      invoices = await prisma.invoice.findMany({
+        where: { patientId: { in: patientIds } },
+        include: { items: true, patient: true }
+      });
+    }
+
+    const invoiceMap = invoices.reduce((acc, inv) => {
+      if (!acc[inv.patientId]) acc[inv.patientId] = [];
+      acc[inv.patientId].push(inv);
+      return acc;
+    }, {} as Record<string, any[]>);
+
+    const reportsWithInvoices = reports.map(report => ({
+      ...report,
+      invoices: report.patientId ? (invoiceMap[report.patientId] || []) : []
+    }));
+
+    return NextResponse.json(reportsWithInvoices);
   } catch (error) {
     console.error('Error fetching reports:', error);
     return NextResponse.json({ error: 'Failed to fetch reports' }, { status: 500 });

@@ -166,7 +166,8 @@ export default function DrPayoutsPage() {
             </button>
           </div>
           <div className={styles.formCard}>
-            <table className={styles.table}>
+            <div style={{ overflowX: 'auto' }}>
+              <table className={styles.table}>
               <thead>
                 <tr>
                   <th>Doctor Name</th>
@@ -202,6 +203,7 @@ export default function DrPayoutsPage() {
                 )}
               </tbody>
             </table>
+            </div>
           </div>
         </>
       ) : (

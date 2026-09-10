@@ -23,17 +23,65 @@ export async function GET(req: NextRequest) {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { patientId, mrnNo, payMode, totalAmount, discount, cgst, sgst, paidAmount, dueAmount, items } = body;
+    const { patientId, patientName, patientPhone, address, age, gender, consultant, mrnNo, payMode, totalAmount, discount, cgst, sgst, paidAmount, dueAmount, items } = body;
     
+    // Ensure patient exists or create a placeholder for it
+    let actualPatientId = patientId;
+    if (patientId) {
+      const existingPatient = await prisma.patientRecord.findUnique({ where: { id: patientId } });
+      if (!existingPatient) {
+        try {
+          await prisma.patientRecord.create({
+            data: {
+              id: patientId,
+              name: patientName || 'Unknown',
+              phone: patientPhone || 'Unknown',
+              address, age, gender, consultant
+            }
+          });
+        } catch (e) {
+          // If creation fails (e.g., ID format issue), create a new one without forcing the ID
+          const newP = await prisma.patientRecord.create({
+            data: {
+              name: patientName || 'Unknown',
+              phone: patientPhone || 'Unknown',
+              address, age, gender, consultant
+            }
+          });
+          actualPatientId = newP.id;
+        }
+      } else {
+        // Update existing patient with any newly provided details
+        await prisma.patientRecord.update({
+          where: { id: patientId },
+          data: {
+            address: address || existingPatient.address,
+            age: age || existingPatient.age,
+            gender: gender || existingPatient.gender,
+            consultant: consultant || existingPatient.consultant
+          }
+        });
+      }
+    } else {
+      const newP = await prisma.patientRecord.create({
+        data: {
+          name: patientName || 'Unknown',
+          phone: patientPhone || 'Unknown',
+          address, age, gender, consultant
+        }
+      });
+      actualPatientId = newP.id;
+    }
+
     // Generate Invoice No (simple approach for now)
     const count = await prisma.invoice.count();
     const invoiceNo = `INV/${new Date().getFullYear()}/${(count + 1).toString().padStart(4, '0')}`;
     
     const invoice = await prisma.invoice.create({
       data: {
-        patientId,
+        patientId: actualPatientId,
         invoiceNo,
-        mrnNo: mrnNo || `MRN/${new Date().getFullYear()}/${patientId.slice(-4).toUpperCase()}`,
+        mrnNo: mrnNo || `MRN/${new Date().getFullYear()}/${actualPatientId.slice(-4).toUpperCase()}`,
         payMode,
         totalAmount: Number(totalAmount) || 0,
         discount: Number(discount) || 0,

@@ -6,6 +6,8 @@
 
 .header {
   display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 24px;
@@ -117,6 +119,7 @@
   padding: 10px;
   text-align: left;
   color: #333;
+  white-space: nowrap;
 }
 
 .table th {

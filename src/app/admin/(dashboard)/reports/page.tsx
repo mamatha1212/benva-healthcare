@@ -4,6 +4,8 @@ import React, { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
+import InvoiceGeneratorModal from '../patient-records/InvoiceGeneratorModal';
+import InvoiceView from '../patient-records/InvoiceView';
 
 function ReportsManagementContent() {
   const router = useRouter();
@@ -24,6 +26,20 @@ function ReportsManagementContent() {
   const [closeAfterUpload, setCloseAfterUpload] = useState(true);
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [selectedReportIds, setSelectedReportIds] = useState<Set<string>>(new Set());
+
+  // Invoice States
+  const [invoiceModalPatient, setInvoiceModalPatient] = useState<any>(null);
+  const [viewInvoice, setViewInvoice] = useState<any>(null);
+
+  const handleInvoiceGenerated = (newInvoice: any) => {
+    alert(`Invoice ${newInvoice.invoiceNo} generated successfully!`);
+    setInvoiceModalPatient(null);
+    if (view === 'SEARCH') {
+      handleSearch();
+    } else if (selectedDate) {
+      fetchReportsForDate(selectedDate);
+    }
+  };
 
   // Search States
   const [searchQuery, setSearchQuery] = useState('');
@@ -524,394 +540,467 @@ function ReportsManagementContent() {
   };
 
   return (
-    <div style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
-      <div style={{ marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <div>
-          <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#1a202c', margin: '0 0 8px 0' }}>Report Management</h1>
-          <div style={{ display: 'flex', gap: '8px', color: '#64748b', fontSize: '15px' }}>
-            <span style={{ cursor: 'pointer', color: view === 'YEARS' ? '#1a202c' : '#2563eb', fontWeight: view === 'YEARS' ? 600 : 400 }} onClick={() => navigateView('YEARS')}>Years</span>
-            {selectedYear && view !== 'SEARCH' && (
-              <>
-                <span>/</span>
-                <span style={{ cursor: 'pointer', color: view === 'MONTHS' ? '#1a202c' : '#2563eb', fontWeight: view === 'MONTHS' ? 600 : 400 }} onClick={() => navigateView('MONTHS', selectedYear)}>
-                  {selectedYear}
-                </span>
-              </>
+    <div className="reports-page-container" style={{ background: 'white', borderRadius: '12px', padding: '24px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)' }}>
+      <style>{`
+        @media print {
+          .print-hide { display: none !important; }
+          aside, header { display: none !important; }
+          html, body, main {
+            display: block !important;
+            height: auto !important;
+            overflow: visible !important;
+            padding: 0 !important;
+            margin: 0 !important;
+          }
+          .reports-page-container { padding: 0 !important; box-shadow: none !important; background: transparent !important; }
+        }
+      `}</style>
+      
+      <div className="print-hide">
+        <div style={{ marginBottom: '24px', borderBottom: '1px solid #e2e8f0', paddingBottom: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#1a202c', margin: '0 0 8px 0' }}>Report Management</h1>
+            <div style={{ display: 'flex', gap: '8px', color: '#64748b', fontSize: '15px', flexWrap: 'wrap' }}>
+              <span style={{ cursor: 'pointer', color: view === 'YEARS' ? '#1a202c' : '#2563eb', fontWeight: view === 'YEARS' ? 600 : 400 }} onClick={() => navigateView('YEARS')}>Years</span>
+              {selectedYear && view !== 'SEARCH' && (
+                <>
+                  <span>/</span>
+                  <span style={{ cursor: 'pointer', color: view === 'MONTHS' ? '#1a202c' : '#2563eb', fontWeight: view === 'MONTHS' ? 600 : 400 }} onClick={() => navigateView('MONTHS', selectedYear)}>
+                    {selectedYear}
+                  </span>
+                </>
+              )}
+              {selectedMonth !== null && view !== 'SEARCH' && (
+                <>
+                  <span>/</span>
+                  <span style={{ cursor: 'pointer', color: view === 'CALENDAR' ? '#1a202c' : '#2563eb', fontWeight: view === 'CALENDAR' ? 600 : 400 }} onClick={() => navigateView('CALENDAR', selectedYear, selectedMonth)}>
+                    {months[selectedMonth]}
+                  </span>
+                </>
+              )}
+              {selectedDate && view !== 'SEARCH' && (
+                <>
+                  <span>/</span>
+                  <span style={{ color: view === 'REPORTS' ? '#1a202c' : '#2563eb', fontWeight: view === 'REPORTS' ? 600 : 400 }}>{selectedDate.toLocaleDateString()}</span>
+                </>
+              )}
+              {view === 'SEARCH' && (
+                <>
+                  <span>/</span>
+                  <span style={{ color: '#1a202c', fontWeight: 600 }}>Search Results</span>
+                </>
+              )}
+            </div>
+          </div>
+          
+          <div>
+            {view === 'MONTHS' && (
+              <button onClick={() => downloadBackup('year')} disabled={isBackingUp} style={{ background: '#f59e0b', color: 'white', padding: '8px 16px', borderRadius: '6px', border: 'none', fontWeight: 600, cursor: 'pointer', opacity: isBackingUp ? 0.6 : 1 }}>
+                {isBackingUp ? 'Zipping...' : `Backup ${selectedYear}`}
+              </button>
             )}
-            {selectedMonth !== null && view !== 'SEARCH' && (
-              <>
-                <span>/</span>
-                <span style={{ cursor: 'pointer', color: view === 'CALENDAR' ? '#1a202c' : '#2563eb', fontWeight: view === 'CALENDAR' ? 600 : 400 }} onClick={() => navigateView('CALENDAR', selectedYear, selectedMonth)}>
-                  {months[selectedMonth]}
-                </span>
-              </>
-            )}
-            {selectedDate && view !== 'SEARCH' && (
-              <>
-                <span>/</span>
-                <span style={{ color: view === 'REPORTS' ? '#1a202c' : '#2563eb', fontWeight: view === 'REPORTS' ? 600 : 400 }}>{selectedDate.toLocaleDateString()}</span>
-              </>
-            )}
-            {view === 'SEARCH' && (
-              <>
-                <span>/</span>
-                <span style={{ color: '#1a202c', fontWeight: 600 }}>Search Results</span>
-              </>
+            {view === 'CALENDAR' && (
+              <button onClick={() => downloadBackup('month')} disabled={isBackingUp} style={{ background: '#f59e0b', color: 'white', padding: '8px 16px', borderRadius: '6px', border: 'none', fontWeight: 600, cursor: 'pointer', opacity: isBackingUp ? 0.6 : 1 }}>
+                {isBackingUp ? 'Zipping...' : `Backup ${months[selectedMonth!]} ${selectedYear}`}
+              </button>
             )}
           </div>
         </div>
-        
-        <div>
-          {view === 'MONTHS' && (
-            <button onClick={() => downloadBackup('year')} disabled={isBackingUp} style={{ background: '#f59e0b', color: 'white', padding: '8px 16px', borderRadius: '6px', border: 'none', fontWeight: 600, cursor: 'pointer', opacity: isBackingUp ? 0.6 : 1 }}>
-              {isBackingUp ? 'Zipping...' : `Backup ${selectedYear}`}
-            </button>
-          )}
-          {view === 'CALENDAR' && (
-            <button onClick={() => downloadBackup('month')} disabled={isBackingUp} style={{ background: '#f59e0b', color: 'white', padding: '8px 16px', borderRadius: '6px', border: 'none', fontWeight: 600, cursor: 'pointer', opacity: isBackingUp ? 0.6 : 1 }}>
-              {isBackingUp ? 'Zipping...' : `Backup ${months[selectedMonth!]} ${selectedYear}`}
-            </button>
-          )}
-        </div>
-      </div>
 
-      {/* Global Search Bar */}
-      <form onSubmit={handleSearch} style={{ display: 'flex', gap: '12px', marginBottom: '24px', padding: '16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', alignItems: 'center', flexWrap: 'wrap' }}>
-        <div style={{ flex: '1 1 200px' }}>
-          <input 
-            type="text" 
-            placeholder="Search by Patient Name, ID, Mobile, or Test Name..." 
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-          />
-        </div>
-        <div style={{ display: 'flex', gap: '8px' }}>
-          <input 
-            type="number" 
-            placeholder="Year" 
-            value={searchFilterYear}
-            onChange={(e) => setSearchFilterYear(e.target.value)}
-            style={{ width: '80px', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-          />
-          <select 
-            value={searchFilterMonth}
-            onChange={(e) => setSearchFilterMonth(e.target.value)}
-            style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white' }}
-          >
-            <option value="">Month</option>
-            {months.map((m, idx) => <option key={m} value={idx}>{m}</option>)}
-          </select>
-          <input 
-            type="number" 
-            placeholder="Date" 
-            value={searchFilterDate}
-            onChange={(e) => setSearchFilterDate(e.target.value)}
-            style={{ width: '80px', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-          />
-        </div>
-        <button type="submit" disabled={isSearching} style={{ background: '#1e293b', color: 'white', padding: '10px 24px', borderRadius: '6px', fontWeight: 600, border: 'none', cursor: isSearching ? 'not-allowed' : 'pointer' }}>
-          {isSearching ? 'Searching...' : 'Search'}
-        </button>
-      </form>
-
-      {view === 'YEARS' && (
-        <div>
-          <button onClick={handleAddYear} style={{ background: '#2563eb', color: 'white', padding: '10px 20px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer', marginBottom: '24px' }}>
-            + Add Year
+        {/* Global Search Bar */}
+        <form onSubmit={handleSearch} style={{ display: 'flex', gap: '12px', marginBottom: '24px', padding: '16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div style={{ flex: '1 1 200px' }}>
+            <input 
+              type="text" 
+              placeholder="Search by Patient Name, ID, Mobile, or Test Name..." 
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            />
+          </div>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <input 
+              type="number" 
+              placeholder="Year" 
+              value={searchFilterYear}
+              onChange={(e) => setSearchFilterYear(e.target.value)}
+              style={{ width: '80px', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            />
+            <select 
+              value={searchFilterMonth}
+              onChange={(e) => setSearchFilterMonth(e.target.value)}
+              style={{ padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white' }}
+            >
+              <option value="">Month</option>
+              {months.map((m, idx) => <option key={m} value={idx}>{m}</option>)}
+            </select>
+            <input 
+              type="number" 
+              placeholder="Date" 
+              value={searchFilterDate}
+              onChange={(e) => setSearchFilterDate(e.target.value)}
+              style={{ width: '80px', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+            />
+          </div>
+          <button type="submit" disabled={isSearching} style={{ background: '#1e293b', color: 'white', padding: '10px 24px', borderRadius: '6px', fontWeight: 600, border: 'none', cursor: isSearching ? 'not-allowed' : 'pointer' }}>
+            {isSearching ? 'Searching...' : 'Search'}
           </button>
+        </form>
+
+        {view === 'YEARS' && (
+          <div>
+            <button onClick={handleAddYear} style={{ background: '#2563eb', color: 'white', padding: '10px 20px', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer', marginBottom: '24px' }}>
+              + Add Year
+            </button>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
+              {years.map(y => (
+                <div 
+                  key={y.id} 
+                  onClick={() => { setSelectedYear(y.year); navigateView('MONTHS', y.year); }}
+                  style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '24px', textAlign: 'center', cursor: 'pointer', fontSize: '24px', fontWeight: 700, color: '#334155', transition: 'all 0.2s' }}
+                  onMouseOver={(e) => e.currentTarget.style.borderColor = '#2563eb'}
+                  onMouseOut={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
+                >
+                  📁 {y.year}
+                </div>
+              ))}
+              {years.length === 0 && <p style={{ color: '#64748b' }}>No years added yet.</p>}
+            </div>
+          </div>
+        )}
+
+        {view === 'MONTHS' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
-            {years.map(y => (
+            {months.map((m, idx) => (
               <div 
-                key={y.id} 
-                onClick={() => { setSelectedYear(y.year); navigateView('MONTHS', y.year); }}
-                style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '24px', textAlign: 'center', cursor: 'pointer', fontSize: '24px', fontWeight: 700, color: '#334155', transition: 'all 0.2s' }}
+                key={m} 
+                onClick={() => { setSelectedMonth(idx); navigateView('CALENDAR', selectedYear, idx); }}
+                style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '24px', textAlign: 'center', cursor: 'pointer', fontSize: '18px', fontWeight: 600, color: '#334155', transition: 'all 0.2s' }}
                 onMouseOver={(e) => e.currentTarget.style.borderColor = '#2563eb'}
                 onMouseOut={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
               >
-                📁 {y.year}
+                📁 {m}
               </div>
             ))}
-            {years.length === 0 && <p style={{ color: '#64748b' }}>No years added yet.</p>}
           </div>
-        </div>
-      )}
+        )}
 
-      {view === 'MONTHS' && (
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
-          {months.map((m, idx) => (
-            <div 
-              key={m} 
-              onClick={() => { setSelectedMonth(idx); navigateView('CALENDAR', selectedYear, idx); }}
-              style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '24px', textAlign: 'center', cursor: 'pointer', fontSize: '18px', fontWeight: 600, color: '#334155', transition: 'all 0.2s' }}
-              onMouseOver={(e) => e.currentTarget.style.borderColor = '#2563eb'}
-              onMouseOut={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
-            >
-              📁 {m}
-            </div>
-          ))}
-        </div>
-      )}
-
-      {view === 'CALENDAR' && selectedYear && selectedMonth !== null && (
-        <div>
-          <h2 style={{ marginBottom: '16px', color: '#1e293b' }}>Select a Date in {months[selectedMonth]} {selectedYear}</h2>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px', maxWidth: '600px' }}>
-            {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
-              <div key={day} style={{ textAlign: 'center', fontWeight: 600, color: '#64748b', paddingBottom: '8px' }}>{day}</div>
-            ))}
-            {Array.from({ length: getFirstDayOfMonth(selectedYear, selectedMonth) }).map((_, i) => (
-              <div key={`empty-${i}`} />
-            ))}
-            {Array.from({ length: getDaysInMonth(selectedYear, selectedMonth) }).map((_, i) => {
-              const day = i + 1;
-              return (
-                <div 
-                  key={day}
-                  onClick={() => { 
-                    const date = new Date(selectedYear, selectedMonth, day);
-                    setSelectedDate(date); 
-                    fetchReportsForDate(date);
-                    navigateView('REPORTS', selectedYear, selectedMonth, day); 
-                  }}
-                  style={{ background: '#f1f5f9', borderRadius: '8px', padding: '16px 8px', textAlign: 'center', cursor: 'pointer', fontWeight: 500, color: '#334155', border: '1px solid transparent' }}
-                  onMouseOver={(e) => { e.currentTarget.style.background = '#e2e8f0'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
-                  onMouseOut={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.borderColor = 'transparent'; }}
-                >
-                  {day}
-                </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* REUSABLE REPORT RENDERER */}
-      {(view === 'REPORTS' || view === 'SEARCH') && (
-        <div>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-            <h2 style={{ color: '#1e293b', margin: 0 }}>
-              {view === 'SEARCH' ? `Search Results (${searchResults.length})` : `Reports for ${selectedDate?.toLocaleDateString()}`}
-            </h2>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              {selectedReportIds.size > 0 && (
-                <>
-                  <button 
-                    onClick={() => shareReports((view === 'SEARCH' ? searchResults : reports).filter(r => selectedReportIds.has(r.id)))}
-                    style={{ background: '#8b5cf6', color: 'white', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', border: 'none' }}
+        {view === 'CALENDAR' && selectedYear && selectedMonth !== null && (
+          <div>
+            <h2 style={{ marginBottom: '16px', color: '#1e293b' }}>Select a Date in {months[selectedMonth]} {selectedYear}</h2>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '8px', maxWidth: '600px' }}>
+              {['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'].map(day => (
+                <div key={day} style={{ textAlign: 'center', fontWeight: 600, color: '#64748b', paddingBottom: '8px' }}>{day}</div>
+              ))}
+              {Array.from({ length: getFirstDayOfMonth(selectedYear, selectedMonth) }).map((_, i) => (
+                <div key={`empty-${i}`} />
+              ))}
+              {Array.from({ length: getDaysInMonth(selectedYear, selectedMonth) }).map((_, i) => {
+                const day = i + 1;
+                return (
+                  <div 
+                    key={day}
+                    onClick={() => { 
+                      const date = new Date(selectedYear, selectedMonth, day);
+                      setSelectedDate(date); 
+                      fetchReportsForDate(date);
+                      navigateView('REPORTS', selectedYear, selectedMonth, day); 
+                    }}
+                    style={{ background: '#f1f5f9', borderRadius: '8px', padding: '16px 8px', textAlign: 'center', cursor: 'pointer', fontWeight: 500, color: '#334155', border: '1px solid transparent' }}
+                    onMouseOver={(e) => { e.currentTarget.style.background = '#e2e8f0'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
+                    onMouseOut={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.borderColor = 'transparent'; }}
                   >
-                    📤 Share Selected
-                  </button>
-                  <button 
-                    onClick={() => downloadSelectedReports(view === 'SEARCH' ? searchResults : reports)} disabled={isBackingUp}
-                    style={{ background: '#3b82f6', color: 'white', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', border: 'none', opacity: isBackingUp ? 0.6 : 1 }}
-                  >
-                    {isBackingUp ? 'Zipping...' : `📥 Save Selected (${selectedReportIds.size})`}
-                  </button>
-                </>
-              )}
-              {view === 'REPORTS' && (
-                <button 
-                  onClick={() => downloadBackup('day')} disabled={isBackingUp}
-                  style={{ background: '#f59e0b', color: 'white', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', border: 'none', opacity: isBackingUp ? 0.6 : 1 }}
-                >
-                  {isBackingUp ? 'Zipping...' : '📥 Save All Reports'}
-                </button>
-              )}
-              {view === 'REPORTS' && (
-                <button 
-                  onClick={handleOpenUploadModal}
-                  style={{ background: '#10b981', color: 'white', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', border: 'none' }}
-                >
-                  + Upload Reports
-                </button>
-              )}
-            </div>
-          </div>
-
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
-            {(view === 'SEARCH' ? searchResults : reports).map(report => (
-              <div key={report.id} style={{ border: selectedReportIds.has(report.id) ? '2px solid #3b82f6' : '1px solid #e2e8f0', borderRadius: '8px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', position: 'relative' }}>
-                <input 
-                  type="checkbox" 
-                  checked={selectedReportIds.has(report.id)} 
-                  onChange={() => toggleReportSelection(report.id)}
-                  style={{ position: 'absolute', top: '16px', right: '16px', width: '18px', height: '18px', cursor: 'pointer' }} 
-                />
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingRight: '24px' }}>
-                  <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '16px' }}>{report.title}</div>
-                  <span style={{ fontSize: '11px', background: '#e2e8f0', padding: '2px 6px', borderRadius: '4px', color: '#475569' }}>{report.testName || 'Unknown Test'}</span>
-                </div>
-                
-                {view === 'SEARCH' && (
-                  <div style={{ fontSize: '12px', color: '#f59e0b', fontWeight: 600, marginTop: '-8px' }}>
-                    📅 Date: {new Date(report.date).toLocaleDateString()}
+                    {day}
                   </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* REUSABLE REPORT RENDERER */}
+        {(view === 'REPORTS' || view === 'SEARCH') && (
+          <div>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+              <h2 style={{ color: '#1e293b', margin: 0 }}>
+                {view === 'SEARCH' ? `Search Results (${searchResults.length})` : `Reports for ${selectedDate?.toLocaleDateString()}`}
+              </h2>
+              <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                {selectedReportIds.size > 0 && (
+                  <>
+                    <button 
+                      onClick={() => shareReports((view === 'SEARCH' ? searchResults : reports).filter(r => selectedReportIds.has(r.id)))}
+                      style={{ background: '#8b5cf6', color: 'white', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', border: 'none' }}
+                    >
+                      📤 Share Selected
+                    </button>
+                    <button 
+                      onClick={() => downloadSelectedReports(view === 'SEARCH' ? searchResults : reports)} disabled={isBackingUp}
+                      style={{ background: '#3b82f6', color: 'white', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', border: 'none', opacity: isBackingUp ? 0.6 : 1 }}
+                    >
+                      {isBackingUp ? 'Zipping...' : `📥 Save Selected (${selectedReportIds.size})`}
+                    </button>
+                  </>
                 )}
+                {view === 'REPORTS' && (
+                  <button 
+                    onClick={() => downloadBackup('day')} disabled={isBackingUp}
+                    style={{ background: '#f59e0b', color: 'white', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', border: 'none', opacity: isBackingUp ? 0.6 : 1 }}
+                  >
+                    {isBackingUp ? 'Zipping...' : '📥 Save All Reports'}
+                  </button>
+                )}
+                {view === 'REPORTS' && (
+                  <button 
+                    onClick={handleOpenUploadModal}
+                    style={{ background: '#10b981', color: 'white', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', border: 'none' }}
+                  >
+                    + Upload Reports
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(300px, 1fr))', gap: '16px' }}>
+              {Object.values((view === 'SEARCH' ? searchResults : reports).reduce((acc: any, report: any) => {
+                const key = `${report.patientId || 'noid'}-${report.patientName || 'noname'}-${report.date}`;
+                if (!acc[key]) acc[key] = [];
+                acc[key].push(report);
+                return acc;
+              }, {})).map((group: any) => {
+                const mainReport = group[0];
+                const hasInvoice = mainReport.invoices && mainReport.invoices.length > 0;
+                const isGroupSelected = group.every((r: any) => selectedReportIds.has(r.id));
                 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '13px', color: '#475569', background: '#f8fafc', padding: '12px', borderRadius: '6px' }}>
-                  <div><strong>Patient:</strong> {report.patientName || 'N/A'}</div>
-                  <div><strong>ID:</strong> {report.patientId || 'N/A'}</div>
-                  <div><strong>Mobile:</strong> {report.mobileNumber || 'N/A'}</div>
-                  <div><strong>Lab:</strong> {report.labName || 'N/A'}</div>
-                  {report.reference && <div style={{ gridColumn: '1 / -1' }}><strong>Ref:</strong> {report.reference}</div>}
-                  {report.remarks && <div style={{ gridColumn: '1 / -1' }}><strong>Remarks:</strong> {report.remarks}</div>}
-                  {report.needsReminder && (
-                    <div style={{ gridColumn: '1 / -1', color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                      🔔 Reminder: {new Date(report.reminderDate).toLocaleDateString()}
+                const toggleGroupSelection = () => {
+                  if (isGroupSelected) {
+                    group.forEach((r: any) => toggleReportSelection(r.id, false));
+                  } else {
+                    group.forEach((r: any) => toggleReportSelection(r.id, true));
+                  }
+                };
+
+                return (
+                <div key={mainReport.id} style={{ border: isGroupSelected ? '2px solid #3b82f6' : '1px solid #e2e8f0', borderRadius: '8px', padding: '16px', display: 'flex', flexDirection: 'column', gap: '12px', position: 'relative' }}>
+                  <input 
+                    type="checkbox" 
+                    checked={isGroupSelected} 
+                    onChange={toggleGroupSelection}
+                    style={{ position: 'absolute', top: '16px', right: '16px', width: '18px', height: '18px', cursor: 'pointer' }} 
+                  />
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', paddingRight: '24px' }}>
+                    <div style={{ fontWeight: 700, color: '#1e293b', fontSize: '16px' }}>{mainReport.title}</div>
+                    <span style={{ fontSize: '11px', background: '#e2e8f0', padding: '2px 6px', borderRadius: '4px', color: '#475569' }}>{mainReport.testName || 'Unknown Test'}</span>
+                  </div>
+                  
+                  {view === 'SEARCH' && (
+                    <div style={{ fontSize: '12px', color: '#f59e0b', fontWeight: 600, marginTop: '-8px' }}>
+                      📅 Date: {new Date(mainReport.date).toLocaleDateString()}
                     </div>
                   )}
-                </div>
-                
-                <div style={{ fontSize: '13px', color: '#64748b', wordBreak: 'break-all' }}>📄 {report.fileName}</div>
-                
-                <div style={{ display: 'flex', gap: '8px', marginTop: 'auto', paddingTop: '8px' }}>
-                  <button onClick={() => handleCopyReport(report)} style={{ flex: 1, background: '#fef3c7', color: '#d97706', padding: '8px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
-                    Copy
-                  </button>
-                  <button onClick={() => handleDownloadReport(report)} style={{ flex: 1, textAlign: 'center', background: '#f1f5f9', color: '#2563eb', padding: '8px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
-                    Download
-                  </button>
-                </div>
-              </div>
-            ))}
-            
-            {(view === 'SEARCH' ? searchResults : reports).length === 0 && (
-              <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: '8px' }}>
-                {view === 'SEARCH' ? 'No reports matched your search.' : 'No reports uploaded for this date yet.'}
-              </div>
-            )}
-          </div>
-        </div>
-      )}
-
-      {/* Upload Modal */}
-      {isModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '12px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
-            <h2 style={{ margin: '0 0 24px 0', fontSize: '24px', color: '#1e293b' }}>Upload Multiple Reports</h2>
-            
-            <form onSubmit={handleUploadSubmit} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-              
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Patient Name *</label>
-                <input required type="text" value={formData.patientName} onChange={e => setFormData({...formData, patientName: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Patient ID</label>
-                <input type="text" value={formData.patientId} onChange={e => setFormData({...formData, patientId: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Mobile Number</label>
-                <input type="tel" value={formData.mobileNumber} onChange={e => setFormData({...formData, mobileNumber: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Test Name</label>
-                <input type="text" value={formData.testName} onChange={e => setFormData({...formData, testName: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Lab Name</label>
-                <input type="text" value={formData.labName} onChange={e => setFormData({...formData, labName: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-              </div>
-
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Reference</label>
-                <input type="text" value={formData.reference} onChange={e => setFormData({...formData, reference: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-              </div>
-
-              <div style={{ gridColumn: '1 / -1' }}>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Notes / Remarks</label>
-                <textarea rows={2} value={formData.remarks} onChange={e => setFormData({...formData, remarks: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', resize: 'none' }} />
-              </div>
-
-              <div style={{ gridColumn: '1 / -1', padding: '16px', border: '2px solid #10b981', borderRadius: '8px', background: '#ecfdf5', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                <input 
-                  type="checkbox" 
-                  id="needsReminder"
-                  checked={formData.needsReminder}
-                  onChange={e => setFormData({...formData, needsReminder: e.target.checked})}
-                  style={{ width: '20px', height: '20px', cursor: 'pointer' }}
-                />
-                <label htmlFor="needsReminder" style={{ cursor: 'pointer', fontWeight: 600, color: '#047857' }}>
-                  Next Year Reminder Required? (Automatic Follow-up)
-                </label>
-              </div>
-
-              <div style={{ gridColumn: '1 / -1', padding: '16px', border: '2px dashed #cbd5e1', borderRadius: '8px', textAlign: 'center', background: '#f8fafc' }}>
-                <label style={{ cursor: 'pointer', display: 'block' }}>
-                  <div style={{ fontWeight: 600, color: '#3b82f6', marginBottom: '4px' }}>Click to Select Multiple Reports (PDF/Image) *</div>
-                  <div style={{ fontSize: '12px', color: '#64748b' }}>
-                    {selectedFiles && selectedFiles.length > 0 
-                      ? `${selectedFiles.length} files selected` 
-                      : 'No files selected'}
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '8px', fontSize: '13px', color: '#475569', background: '#f8fafc', padding: '12px', borderRadius: '6px', wordBreak: 'break-word' }}>
+                    <div><strong>Patient:</strong> {mainReport.patientName || 'N/A'}</div>
+                    <div><strong>ID:</strong> {mainReport.patientId || 'N/A'}</div>
+                    <div><strong>Mobile:</strong> {mainReport.mobileNumber || 'N/A'}</div>
+                    <div><strong>Lab:</strong> {mainReport.labName || 'N/A'}</div>
+                    {mainReport.reference && <div style={{ gridColumn: '1 / -1' }}><strong>Ref:</strong> {mainReport.reference}</div>}
+                    {mainReport.remarks && <div style={{ gridColumn: '1 / -1' }}><strong>Remarks:</strong> {mainReport.remarks}</div>}
+                    {mainReport.needsReminder && (
+                      <div style={{ gridColumn: '1 / -1', color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        🔔 Reminder: {new Date(mainReport.reminderDate).toLocaleDateString()}
+                      </div>
+                    )}
                   </div>
-                  <input required multiple type="file" onChange={e => setSelectedFiles(e.target.files)} style={{ display: 'none' }} />
-                </label>
-              </div>
-
-              <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
-                <button type="button" onClick={() => setIsModalOpen(false)} disabled={isUploading} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', fontWeight: 600, cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.7 : 1 }}>Cancel</button>
-                <button 
-                  type="button" 
-                  disabled={isUploading} 
-                  onClick={(e) => { setCloseAfterUpload(false); handleUploadSubmit(e); }}
-                  style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#10b981', color: 'white', fontWeight: 600, cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.7 : 1 }}
-                >
-                  {isUploading && !closeAfterUpload 
-                    ? uploadProgress === 100 ? `Processing (${processingProgress}%)` : `Uploading (${uploadProgress}%)` 
-                    : 'Save & Add Another'}
-                </button>
-                <button 
-                  type="submit" 
-                  disabled={isUploading} 
-                  onClick={() => setCloseAfterUpload(true)}
-                  style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#2563eb', color: 'white', fontWeight: 600, cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.7 : 1 }}
-                >
-                  {isUploading && closeAfterUpload 
-                    ? uploadProgress === 100 ? `Processing (${processingProgress}%)` : `Uploading (${uploadProgress}%)` 
-                    : 'Save & Close'}
-                </button>
-              </div>
-              {isUploading && selectedFiles && selectedFiles.length > 1 && (
-                <div style={{ gridColumn: '1 / -1', textAlign: 'right', fontSize: '12px', color: '#64748b', marginTop: '-8px' }}>
-                  Processing file {uploadFileIndex + 1} of {selectedFiles.length}...
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Attached Files ({group.length}):</div>
+                    {group.map((report: any) => (
+                      <div key={report.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#64748b', wordBreak: 'break-all' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={selectedReportIds.has(report.id)} 
+                          onChange={() => toggleReportSelection(report.id)}
+                          style={{ width: '13px', height: '13px', cursor: 'pointer' }} 
+                        />
+                        📄 <a href={report.fileUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'none' }}>{report.fileName}</a>
+                      </div>
+                    ))}
+                  </div>
+                  
+                  <div style={{ display: 'flex', gap: '8px', marginTop: 'auto', paddingTop: '8px', flexWrap: 'wrap' }}>
+                    <button onClick={() => handleCopyReport(mainReport)} style={{ flex: 1, background: '#fef3c7', color: '#d97706', padding: '8px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
+                      Copy
+                    </button>
+                    {hasInvoice ? (
+                      <button onClick={() => setViewInvoice(mainReport.invoices[0])} style={{ flex: 1, textAlign: 'center', background: '#dcfce7', color: '#16a34a', padding: '8px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
+                        Download Invoice
+                      </button>
+                    ) : (
+                      <button onClick={() => setInvoiceModalPatient({ id: mainReport.patientId || `TEMP-${mainReport.id}`, name: mainReport.patientName || 'Unknown', phone: mainReport.mobileNumber || 'Unknown' })} style={{ flex: 1, textAlign: 'center', background: '#f1f5f9', color: '#2563eb', padding: '8px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
+                        Generate Invoice
+                      </button>
+                    )}
+                  </div>
+                </div>
+              )})}
+              
+              {(view === 'SEARCH' ? searchResults : reports).length === 0 && (
+                <div style={{ gridColumn: '1 / -1', padding: '40px', textAlign: 'center', color: '#64748b', background: '#f8fafc', borderRadius: '8px' }}>
+                  {view === 'SEARCH' ? 'No reports matched your search.' : 'No reports uploaded for this date yet.'}
                 </div>
               )}
-            </form>
+            </div>
           </div>
-        </div>
-      )}
-      {/* Share Modal */}
-      {(isPreparingShare || shareReadyFiles) && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '12px', textAlign: 'center', maxWidth: '400px', width: '90%' }}>
-            {isPreparingShare ? (
-              <>
-                <h3 style={{ marginTop: 0, color: '#1e293b' }}>Preparing File...</h3>
-                <p style={{ color: '#64748b' }}>Downloading the large report file from the server. Please wait a few seconds...</p>
-                <div style={{ display: 'flex', justifyContent: 'center', margin: '24px 0' }}>
-                  <div style={{ border: '4px solid #f3f3f3', borderTop: '4px solid #8b5cf6', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite' }} />
+        )}
+
+        {/* Upload Modal */}
+        {isModalOpen && (
+          <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
+            <div style={{ background: 'white', padding: '32px', borderRadius: '12px', width: '100%', maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}>
+              <button onClick={() => setIsModalOpen(false)} style={{ position: 'absolute', top: '16px', right: '16px', background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '4px' }}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+              <h2 style={{ margin: '0 0 24px 0', fontSize: '24px', color: '#1e293b', paddingRight: '32px' }}>Upload Multiple Reports</h2>
+              
+              <form onSubmit={handleUploadSubmit} style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px' }}>
+                
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Patient Name *</label>
+                  <input required type="text" value={formData.patientName} onChange={e => setFormData({...formData, patientName: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
                 </div>
-              </>
-            ) : (
-              <>
-                <h3 style={{ marginTop: 0, color: '#1e293b' }}>Ready to Share!</h3>
-                <p style={{ color: '#64748b' }}>Your files have been successfully downloaded and prepared.</p>
-                <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-                  <button onClick={() => setShareReadyFiles(null)} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', color: '#475569', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
-                  <button onClick={executeShare} style={{ flex: 2, padding: '12px', borderRadius: '8px', border: 'none', background: '#8b5cf6', color: 'white', cursor: 'pointer', fontWeight: 600 }}>Share Now</button>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Patient ID</label>
+                  <input type="text" value={formData.patientId} onChange={e => setFormData({...formData, patientId: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
                 </div>
-              </>
-            )}
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Mobile Number</label>
+                  <input type="tel" value={formData.mobileNumber} onChange={e => setFormData({...formData, mobileNumber: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Test Name</label>
+                  <input type="text" value={formData.testName} onChange={e => setFormData({...formData, testName: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Lab Name</label>
+                  <input type="text" value={formData.labName} onChange={e => setFormData({...formData, labName: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                </div>
+
+                <div>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Reference</label>
+                  <input type="text" value={formData.reference} onChange={e => setFormData({...formData, reference: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Notes / Remarks</label>
+                  <textarea rows={2} value={formData.remarks} onChange={e => setFormData({...formData, remarks: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', resize: 'none' }} />
+                </div>
+
+                <div style={{ gridColumn: '1 / -1', padding: '16px', border: '2px solid #10b981', borderRadius: '8px', background: '#ecfdf5', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <input 
+                    type="checkbox" 
+                    id="needsReminder"
+                    checked={formData.needsReminder}
+                    onChange={e => setFormData({...formData, needsReminder: e.target.checked})}
+                    style={{ width: '20px', height: '20px', cursor: 'pointer' }}
+                  />
+                  <label htmlFor="needsReminder" style={{ cursor: 'pointer', fontWeight: 600, color: '#047857' }}>
+                    Next Year Reminder Required? (Automatic Follow-up)
+                  </label>
+                </div>
+
+                <div style={{ gridColumn: '1 / -1', padding: '16px', border: '2px dashed #cbd5e1', borderRadius: '8px', textAlign: 'center', background: '#f8fafc' }}>
+                  <label style={{ cursor: 'pointer', display: 'block' }}>
+                    <div style={{ fontWeight: 600, color: '#3b82f6', marginBottom: '4px' }}>Click to Select Multiple Reports (PDF/Image) *</div>
+                    <div style={{ fontSize: '12px', color: '#64748b' }}>
+                      {selectedFiles && selectedFiles.length > 0 
+                        ? `${selectedFiles.length} files selected` 
+                        : 'No files selected'}
+                    </div>
+                    <input required multiple type="file" onChange={e => setSelectedFiles(e.target.files)} style={{ display: 'none' }} />
+                  </label>
+                </div>
+
+                <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
+                  <button type="button" onClick={() => setIsModalOpen(false)} disabled={isUploading} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', fontWeight: 600, cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.7 : 1 }}>Cancel</button>
+                  <button 
+                    type="button" 
+                    disabled={isUploading} 
+                    onClick={(e) => { setCloseAfterUpload(false); handleUploadSubmit(e); }}
+                    style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#10b981', color: 'white', fontWeight: 600, cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.7 : 1 }}
+                  >
+                    {isUploading && !closeAfterUpload 
+                      ? uploadProgress === 100 ? `Processing (${processingProgress}%)` : `Uploading (${uploadProgress}%)` 
+                      : 'Save & Add Another'}
+                  </button>
+                  <button 
+                    type="submit" 
+                    disabled={isUploading} 
+                    onClick={() => setCloseAfterUpload(true)}
+                    style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#2563eb', color: 'white', fontWeight: 600, cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.7 : 1 }}
+                  >
+                    {isUploading && closeAfterUpload 
+                      ? uploadProgress === 100 ? `Processing (${processingProgress}%)` : `Uploading (${uploadProgress}%)` 
+                      : 'Save & Close'}
+                  </button>
+                </div>
+                {isUploading && selectedFiles && selectedFiles.length > 1 && (
+                  <div style={{ gridColumn: '1 / -1', textAlign: 'right', fontSize: '12px', color: '#64748b', marginTop: '-8px' }}>
+                    Processing file {uploadFileIndex + 1} of {selectedFiles.length}...
+                  </div>
+                )}
+              </form>
+            </div>
           </div>
-          <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
-        </div>
+        )}
+        {/* Share Modal */}
+        {(isPreparingShare || shareReadyFiles) && (
+          <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999 }}>
+            <div style={{ background: 'white', padding: '32px', borderRadius: '12px', textAlign: 'center', maxWidth: '400px', width: '90%' }}>
+              {isPreparingShare ? (
+                <>
+                  <h3 style={{ marginTop: 0, color: '#1e293b' }}>Preparing File...</h3>
+                  <p style={{ color: '#64748b' }}>Downloading the large report file from the server. Please wait a few seconds...</p>
+                  <div style={{ display: 'flex', justifyContent: 'center', margin: '24px 0' }}>
+                    <div style={{ border: '4px solid #f3f3f3', borderTop: '4px solid #8b5cf6', borderRadius: '50%', width: '40px', height: '40px', animation: 'spin 1s linear infinite' }} />
+                  </div>
+                </>
+              ) : (
+                <>
+                  <h3 style={{ marginTop: 0, color: '#1e293b' }}>Ready to Share!</h3>
+                  <p style={{ color: '#64748b' }}>Your files have been successfully downloaded and prepared.</p>
+                  <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
+                    <button onClick={() => setShareReadyFiles(null)} style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', background: 'white', color: '#475569', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+                    <button onClick={executeShare} style={{ flex: 2, padding: '12px', borderRadius: '8px', border: 'none', background: '#8b5cf6', color: 'white', cursor: 'pointer', fontWeight: 600 }}>Share Now</button>
+                  </div>
+                </>
+              )}
+            </div>
+            <style>{`@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`}</style>
+          </div>
+        )}
+      </div>
+
+      {viewInvoice && (
+        <InvoiceView
+          invoice={viewInvoice}
+          patient={viewInvoice.patient || { name: 'Unknown', phone: 'Unknown' }}
+          onClose={() => setViewInvoice(null)}
+        />
       )}
 
+      {/* Invoice Generator Modal */}
+      {invoiceModalPatient && (
+        <InvoiceGeneratorModal
+          patient={invoiceModalPatient}
+          onClose={() => setInvoiceModalPatient(null)}
+          onGenerated={handleInvoiceGenerated}
+        />
+      )}
     </div>
   );
 }
