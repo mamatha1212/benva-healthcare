@@ -24,9 +24,37 @@ export default function ServiceabilityCheck({ initialPincode }: { initialPincode
   const [results, setResults] = useState<LocationData[] | null>(null);
   const [showModal, setShowModal] = useState(false);
   const [copiedId, setCopiedId] = useState<string | null>(null);
+  const [copiedAll, setCopiedAll] = useState(false);
+
+  const handleCopyAll = () => {
+    if (!results) return;
+    const text = results.map(loc => {
+      let t = `Pincode: ${loc.pincode}\n`;
+      t += `${loc.officeName} (${loc.type})\n`;
+      t += `State: ${loc.state} | Area: ${loc.area}\n`;
+      t += `Division: ${loc.division} | Region: ${loc.region}\n`;
+      
+      t += `Phlebotomist Details:\n`;
+      if (loc.phlebos && Array.isArray(loc.phlebos) && loc.phlebos.length > 0) {
+        loc.phlebos.forEach((p: any) => {
+          t += `Name: ${p.name || 'N/A'}, Phone: ${p.mobile || 'N/A'}\n`;
+        });
+      } else if (loc.phleboName || loc.phleboMobile) {
+        t += `Name: ${loc.phleboName || 'N/A'}, Phone: ${loc.phleboMobile || 'N/A'}\n`;
+      } else {
+        t += `Not Assigned\n`;
+      }
+      return t;
+    }).join('\n\n');
+    
+    navigator.clipboard.writeText(text);
+    setCopiedAll(true);
+    setTimeout(() => setCopiedAll(false), 2000);
+  };
 
   const handleCopy = (loc: LocationData) => {
-    let text = `${loc.officeName} (${loc.type})\n`;
+    let text = `Pincode: ${loc.pincode}\n`;
+    text += `${loc.officeName} (${loc.type})\n`;
     text += `State: ${loc.state} | Area: ${loc.area}\n`;
     text += `Division: ${loc.division} | Region: ${loc.region}\n`;
     text += `Phlebotomist Details:\n`;
@@ -122,9 +150,42 @@ export default function ServiceabilityCheck({ initialPincode }: { initialPincode
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)'
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px', marginBottom: '16px' }}>
-              <h3 style={{ margin: 0, fontSize: '18px', color: '#1e293b' }}>
-                Serviceability: {pincode}
-              </h3>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <h3 style={{ margin: 0, fontSize: '18px', color: '#1e293b' }}>
+                  Serviceability: {pincode}
+                </h3>
+                {results && results.length > 0 && (
+                  <button 
+                    onClick={handleCopyAll}
+                    style={{
+                      background: copiedAll ? '#10b981' : '#f1f5f9',
+                      border: '1px solid #cbd5e1',
+                      borderRadius: '6px',
+                      padding: '4px 8px',
+                      fontSize: '12px',
+                      cursor: 'pointer',
+                      color: copiedAll ? 'white' : '#475569',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '6px',
+                      fontWeight: 500,
+                      transition: 'all 0.2s'
+                    }}
+                  >
+                    {copiedAll ? (
+                      <>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Copied All
+                      </>
+                    ) : (
+                      <>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        Copy All Locations
+                      </>
+                    )}
+                  </button>
+                )}
+              </div>
               <button 
                 onClick={() => setShowModal(false)}
                 style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#64748b' }}
