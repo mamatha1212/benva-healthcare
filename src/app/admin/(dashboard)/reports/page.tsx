@@ -19,6 +19,7 @@ function ReportsManagementContent() {
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
+  const [processingProgress, setProcessingProgress] = useState(0);
   const [uploadFileIndex, setUploadFileIndex] = useState(0);
   const [closeAfterUpload, setCloseAfterUpload] = useState(true);
   const [isBackingUp, setIsBackingUp] = useState(false);
@@ -242,14 +243,28 @@ function ReportsManagementContent() {
               xhr.open('POST', '/api/admin/reports');
               xhr.setRequestHeader('Content-Type', 'application/json');
               
+              let processInterval: NodeJS.Timeout;
+
               xhr.upload.onprogress = (event) => {
                 if (event.lengthComputable) {
                   const percentComplete = Math.round((event.loaded / event.total) * 100);
                   setUploadProgress(percentComplete);
+                  
+                  if (percentComplete === 100 && !processInterval) {
+                    let p = 0;
+                    setProcessingProgress(0);
+                    processInterval = setInterval(() => {
+                      p += Math.floor(Math.random() * 5) + 1;
+                      if (p > 99) p = 99;
+                      setProcessingProgress(p);
+                    }, 400);
+                  }
                 }
               };
 
               xhr.onload = () => {
+                if (processInterval) clearInterval(processInterval);
+                setProcessingProgress(100);
                 if (xhr.status >= 200 && xhr.status < 300) {
                   successCount++;
                   resolve();
@@ -258,7 +273,10 @@ function ReportsManagementContent() {
                 }
               };
 
-              xhr.onerror = () => reject(new Error('Network Error'));
+              xhr.onerror = () => {
+                if (processInterval) clearInterval(processInterval);
+                reject(new Error('Network Error'));
+              };
               xhr.send(JSON.stringify(payload));
             } catch (err) {
               reject(err);
@@ -285,12 +303,14 @@ function ReportsManagementContent() {
       }
       setIsUploading(false);
       setUploadProgress(0);
+      setProcessingProgress(0);
       
     } catch (error) {
       console.error(error);
       alert('Error uploading files');
       setIsUploading(false);
       setUploadProgress(0);
+      setProcessingProgress(0);
     }
   };
 
@@ -795,7 +815,7 @@ function ReportsManagementContent() {
                   style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#10b981', color: 'white', fontWeight: 600, cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.7 : 1 }}
                 >
                   {isUploading && !closeAfterUpload 
-                    ? `Uploading (${uploadProgress}%)` 
+                    ? uploadProgress === 100 ? `Processing (${processingProgress}%)` : `Uploading (${uploadProgress}%)` 
                     : 'Save & Add Another'}
                 </button>
                 <button 
@@ -805,7 +825,7 @@ function ReportsManagementContent() {
                   style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#2563eb', color: 'white', fontWeight: 600, cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.7 : 1 }}
                 >
                   {isUploading && closeAfterUpload 
-                    ? `Uploading (${uploadProgress}%)` 
+                    ? uploadProgress === 100 ? `Processing (${processingProgress}%)` : `Uploading (${uploadProgress}%)` 
                     : 'Save & Close'}
                 </button>
               </div>
