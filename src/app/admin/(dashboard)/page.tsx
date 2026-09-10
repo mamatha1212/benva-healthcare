@@ -7,6 +7,7 @@ import LeadsFilters from '@/components/LeadsFilters/LeadsFilters';
 import LeadsPagination from '@/components/LeadsPagination/LeadsPagination';
 import ImportExportButtons from '@/components/ImportExportButtons/ImportExportButtons';
 import LeadRemarksUpdater from '@/components/LeadRemarksUpdater/LeadRemarksUpdater';
+import ServiceabilityCheck from '@/components/ServiceabilityCheck/ServiceabilityCheck';
 
 import LeadsChart from './LeadsChart';
 
@@ -369,6 +370,7 @@ export default async function AdminDashboard({
                             <th className={styles.th}>CONTACT INFO</th>
                             <th className={styles.th} style={{ minWidth: '220px' }}>FULL ADDRESS</th>
                             <th className={styles.th} style={{ minWidth: '180px' }}>PACKAGE DETAILS</th>
+                            <th className={styles.th} style={{ minWidth: '140px' }}>SERVICEABILITY</th>
                           </>
                         ) : (
                           <>
@@ -473,6 +475,9 @@ export default async function AdminDashboard({
                               <td className={styles.td}>
                                 <strong style={{ color: 'var(--color-primary)' }}>{lead.package}</strong><br />
                                 <span style={{ fontSize: '12px', fontWeight: 'bold' }}>₹{lead.price}</span>
+                              </td>
+                              <td className={styles.td}>
+                                <ServiceabilityCheck initialPincode={lead.pincode} />
                               </td>
                             </>
                           ) : (
