@@ -483,6 +483,26 @@ function ReportsManagementContent() {
   };
 
   const months = ['January', 'February', 'March', 'April', 'May', 'June', 'July', 'August', 'September', 'October', 'November', 'December'];
+  
+  const handleCopyReport = async (report: any) => {
+    try {
+      let t = `Patient: ${report.patientName || 'N/A'}\n`;
+      t += `ID: ${report.patientId || 'N/A'}\n`;
+      t += `Mobile: ${report.mobileNumber || 'N/A'}\n`;
+      t += `Lab: ${report.labName || 'N/A'}\n`;
+      if (report.reference) t += `Ref: ${report.reference}\n`;
+      if (report.remarks) t += `Remarks: ${report.remarks}\n`;
+      if (report.needsReminder && report.reminderDate) t += `Reminder: ${new Date(report.reminderDate).toLocaleDateString()}\n`;
+      t += `File: ${report.fileName || 'N/A'}\n`;
+      
+      await navigator.clipboard.writeText(t);
+      alert('Report details copied to clipboard!');
+    } catch (err) {
+      console.error('Failed to copy', err);
+      alert('Failed to copy details');
+    }
+  };
+
   const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
   const getFirstDayOfMonth = (year: number, month: number) => new Date(year, month, 1).getDay();
 
@@ -746,14 +766,11 @@ function ReportsManagementContent() {
                 <div style={{ fontSize: '13px', color: '#64748b', wordBreak: 'break-all' }}>📄 {report.fileName}</div>
                 
                 <div style={{ display: 'flex', gap: '8px', marginTop: 'auto', paddingTop: '8px' }}>
-                  <button onClick={() => shareReports([report])} style={{ flex: 1, background: '#f3e8ff', color: '#7c3aed', padding: '8px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
-                    Share
+                  <button onClick={() => handleCopyReport(report)} style={{ flex: 1, background: '#fef3c7', color: '#d97706', padding: '8px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
+                    Copy
                   </button>
                   <button onClick={() => handleDownloadReport(report)} style={{ flex: 1, textAlign: 'center', background: '#f1f5f9', color: '#2563eb', padding: '8px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
                     Download
-                  </button>
-                  <button onClick={() => handleDeleteReport(report.id, view === 'SEARCH')} style={{ flex: 1, background: '#fee2e2', color: '#ef4444', padding: '8px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
-                    Delete
                   </button>
                 </div>
               </div>
