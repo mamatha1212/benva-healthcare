@@ -14,6 +14,7 @@ interface LocationData {
   area: string;
   phleboName: string | null;
   phleboMobile: string | null;
+  phlebos?: any;
   isActive: boolean;
 }
 
@@ -137,7 +138,16 @@ export default function ServiceabilityCheck({ initialPincode }: { initialPincode
 
                     <div style={{ borderTop: '1px dashed #cbd5e1', paddingTop: '12px' }}>
                       <strong style={{ fontSize: '13px', color: '#334155' }}>Phlebotomist Details:</strong>
-                      {loc.phleboName || loc.phleboMobile ? (
+                      {loc.phlebos && Array.isArray(loc.phlebos) && loc.phlebos.length > 0 ? (
+                        <div style={{ fontSize: '13px', color: '#0f172a', marginTop: '4px', backgroundColor: '#e0f2fe', padding: '8px', borderRadius: '6px' }}>
+                          {loc.phlebos.map((p: any, i: number) => (
+                            <div key={i} style={{ marginBottom: i < loc.phlebos.length - 1 ? '6px' : 0, paddingBottom: i < loc.phlebos.length - 1 ? '6px' : 0, borderBottom: i < loc.phlebos.length - 1 ? '1px solid #bae6fd' : 'none' }}>
+                              <div>Name: <strong>{p.name || 'N/A'}</strong></div>
+                              <div>Phone: <strong>{p.mobile || 'N/A'}</strong></div>
+                            </div>
+                          ))}
+                        </div>
+                      ) : loc.phleboName || loc.phleboMobile ? (
                         <div style={{ fontSize: '13px', color: '#0f172a', marginTop: '4px', backgroundColor: '#e0f2fe', padding: '8px', borderRadius: '6px' }}>
                           <div>Name: <strong>{loc.phleboName || 'N/A'}</strong></div>
                           <div>Phone: <strong>{loc.phleboMobile || 'N/A'}</strong></div>
