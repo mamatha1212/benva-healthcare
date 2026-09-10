@@ -23,6 +23,28 @@ export default function ServiceabilityCheck({ initialPincode }: { initialPincode
   const [loading, setLoading] = useState(false);
   const [results, setResults] = useState<LocationData[] | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
+
+  const handleCopy = (loc: LocationData) => {
+    let text = `${loc.officeName} (${loc.type}) - ${loc.isActive ? 'ACTIVE' : 'INACTIVE'}\n`;
+    text += `State: ${loc.state} | Area: ${loc.area}\n`;
+    text += `Division: ${loc.division} | Region: ${loc.region}\n`;
+    text += `Phlebotomist Details:\n`;
+    
+    if (loc.phlebos && Array.isArray(loc.phlebos) && loc.phlebos.length > 0) {
+      loc.phlebos.forEach((p: any) => {
+        text += `Name: ${p.name || 'N/A'}, Phone: ${p.mobile || 'N/A'}\n`;
+      });
+    } else if (loc.phleboName || loc.phleboMobile) {
+      text += `Name: ${loc.phleboName || 'N/A'}, Phone: ${loc.phleboMobile || 'N/A'}\n`;
+    } else {
+      text += `Not Assigned\n`;
+    }
+    
+    navigator.clipboard.writeText(text);
+    setCopiedId(loc.id);
+    setTimeout(() => setCopiedId(null), 2000);
+  };
 
   const checkPincode = async () => {
     if (!pincode || pincode.trim() === '') return;
@@ -117,16 +139,45 @@ export default function ServiceabilityCheck({ initialPincode }: { initialPincode
                   <div key={loc.id} style={{ padding: '12px', backgroundColor: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                     <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                       <strong style={{ color: '#0f172a' }}>{loc.officeName} ({loc.type})</strong>
-                      <span style={{ 
-                        padding: '2px 8px', 
-                        borderRadius: '12px', 
-                        fontSize: '11px', 
-                        fontWeight: 'bold',
-                        backgroundColor: loc.isActive ? '#dcfce7' : '#fee2e2',
-                        color: loc.isActive ? '#166534' : '#991b1b'
-                      }}>
-                        {loc.isActive ? 'ACTIVE' : 'INACTIVE'}
-                      </span>
+                      <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <button 
+                          onClick={() => handleCopy(loc)}
+                          style={{
+                            background: 'none',
+                            border: '1px solid #cbd5e1',
+                            borderRadius: '4px',
+                            padding: '2px 6px',
+                            fontSize: '11px',
+                            cursor: 'pointer',
+                            color: copiedId === loc.id ? '#10b981' : '#64748b',
+                            display: 'flex',
+                            alignItems: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          {copiedId === loc.id ? (
+                            <>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                              Copied
+                            </>
+                          ) : (
+                            <>
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                              Copy
+                            </>
+                          )}
+                        </button>
+                        <span style={{ 
+                          padding: '2px 8px', 
+                          borderRadius: '12px', 
+                          fontSize: '11px', 
+                          fontWeight: 'bold',
+                          backgroundColor: loc.isActive ? '#dcfce7' : '#fee2e2',
+                          color: loc.isActive ? '#166534' : '#991b1b'
+                        }}>
+                          {loc.isActive ? 'ACTIVE' : 'INACTIVE'}
+                        </span>
+                      </div>
                     </div>
                     
                     <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px', fontSize: '13px', color: '#475569', marginBottom: '12px' }}>
