@@ -18,6 +18,9 @@ function ReportsManagementContent() {
   const [reports, setReports] = useState<any[]>([]);
   const [searchResults, setSearchResults] = useState<any[]>([]);
   const [isUploading, setIsUploading] = useState(false);
+  const [uploadProgress, setUploadProgress] = useState(0);
+  const [uploadFileIndex, setUploadFileIndex] = useState(0);
+  const [closeAfterUpload, setCloseAfterUpload] = useState(true);
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [selectedReportIds, setSelectedReportIds] = useState<Set<string>>(new Set());
 
@@ -189,17 +192,20 @@ function ReportsManagementContent() {
     setIsSearching(false);
   };
 
-  const handleUploadSubmit = async (e: React.FormEvent) => {
+  const handleUploadSubmit = async (e: React.FormEvent | React.MouseEvent) => {
     e.preventDefault();
     if (!selectedDate || !selectedFiles || selectedFiles.length === 0) {
       return alert('Please select at least one file');
     }
 
     setIsUploading(true);
+    setUploadProgress(0);
     let successCount = 0;
 
     try {
       for (let i = 0; i < selectedFiles.length; i++) {
+        setUploadFileIndex(i);
+        setUploadProgress(0);
         const file = selectedFiles[i];
         
         // 25MB Size Limit Check
@@ -232,14 +238,28 @@ function ReportsManagementContent() {
                 needsReminder: formData.needsReminder
               };
 
-              const res = await fetch('/api/admin/reports', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(payload)
-              });
+              const xhr = new XMLHttpRequest();
+              xhr.open('POST', '/api/admin/reports');
+              xhr.setRequestHeader('Content-Type', 'application/json');
+              
+              xhr.upload.onprogress = (event) => {
+                if (event.lengthComputable) {
+                  const percentComplete = Math.round((event.loaded / event.total) * 100);
+                  setUploadProgress(percentComplete);
+                }
+              };
 
-              if (res.ok) successCount++;
-              resolve();
+              xhr.onload = () => {
+                if (xhr.status >= 200 && xhr.status < 300) {
+                  successCount++;
+                  resolve();
+                } else {
+                  reject(new Error(`HTTP Error: ${xhr.status}`));
+                }
+              };
+
+              xhr.onerror = () => reject(new Error('Network Error'));
+              xhr.send(JSON.stringify(payload));
             } catch (err) {
               reject(err);
             }
@@ -251,19 +271,26 @@ function ReportsManagementContent() {
 
       if (successCount === selectedFiles.length) {
         fetchReportsForDate(selectedDate);
-        setIsModalOpen(false);
-        setFormData({ patientId: '', patientName: '', mobileNumber: '', testName: '', labName: '', reference: '', remarks: '', title: '', needsReminder: false });
+        if (closeAfterUpload) {
+          setIsModalOpen(false);
+          setFormData({ patientId: '', patientName: '', mobileNumber: '', testName: '', labName: '', reference: '', remarks: '', title: '', needsReminder: false });
+        } else {
+          // Keep modal open, clear only file input and title
+          setFormData(prev => ({ ...prev, title: '' }));
+        }
         setSelectedFiles(null);
       } else {
         alert(`Failed to upload ${selectedFiles.length - successCount} reports.`);
         fetchReportsForDate(selectedDate); 
       }
       setIsUploading(false);
+      setUploadProgress(0);
       
     } catch (error) {
       console.error(error);
       alert('Error uploading files');
       setIsUploading(false);
+      setUploadProgress(0);
     }
   };
 
@@ -760,11 +787,33 @@ function ReportsManagementContent() {
               </div>
 
               <div style={{ gridColumn: '1 / -1', display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
-                <button type="button" onClick={() => setIsModalOpen(false)} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
-                <button type="submit" disabled={isUploading} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#2563eb', color: 'white', fontWeight: 600, cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.7 : 1 }}>
-                  {isUploading ? 'Uploading...' : 'Save All Reports'}
+                <button type="button" onClick={() => setIsModalOpen(false)} disabled={isUploading} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', fontWeight: 600, cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.7 : 1 }}>Cancel</button>
+                <button 
+                  type="button" 
+                  disabled={isUploading} 
+                  onClick={(e) => { setCloseAfterUpload(false); handleUploadSubmit(e); }}
+                  style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#10b981', color: 'white', fontWeight: 600, cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.7 : 1 }}
+                >
+                  {isUploading && !closeAfterUpload 
+                    ? `Uploading (${uploadProgress}%)` 
+                    : 'Save & Add Another'}
+                </button>
+                <button 
+                  type="submit" 
+                  disabled={isUploading} 
+                  onClick={() => setCloseAfterUpload(true)}
+                  style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#2563eb', color: 'white', fontWeight: 600, cursor: isUploading ? 'not-allowed' : 'pointer', opacity: isUploading ? 0.7 : 1 }}
+                >
+                  {isUploading && closeAfterUpload 
+                    ? `Uploading (${uploadProgress}%)` 
+                    : 'Save & Close'}
                 </button>
               </div>
+              {isUploading && selectedFiles && selectedFiles.length > 1 && (
+                <div style={{ gridColumn: '1 / -1', textAlign: 'right', fontSize: '12px', color: '#64748b', marginTop: '-8px' }}>
+                  Processing file {uploadFileIndex + 1} of {selectedFiles.length}...
+                </div>
+              )}
             </form>
           </div>
         </div>
