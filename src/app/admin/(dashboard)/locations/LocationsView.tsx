@@ -13,6 +13,7 @@ type District = {
   id: string;
   name: string;
   stateId: string;
+  isActive: boolean;
   areas: Area[];
 };
 
