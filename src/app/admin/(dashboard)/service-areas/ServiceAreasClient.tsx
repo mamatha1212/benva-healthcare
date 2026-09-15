@@ -48,6 +48,41 @@ export default function ServiceAreasClient() {
     setPage(1);
   };
 
+  const handleCopyDetails = (loc: any) => {
+    const text = `Service Area Details:
+Pincode: ${loc.pincode}
+Type: ${loc.type}
+Circle: ${loc.circle}
+Region: ${loc.region}
+Division: ${loc.division}
+Area: ${loc.area}`;
+
+    navigator.clipboard.writeText(text).then(() => {
+      alert('Details copied to clipboard!');
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+      alert('Failed to copy details.');
+    });
+  };
+
+  const handleCopyAllVisible = () => {
+    if (locations.length === 0) {
+      alert("No locations to copy.");
+      return;
+    }
+
+    const text = locations.map((loc: any) => 
+      `Pincode: ${loc.pincode} | Type: ${loc.type} | Circle: ${loc.circle} | Region: ${loc.region} | Division: ${loc.division} | Area: ${loc.area}`
+    ).join('\n\n');
+
+    navigator.clipboard.writeText(text).then(() => {
+      alert(`Copied ${locations.length} service areas to clipboard!`);
+    }).catch(err => {
+      console.error('Failed to copy:', err);
+      alert('Failed to copy details.');
+    });
+  };
+
   const handleEdit = (loc: any, addNew: boolean = false) => {
     setEditingId(loc.id);
     let initial = [];
@@ -96,20 +131,21 @@ export default function ServiceAreasClient() {
     }
   };
 
-  const handleExport = async () => {
+  const handleExport = async (type: 'INTERNAL' | 'EXTERNAL') => {
     setIsExporting(true);
     try {
-      const allLocs = await exportAllLocations(activeTab);
-      const headers = ['S NO', 'Office Name', 'Pincode', 'Type', 'Circle', 'Region', 'Division', 'Area', 'Phlebotomists'];
+      // Pass the current filters to get only the relevant data
+      const allLocs = await exportAllLocations(activeTab, search, statusFilter, phleboFilter);
+      
+      let headers = [];
+      if (type === 'INTERNAL') {
+        headers = ['S NO', 'Office Name', 'Pincode', 'Type', 'Circle', 'Region', 'Division', 'Area', 'Phlebotomists'];
+      } else {
+        headers = ['S NO', 'Office Name', 'Pincode', 'Type', 'Circle', 'Region', 'Division', 'Area'];
+      }
+
       const rows = allLocs.map((loc: any) => {
-        let phlebosStr = '';
-        if (loc.phlebos && Array.isArray(loc.phlebos) && loc.phlebos.length > 0) {
-          phlebosStr = loc.phlebos.map((p: any) => `${p.name} (${p.mobile || 'N/A'})`).join(' | ');
-        } else if (loc.phleboName) {
-          phlebosStr = `${loc.phleboName} (${loc.phleboMobile || 'N/A'})`;
-        }
-        
-        return [
+        const rowData = [
           loc.sNo, 
           `"${loc.officeName}"`, 
           loc.pincode, 
@@ -117,9 +153,20 @@ export default function ServiceAreasClient() {
           `"${loc.circle}"`, 
           `"${loc.region}"`, 
           `"${loc.division}"`, 
-          `"${loc.area}"`, 
-          `"${phlebosStr}"`
-        ].join(',');
+          `"${loc.area}"`
+        ];
+
+        if (type === 'INTERNAL') {
+          let phlebosStr = '';
+          if (loc.phlebos && Array.isArray(loc.phlebos) && loc.phlebos.length > 0) {
+            phlebosStr = loc.phlebos.map((p: any) => `${p.name} (${p.mobile || 'N/A'})`).join(' | ');
+          } else if (loc.phleboName) {
+            phlebosStr = `${loc.phleboName} (${loc.phleboMobile || 'N/A'})`;
+          }
+          rowData.push(`"${phlebosStr}"`);
+        }
+        
+        return rowData.join(',');
       });
       
       const csvContent = headers.join(',') + '\n' + rows.join('\n');
@@ -189,54 +236,71 @@ export default function ServiceAreasClient() {
 
   return (
     <div style={{ background: 'white', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
-        <h2 style={{ fontSize: '20px', fontWeight: 600, color: '#0f172a', margin: 0 }}>Service Areas ({total})</h2>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-          <button 
-            onClick={handleExport}
-            disabled={isExporting}
-            style={{ padding: '8px 16px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: isExporting ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap' }}
-          >
-            {isExporting ? 'Exporting...' : 'Export CSV'}
-          </button>
-          <button 
-            onClick={() => setIsImporting(!isImporting)}
-            style={{ padding: '8px 16px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '8px', cursor: 'pointer', whiteSpace: 'nowrap' }}
-          >
-            Import Data
-          </button>
-          <select
-            value={statusFilter}
-            onChange={(e) => {
-              setStatusFilter(e.target.value);
-              setPage(1);
-            }}
-            style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer' }}
-          >
-            <option value="ALL">All Status</option>
-            <option value="ACTIVE">Active Only</option>
-            <option value="INACTIVE">Inactive Only</option>
-          </select>
-          <select
-            value={phleboFilter}
-            onChange={(e) => {
-              setPhleboFilter(e.target.value);
-              setPage(1);
-            }}
-            style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer' }}
-          >
-            <option value="ALL">All Phlebos</option>
-            <option value="ASSIGNED">Assigned</option>
-            <option value="UNASSIGNED">Unassigned</option>
-          </select>
-          <input 
-            type="text" 
-            placeholder="Search pincode, office, division..." 
-            value={search}
-            onChange={handleSearchChange}
-            style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', width: '300px' }}
-          />
-        </div>
+      <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '10px', marginBottom: '20px' }}>
+        <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#0f172a', margin: 0, marginRight: 'auto' }}>Service Areas ({total})</h2>
+        
+        <select
+          value={statusFilter}
+          onChange={(e) => {
+            setStatusFilter(e.target.value);
+            setPage(1);
+          }}
+          style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer', fontSize: '13px' }}
+        >
+          <option value="ALL">All Status</option>
+          <option value="ACTIVE">Active</option>
+          <option value="INACTIVE">Inactive</option>
+        </select>
+
+        <select
+          value={phleboFilter}
+          onChange={(e) => {
+            setPhleboFilter(e.target.value);
+            setPage(1);
+          }}
+          style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer', fontSize: '13px' }}
+        >
+          <option value="ALL">All Phlebos</option>
+          <option value="ASSIGNED">Assigned</option>
+          <option value="UNASSIGNED">Unassigned</option>
+        </select>
+
+        <input 
+          type="text" 
+          placeholder="Search..." 
+          value={search}
+          onChange={handleSearchChange}
+          style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', width: '150px', fontSize: '13px' }}
+        />
+
+        <button 
+          onClick={handleCopyAllVisible}
+          style={{ padding: '6px 12px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', whiteSpace: 'nowrap', color: '#0f172a', fontSize: '13px' }}
+        >
+          Copy All
+        </button>
+        <button 
+          onClick={() => handleExport('INTERNAL')}
+          disabled={isExporting}
+          style={{ padding: '6px 12px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: isExporting ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', color: '#0f172a', fontSize: '13px' }}
+          title="Export with Phlebotomist Details"
+        >
+          {isExporting ? '...' : 'Export Int'}
+        </button>
+        <button 
+          onClick={() => handleExport('EXTERNAL')}
+          disabled={isExporting}
+          style={{ padding: '6px 12px', background: '#e0f2fe', border: '1px solid #bae6fd', color: '#0369a1', borderRadius: '6px', cursor: isExporting ? 'not-allowed' : 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}
+          title="Export without Phlebotomist Details for Companies"
+        >
+          {isExporting ? '...' : 'Export Ext'}
+        </button>
+        <button 
+          onClick={() => setIsImporting(!isImporting)}
+          style={{ padding: '6px 12px', background: '#f1f5f9', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', whiteSpace: 'nowrap', fontSize: '13px' }}
+        >
+          Import Data
+        </button>
       </div>
 
       {isImporting && (
@@ -299,6 +363,7 @@ export default function ServiceAreasClient() {
               <th style={{ padding: '12px', textAlign: 'center' }}>Status</th>
               <th style={{ padding: '12px' }}>Phlebo Name</th>
               <th style={{ padding: '12px' }}>Phlebo Mobile</th>
+              <th style={{ padding: '12px', textAlign: 'center' }}>Copy</th>
               <th style={{ padding: '12px', textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
@@ -418,8 +483,18 @@ export default function ServiceAreasClient() {
                     )}
                   </td>
 
+                  <td style={{ padding: '12px', textAlign: 'center', verticalAlign: 'top' }}>
+                    <button 
+                      onClick={() => handleCopyDetails(loc)}
+                      style={{ padding: '6px 12px', background: '#f8fafc', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: 500 }}
+                      title="Copy Service Area Details"
+                    >
+                      Copy
+                    </button>
+                  </td>
+
                   {/* Actions */}
-                  <td style={{ padding: '12px', textAlign: 'right' }}>
+                  <td style={{ padding: '12px', textAlign: 'right', verticalAlign: 'top' }}>
                     {editingId === loc.id ? (
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'flex-start' }}>
                         <button onClick={() => handleSave(loc.id)} style={{ padding: '6px 12px', background: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 500 }}>Save</button>

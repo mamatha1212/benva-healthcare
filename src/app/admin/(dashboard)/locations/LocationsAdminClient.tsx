@@ -90,7 +90,7 @@ export default function LocationsAdminClient({ states }: { states: State[] }) {
                       </div>
                       <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
                         <button onClick={(e) => { e.stopPropagation(); setEditingStateId(state.id); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>✏️</button>
-                        <form action={deleteState} onClick={e => e.stopPropagation()}>
+                        <form action={deleteState} onClick={e => e.stopPropagation()} onSubmit={(e) => { if(!confirm('Are you sure you want to delete this State?')) e.preventDefault(); }}>
                           <input type="hidden" name="id" value={state.id} />
                           <button type="submit" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }} title="Delete State">🗑️</button>
                         </form>
@@ -158,7 +158,7 @@ export default function LocationsAdminClient({ states }: { states: State[] }) {
                           </div>
                           <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
                             <button onClick={(e) => { e.stopPropagation(); setEditingDistrictId(dist.id); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>✏️</button>
-                            <form action={deleteDistrict} onClick={e => e.stopPropagation()}>
+                            <form action={deleteDistrict} onClick={e => e.stopPropagation()} onSubmit={(e) => { if(!confirm('Are you sure you want to delete this District?')) e.preventDefault(); }}>
                               <input type="hidden" name="id" value={dist.id} />
                               <button type="submit" style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#ef4444' }} title="Delete District">🗑️</button>
                             </form>
@@ -221,7 +221,7 @@ export default function LocationsAdminClient({ states }: { states: State[] }) {
                           
                           <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
                             <button onClick={() => setEditingAreaId(area.id)} style={{ background: '#e0e7ff', color: '#4f46e5', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Edit</button>
-                            <form action={deleteArea}>
+                            <form action={deleteArea} onSubmit={(e) => { if(!confirm('Are you sure you want to delete this Area?')) e.preventDefault(); }}>
                               <input type="hidden" name="id" value={area.id} />
                               <button type="submit" style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '4px 8px', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
                             </form>

@@ -109,6 +109,12 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
         </Link>
         <Link 
           href="/admin/dr-payouts" 
+          onClick={(e) => {
+            if (window.location.pathname === '/admin/dr-payouts') {
+              e.preventDefault();
+              window.location.href = '/admin/dr-payouts';
+            }
+          }}
           className={`${styles.navItem} ${usePathname().includes('/admin/dr-payouts') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

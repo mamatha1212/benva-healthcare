@@ -2,8 +2,7 @@
 
 import { prisma } from '@/lib/prisma';
 import { revalidatePath } from 'next/cache';
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
+
 
 function generateSlug(title: string) {
   const baseSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');

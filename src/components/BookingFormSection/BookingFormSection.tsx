@@ -134,7 +134,7 @@ export default function BookingFormSection() {
 
         <div className={styles.header}>
           <AnimatedHeading className={styles.heading}>Book Your Health Checkup</AnimatedHeading>
-          <p className={styles.subHeading}>Fill In Your Details And Our Healthcare Team Will Contact You To Confirm Your Booking.</p>
+          <p className={styles.subHeading}>Share your details and we'll confirm your booking shortly.</p>
         </div>
 
         <form className={styles.formCard} onSubmit={handleSubmit}>

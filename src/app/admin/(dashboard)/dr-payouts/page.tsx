@@ -10,7 +10,23 @@ export default function DrPayoutsPage() {
   const [savedPayouts, setSavedPayouts] = useState<any[]>([]);
   const [downloadingPayout, setDownloadingPayout] = useState<any | null>(null);
   const hiddenReportRef = useRef<HTMLDivElement>(null);
+  const [doctors, setDoctors] = useState<any[]>([]);
   
+  useEffect(() => {
+    const fetchDoctors = async () => {
+      try {
+        const res = await fetch('/api/admin/doctors');
+        if (res.ok) {
+          const data = await res.json();
+          setDoctors(data);
+        }
+      } catch (error) {
+        console.error('Error fetching doctors:', error);
+      }
+    };
+    fetchDoctors();
+  }, []);
+
   useEffect(() => {
     const stored = localStorage.getItem('drPayouts');
     if (stored) {
@@ -19,6 +35,20 @@ export default function DrPayoutsPage() {
       } catch (e) {}
     }
   }, []);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const url = new URL(window.location.href);
+      if (isPreviewMode) {
+        url.searchParams.set('mode', 'preview');
+      } else if (isFormMode) {
+        url.searchParams.set('mode', 'form');
+      } else {
+        url.searchParams.delete('mode');
+      }
+      window.history.pushState({}, '', url);
+    }
+  }, [isFormMode, isPreviewMode]);
 
   const savePayout = () => {
     const newPayout = {
@@ -80,6 +110,7 @@ export default function DrPayoutsPage() {
   };
 
   const deletePayout = (id: string) => {
+    if (!confirm('Are you sure you want to delete this payout?')) return;
     const updated = savedPayouts.filter(p => p.id !== id);
     setSavedPayouts(updated);
     localStorage.setItem('drPayouts', JSON.stringify(updated));
@@ -219,6 +250,9 @@ export default function DrPayoutsPage() {
                   <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={savePayout}>
                     Save to List
                   </button>
+                  <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => { setIsPreviewMode(false); setIsFormMode(false); }}>
+                    Close
+                  </button>
                 </>
               ) : (
                 <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => setIsFormMode(false)}>
@@ -234,7 +268,12 @@ export default function DrPayoutsPage() {
           <div className={styles.grid}>
             <div className={styles.formGroup}>
               <label>Consulting Doctor</label>
-              <input type="text" name="consultingDoctor" value={formData.consultingDoctor} onChange={handleInputChange} placeholder="e.g. Dr. SANTHOSH" />
+              <select name="consultingDoctor" value={formData.consultingDoctor} onChange={handleInputChange}>
+                <option value="">Select a Doctor</option>
+                {doctors.map(doc => (
+                  <option key={doc.id} value={doc.name}>{doc.name}</option>
+                ))}
+              </select>
             </div>
             <div className={styles.formGroup}>
               <label>Consultation Mode</label>
@@ -330,10 +369,20 @@ export default function DrPayoutsPage() {
                       <input type="date" value={record.labReportDate} onChange={(e) => handleRecordChange(index, 'labReportDate', e.target.value)} />
                     </td>
                     <td>
-                      <input type="text" value={record.genDrName} onChange={(e) => handleRecordChange(index, 'genDrName', e.target.value)} />
+                      <select value={record.genDrName} onChange={(e) => handleRecordChange(index, 'genDrName', e.target.value)}>
+                        <option value="">Select Doctor</option>
+                        {doctors.map(doc => (
+                          <option key={doc.id} value={doc.name}>{doc.name}</option>
+                        ))}
+                      </select>
                     </td>
                     <td>
-                      <input type="text" value={record.dietDrName} onChange={(e) => handleRecordChange(index, 'dietDrName', e.target.value)} />
+                      <select value={record.dietDrName} onChange={(e) => handleRecordChange(index, 'dietDrName', e.target.value)}>
+                        <option value="">Select Dietician</option>
+                        {doctors.map(doc => (
+                          <option key={doc.id} value={doc.name}>{doc.name}</option>
+                        ))}
+                      </select>
                     </td>
                     <td>
                       <select value={record.status} onChange={(e) => handleRecordChange(index, 'status', e.target.value)}>

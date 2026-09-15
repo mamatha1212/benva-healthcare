@@ -98,9 +98,44 @@ export async function bulkImportServiceLocations(records: any[]) {
   }
 }
 
-export async function exportAllLocations(state: string) {
+export async function exportAllLocations(state: string, search: string = '', statusFilter: string = 'ALL', phleboFilter: string = 'ALL') {
+  const andClauses: any[] = [{ state }];
+
+  if (statusFilter === 'ACTIVE') {
+    andClauses.push({ isActive: true });
+  } else if (statusFilter === 'INACTIVE') {
+    andClauses.push({ isActive: false });
+  }
+
+  if (phleboFilter === 'ASSIGNED') {
+    andClauses.push({
+      OR: [
+        { phleboName: { not: null } },
+        { phlebos: { not: Prisma.AnyNull } } 
+      ]
+    });
+  } else if (phleboFilter === 'UNASSIGNED') {
+    andClauses.push({
+      AND: [
+        { phleboName: null },
+        { phlebos: { equals: Prisma.AnyNull } }
+      ]
+    });
+  }
+
+  if (search) {
+    andClauses.push({
+      OR: [
+        { pincode: { contains: search, mode: 'insensitive' } },
+        { officeName: { contains: search, mode: 'insensitive' } },
+        { area: { contains: search, mode: 'insensitive' } },
+        { division: { contains: search, mode: 'insensitive' } },
+      ]
+    });
+  }
+
   const locations = await prisma.serviceLocation.findMany({
-    where: { state },
+    where: { AND: andClauses },
     orderBy: { sNo: 'asc' },
   });
   return locations;

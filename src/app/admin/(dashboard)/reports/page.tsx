@@ -26,6 +26,7 @@ function ReportsManagementContent() {
   const [closeAfterUpload, setCloseAfterUpload] = useState(true);
   const [isBackingUp, setIsBackingUp] = useState(false);
   const [selectedReportIds, setSelectedReportIds] = useState<Set<string>>(new Set());
+  const [zipProgress, setZipProgress] = useState(0);
 
   // Invoice States
   const [invoiceModalPatient, setInvoiceModalPatient] = useState<any>(null);
@@ -379,25 +380,52 @@ function ReportsManagementContent() {
       }
 
       const zip = new JSZip();
-      const folderName = `Backup_${type.toUpperCase()}_${new Date().getTime()}`;
-      const folder = zip.folder(folderName);
+      
+      const mNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+      let rootFolderName = `Backup_${type.toUpperCase()}`;
+      if (type === 'year') {
+        rootFolderName = `Backup_${selectedYear}`;
+      } else if (type === 'month') {
+        rootFolderName = `Backup_${mNames[selectedMonth!]}_${selectedYear}`;
+      } else if (type === 'day' && selectedDate) {
+        const d = String(selectedDate.getDate()).padStart(2, '0');
+        const m = String(selectedDate.getMonth() + 1).padStart(2, '0');
+        rootFolderName = `Backup_${d}-${m}-${selectedDate.getFullYear()}`;
+      }
+
+      const rootFolder = zip.folder(rootFolderName);
 
       data.forEach((report: any, index: number) => {
-        if (report.fileUrl && folder) {
+        if (report.fileUrl && rootFolder) {
           const base64Data = report.fileUrl.split(',')[1]; 
           const uniqueFileName = `${index}_${report.fileName}`;
-          folder.file(uniqueFileName, base64Data, { base64: true });
+          
+          // Create date subfolders for month/year backups
+          let targetFolder = rootFolder;
+          if ((type === 'month' || type === 'year') && report.date) {
+            const rDate = new Date(report.date);
+            const d = String(rDate.getDate()).padStart(2, '0');
+            const m = String(rDate.getMonth() + 1).padStart(2, '0');
+            const y = rDate.getFullYear();
+            const dateFolderName = `${d}-${m}-${y}`;
+            targetFolder = rootFolder.folder(dateFolderName) || rootFolder;
+          }
+          
+          targetFolder.file(uniqueFileName, base64Data, { base64: true });
         }
       });
 
-      const content = await zip.generateAsync({ type: 'blob' });
-      saveAs(content, `${folderName}.zip`);
+      const content = await zip.generateAsync({ type: 'blob' }, (metadata) => {
+        setZipProgress(Math.round(metadata.percent));
+      });
+      saveAs(content, `${rootFolderName}.zip`);
 
     } catch (e) {
       console.error(e);
       alert('Failed to generate backup ZIP');
     }
     setIsBackingUp(false);
+    setZipProgress(0);
   };
 
   const downloadSelectedReports = async (sourceReports: any[]) => {
@@ -421,7 +449,9 @@ function ReportsManagementContent() {
         }
       }
 
-      const content = await zip.generateAsync({ type: 'blob' });
+      const content = await zip.generateAsync({ type: 'blob' }, (metadata) => {
+        setZipProgress(Math.round(metadata.percent));
+      });
       saveAs(content, `${folderName}.zip`);
       
       setSelectedReportIds(new Set());
@@ -430,6 +460,7 @@ function ReportsManagementContent() {
       alert('Failed to generate ZIP');
     }
     setIsBackingUp(false);
+    setZipProgress(0);
   };
 
   const shareReports = async (reportsToShare: any[]) => {
@@ -599,12 +630,12 @@ function ReportsManagementContent() {
           <div>
             {view === 'MONTHS' && (
               <button onClick={() => downloadBackup('year')} disabled={isBackingUp} style={{ background: '#f59e0b', color: 'white', padding: '8px 16px', borderRadius: '6px', border: 'none', fontWeight: 600, cursor: 'pointer', opacity: isBackingUp ? 0.6 : 1 }}>
-                {isBackingUp ? 'Zipping...' : `Backup ${selectedYear}`}
+                {isBackingUp ? `Zipping... ${zipProgress}%` : `Backup ${selectedYear}`}
               </button>
             )}
             {view === 'CALENDAR' && (
               <button onClick={() => downloadBackup('month')} disabled={isBackingUp} style={{ background: '#f59e0b', color: 'white', padding: '8px 16px', borderRadius: '6px', border: 'none', fontWeight: 600, cursor: 'pointer', opacity: isBackingUp ? 0.6 : 1 }}>
-                {isBackingUp ? 'Zipping...' : `Backup ${months[selectedMonth!]} ${selectedYear}`}
+                {isBackingUp ? `Zipping... ${zipProgress}%` : `Backup ${months[selectedMonth!]} ${selectedYear}`}
               </button>
             )}
           </div>
@@ -741,7 +772,7 @@ function ReportsManagementContent() {
                       onClick={() => downloadSelectedReports(view === 'SEARCH' ? searchResults : reports)} disabled={isBackingUp}
                       style={{ background: '#3b82f6', color: 'white', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', border: 'none', opacity: isBackingUp ? 0.6 : 1 }}
                     >
-                      {isBackingUp ? 'Zipping...' : `📥 Save Selected (${selectedReportIds.size})`}
+                      {isBackingUp ? `Zipping... ${zipProgress}%` : `📥 Save Selected (${selectedReportIds.size})`}
                     </button>
                   </>
                 )}
@@ -750,7 +781,7 @@ function ReportsManagementContent() {
                     onClick={() => downloadBackup('day')} disabled={isBackingUp}
                     style={{ background: '#f59e0b', color: 'white', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', border: 'none', opacity: isBackingUp ? 0.6 : 1 }}
                   >
-                    {isBackingUp ? 'Zipping...' : '📥 Save All Reports'}
+                    {isBackingUp ? `Zipping... ${zipProgress}%` : '📥 Save All Reports'}
                   </button>
                 )}
                 {view === 'REPORTS' && (

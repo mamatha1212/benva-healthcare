@@ -17,22 +17,7 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
 
   return (
     <>
-      <div style={{ display: 'flex', gap: '6px', flex: '1 1 300px', maxWidth: '100%' }}>
-        <input 
-          type="text" 
-          placeholder="Search name or mobile..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          onKeyDown={(e) => e.key === 'Enter' && updateParams('search', search)}
-          style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', flex: '1 1 auto', minWidth: '0' }}
-        />
-        <button 
-          onClick={() => updateParams('search', search)}
-          style={{ padding: '8px 12px', background: '#3182ce', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', flexShrink: 0 }}
-        >
-          Search
-        </button>
-      </div>
+
       
       {searchParams.get('tab') !== 'availability' && searchParams.get('tab') !== 'contact' && (
         <select 
@@ -47,6 +32,7 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
               <option value="Call Done">Call Done</option>
               <option value="Call not pickup">Call not pickup</option>
               <option value="Not connected">Not connected</option>
+              <option value="Reminder">Reminder</option>
             </>
           ) : (
             <>
@@ -55,6 +41,7 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
               <option value="Call not pickup">Call not pickup</option>
               <option value="Not connected">Not connected</option>
               <option value="Not confirmed by user">Not confirmed by user</option>
+              <option value="Reminder">Reminder</option>
             </>
           )}
         </select>
@@ -72,7 +59,7 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
         </select>
       )}
 
-      {searchParams.get('tab') === 'availability' && availableStates.length > 0 && (
+      {availableStates.length > 0 && (
         <select 
           value={searchParams.get('state') || 'all'}
           onChange={(e) => updateParams('state', e.target.value)}
@@ -85,7 +72,7 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
         </select>
       )}
 
-      {searchParams.get('tab') === 'availability' && availableDistricts.length > 0 && (
+      {availableDistricts.length > 0 && (
         <select 
           value={searchParams.get('district') || 'all'}
           onChange={(e) => updateParams('district', e.target.value)}
@@ -143,6 +130,14 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
         <option value="11">November</option>
         <option value="12">December</option>
       </select>
+
+      <input
+        type="date"
+        value={searchParams.get('date') || ''}
+        onChange={(e) => updateParams('date', e.target.value)}
+        style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: '1 1 140px', minWidth: '0' }}
+        title="Filter by Specific Date"
+      />
     </>
   );
 }

@@ -162,7 +162,7 @@ export default function TestAdminClient({
                           </div>
                           <div style={{ display: 'flex', gap: '12px', flexShrink: 0, alignItems: 'center' }}>
                             <button onClick={(e) => { e.stopPropagation(); setEditingProfileId(profile.id); }} style={{ background: 'transparent', color: '#4f46e5', border: 'none', cursor: 'pointer', fontSize: '12px', padding: '4px', fontWeight: 600 }}>Edit</button>
-                            <form action={deleteTestProfile} onClick={e => e.stopPropagation()} style={{ margin: 0 }}>
+                            <form action={deleteTestProfile} onClick={e => e.stopPropagation()} onSubmit={(e) => { if(!confirm('Are you sure you want to delete this test profile?')) e.preventDefault(); }} style={{ margin: 0 }}>
                               <input type="hidden" name="id" value={profile.id} />
                               <button type="submit" style={{ background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', fontSize: '12px', padding: '4px', fontWeight: 600 }}>Del</button>
                             </form>
@@ -226,7 +226,7 @@ export default function TestAdminClient({
                               
                               <div style={{ display: 'flex', gap: '12px', flexShrink: 0, alignItems: 'center' }}>
                                 <button onClick={() => setEditingParameterId(param.id)} style={{ background: 'transparent', color: '#4f46e5', border: 'none', cursor: 'pointer', fontSize: '12px', padding: '4px', fontWeight: 600 }}>Edit</button>
-                                <form action={deleteTestParameter} style={{ margin: 0 }}>
+                                <form action={deleteTestParameter} onSubmit={(e) => { if(!confirm('Are you sure you want to delete this parameter?')) e.preventDefault(); }} style={{ margin: 0 }}>
                                   <input type="hidden" name="id" value={param.id} />
                                   <button type="submit" style={{ background: 'transparent', color: '#ef4444', border: 'none', cursor: 'pointer', fontSize: '12px', padding: '4px', fontWeight: 600 }}>Delete</button>
                                 </form>

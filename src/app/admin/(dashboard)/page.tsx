@@ -4,10 +4,12 @@ import React from 'react';
 import Link from 'next/link';
 import LeadStatusDropdown from '@/components/LeadStatusDropdown/LeadStatusDropdown';
 import LeadsFilters from '@/components/LeadsFilters/LeadsFilters';
+import LeadSearch from '@/components/LeadsFilters/LeadSearch';
 import LeadsPagination from '@/components/LeadsPagination/LeadsPagination';
 import ImportExportButtons from '@/components/ImportExportButtons/ImportExportButtons';
 import LeadRemarksUpdater from '@/components/LeadRemarksUpdater/LeadRemarksUpdater';
 import ServiceabilityCheck from '@/components/ServiceabilityCheck/ServiceabilityCheck';
+import AdminAddLeadButton from '@/components/AdminAddLeadButton/AdminAddLeadButton';
 
 import LeadsChart from './LeadsChart';
 
@@ -16,7 +18,7 @@ export const dynamic = 'force-dynamic';
 export default async function AdminDashboard({
   searchParams,
 }: {
-  searchParams: Promise<{ tab?: string; page?: string; status?: string; search?: string; membershipType?: string; district?: string; state?: string; package?: string; year?: string; month?: string }>;
+  searchParams: Promise<{ tab?: string; page?: string; status?: string; search?: string; membershipType?: string; district?: string; state?: string; package?: string; year?: string; month?: string; date?: string }>;
 }) {
   const params = await searchParams;
   const tab = params.tab || 'all';
@@ -29,6 +31,7 @@ export default async function AdminDashboard({
   const packageFilter = params.package || 'all';
   const yearFilter = params.year || 'all';
   const monthFilter = params.month || 'all';
+  const dateFilter = params.date || 'all';
   const pageSize = 10;
 
   let baseWhereClause: any = {};
@@ -110,11 +113,11 @@ export default async function AdminDashboard({
     filteredLeads = filteredLeads.filter(l => l.membershipType === membershipFilter);
   }
 
-  if (tab === 'availability' && stateFilter !== 'all') {
+  if (stateFilter !== 'all') {
     filteredLeads = filteredLeads.filter(l => l.state === stateFilter);
   }
 
-  if (tab === 'availability' && districtFilter !== 'all') {
+  if (districtFilter !== 'all') {
     filteredLeads = filteredLeads.filter(l => l.district === districtFilter);
   }
 
@@ -139,6 +142,10 @@ export default async function AdminDashboard({
     filteredLeads = filteredLeads.filter(l => String(new Date(l.createdAt).getMonth() + 1).padStart(2, '0') === monthFilter);
   }
 
+  if (dateFilter !== 'all') {
+    filteredLeads = filteredLeads.filter(l => new Date(l.createdAt).toISOString().split('T')[0] === dateFilter);
+  }
+
   filteredLeads.reverse(); // Always newest first
 
   const totalLeads = filteredLeads.length;
@@ -154,7 +161,7 @@ export default async function AdminDashboard({
   });
 
   const allPackages = await prisma.healthPackage.findMany({
-    select: { title: true }
+    select: { title: true, price: true }
   });
 
   const countsMap = statusCounts.reduce((acc, curr) => {
@@ -325,8 +332,8 @@ export default async function AdminDashboard({
         <>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
             
-            {/* Top Row: Title and Actions */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'nowrap', gap: '8px' }}>
+            {/* Top Row: Title, Search, and Actions */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
               <div className={styles.header} style={{ marginBottom: 0, flexShrink: 1, minWidth: 0, overflow: 'hidden' }}>
                 <h1 className={styles.title} style={{ marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                   {tab === 'availability' ? `${stateFilter} Enquiries` : getTabTitle()}
@@ -334,8 +341,14 @@ export default async function AdminDashboard({
                 <p className={styles.subtitle} style={{ margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Showing {paginatedLeads.length} of {totalLeads} total entries.</p>
               </div>
 
+              {/* Search Bar */}
+              <div style={{ flex: '1 1 auto', display: 'flex', justifyContent: 'center' }}>
+                <LeadSearch />
+              </div>
+
               {/* Action Buttons */}
-              <div style={{ display: 'flex', alignItems: 'center' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                {tab === 'checkups' && <AdminAddLeadButton availablePackages={allPackages as any[]} />}
                 <ImportExportButtons />
               </div>
             </div>

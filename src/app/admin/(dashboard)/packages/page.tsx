@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { deletePackage } from './actions';
 import PackageForm from './PackageForm';
 import LeadsPagination from '@/components/LeadsPagination/LeadsPagination';
+import DeleteForm from './DeleteForm';
 
 export const dynamic = 'force-dynamic';
 
@@ -64,10 +65,7 @@ export default async function PackagesDashboard({ searchParams }: { searchParams
                     </td>
                     <td className={styles.td} style={{ display: 'flex', gap: '8px' }}>
                       <Link href={`/admin/packages?editId=${pkg.id}`} style={{ background: '#e0e7ff', color: '#4338ca', padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: '600', textDecoration: 'none' }}>Edit</Link>
-                      <form action={deletePackage}>
-                        <input type="hidden" name="id" value={pkg.id} />
-                        <button type="submit" style={{ background: '#fee2e2', color: '#ef4444', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '12px', fontWeight: '600' }}>Delete</button>
-                      </form>
+                      <DeleteForm id={pkg.id} action={deletePackage} itemName="package" />
                     </td>
                   </tr>
                 ))}
