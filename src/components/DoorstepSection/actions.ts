@@ -20,6 +20,7 @@ export async function getLocationsHierarchy() {
     const states = await prisma.state.findMany({
       include: {
         districts: {
+          where: { isActive: true },
           include: {
             areas: true
           },

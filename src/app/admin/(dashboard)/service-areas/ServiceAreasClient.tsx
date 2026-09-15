@@ -49,13 +49,21 @@ export default function ServiceAreasClient() {
   };
 
   const handleCopyDetails = (loc: any) => {
+    let phleboText = '';
+    if (loc.phlebos && Array.isArray(loc.phlebos) && loc.phlebos.length > 0) {
+      phleboText = '\nPhlebotomists: ' + loc.phlebos.map((p: any) => `${p.name} (${p.mobile || 'N/A'})`).join(', ');
+    } else if (loc.phleboName) {
+      phleboText = `\nPhlebotomist: ${loc.phleboName} (${loc.phleboMobile || 'N/A'})`;
+    }
+
     const text = `Service Area Details:
+Office Name: ${loc.officeName}
 Pincode: ${loc.pincode}
 Type: ${loc.type}
 Circle: ${loc.circle}
 Region: ${loc.region}
 Division: ${loc.division}
-Area: ${loc.area}`;
+Area: ${loc.area}${phleboText}`;
 
     navigator.clipboard.writeText(text).then(() => {
       alert('Details copied to clipboard!');
@@ -71,9 +79,15 @@ Area: ${loc.area}`;
       return;
     }
 
-    const text = locations.map((loc: any) => 
-      `Pincode: ${loc.pincode} | Type: ${loc.type} | Circle: ${loc.circle} | Region: ${loc.region} | Division: ${loc.division} | Area: ${loc.area}`
-    ).join('\n\n');
+    const text = locations.map((loc: any) => {
+      let phleboStr = '';
+      if (loc.phlebos && Array.isArray(loc.phlebos) && loc.phlebos.length > 0) {
+        phleboStr = ' | Phlebos: ' + loc.phlebos.map((p: any) => `${p.name} (${p.mobile || 'N/A'})`).join(', ');
+      } else if (loc.phleboName) {
+        phleboStr = ` | Phlebo: ${loc.phleboName} (${loc.phleboMobile || 'N/A'})`;
+      }
+      return `Office Name: ${loc.officeName} | Pincode: ${loc.pincode} | Type: ${loc.type} | Circle: ${loc.circle} | Region: ${loc.region} | Division: ${loc.division} | Area: ${loc.area}${phleboStr}`;
+    }).join('\n\n');
 
     navigator.clipboard.writeText(text).then(() => {
       alert(`Copied ${locations.length} service areas to clipboard!`);

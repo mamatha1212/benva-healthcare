@@ -80,6 +80,14 @@ export async function deleteDistrict(formData: FormData) {
   revalidatePath('/admin/locations');
 }
 
+export async function toggleDistrictActive(id: string, isActive: boolean) {
+  await prisma.district.update({
+    where: { id },
+    data: { isActive }
+  });
+  revalidatePath('/admin/locations');
+}
+
 // --- Areas ---
 
 export async function addArea(formData: FormData) {

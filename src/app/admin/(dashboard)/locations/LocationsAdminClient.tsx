@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
-import { addState, updateState, deleteState, addDistrict, updateDistrict, deleteDistrict, addArea, updateArea, deleteArea } from './actions';
+import { addState, updateState, deleteState, addDistrict, updateDistrict, deleteDistrict, toggleDistrictActive, addArea, updateArea, deleteArea } from './actions';
 
 type Area = {
   id: string;
@@ -13,6 +13,7 @@ type District = {
   id: string;
   name: string;
   stateId: string;
+  isActive: boolean;
   areas: Area[];
 };
 
@@ -153,10 +154,20 @@ export default function LocationsAdminClient({ states }: { states: State[] }) {
                       ) : (
                         <>
                           <div style={{ display: 'flex', flexDirection: 'column', gap: '2px', overflow: 'hidden' }}>
-                            <span style={{ fontSize: '14px', fontWeight: selectedDistrictId === dist.id ? 600 : 400, color: '#334155', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{dist.name}</span>
+                            <span style={{ fontSize: '14px', fontWeight: selectedDistrictId === dist.id ? 600 : 400, color: '#334155', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', opacity: dist.isActive ? 1 : 0.5 }}>{dist.name}</span>
                             <span style={{ fontSize: '11px', color: '#64748b' }}>{dist.areas.length} areas</span>
                           </div>
-                          <div style={{ display: 'flex', gap: '4px', flexShrink: 0 }}>
+                          <div style={{ display: 'flex', gap: '8px', flexShrink: 0, alignItems: 'center' }}>
+                            <div 
+                              onClick={async (e) => { e.stopPropagation(); await toggleDistrictActive(dist.id, !dist.isActive); }}
+                              style={{
+                                width: '32px', height: '18px', background: dist.isActive ? '#10b981' : '#cbd5e1',
+                                borderRadius: '12px', position: 'relative', cursor: 'pointer', transition: 'background 0.2s',
+                              }}
+                              title={dist.isActive ? 'Active' : 'Inactive'}
+                            >
+                              <div style={{ width: '14px', height: '14px', background: 'white', borderRadius: '50%', position: 'absolute', top: '2px', left: dist.isActive ? '16px' : '2px', transition: 'left 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.2)' }} />
+                            </div>
                             <button onClick={(e) => { e.stopPropagation(); setEditingDistrictId(dist.id); }} style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#64748b' }}>✏️</button>
                             <form action={deleteDistrict} onClick={e => e.stopPropagation()} onSubmit={(e) => { if(!confirm('Are you sure you want to delete this District?')) e.preventDefault(); }}>
                               <input type="hidden" name="id" value={dist.id} />

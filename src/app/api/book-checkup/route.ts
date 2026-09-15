@@ -7,7 +7,7 @@ export async function POST(req: Request) {
     const body = await req.json();
     const {
       fullName, mobile, whatsapp, email, state, district,
-      area, pincode, age, gender, packageTitle, packagePrice
+      area, pincode, age, gender, packageTitle, packagePrice, selectedOffice
     } = body;
 
     // 1. Save Lead to Database
@@ -18,8 +18,8 @@ export async function POST(req: Request) {
         whatsapp,
         email: email || null,
         state,
-        district,
-        area,
+        district: district || 'Not Provided',
+        area: area ? (selectedOffice ? `${area} (${selectedOffice})` : area) : (selectedOffice || 'Not Provided'),
         pincode,
         age,
         gender,
@@ -36,8 +36,8 @@ export async function POST(req: Request) {
       <p><strong>WhatsApp:</strong> ${whatsapp}</p>
       <p><strong>Email:</strong> ${email || 'N/A'}</p>
       <p><strong>State:</strong> ${state}</p>
-      <p><strong>District:</strong> ${district}</p>
-      <p><strong>Area:</strong> ${area}</p>
+      <p><strong>District:</strong> ${district || 'Not Provided'}</p>
+      <p><strong>Area:</strong> ${area ? (selectedOffice ? `${area} (${selectedOffice})` : area) : (selectedOffice || 'Not Provided')}</p>
       <p><strong>Pincode:</strong> ${pincode}</p>
       <p><strong>Age:</strong> ${age}</p>
       <p><strong>Gender:</strong> ${gender}</p>
