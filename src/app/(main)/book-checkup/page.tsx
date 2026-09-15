@@ -15,29 +15,49 @@ export default async function BookCheckupPage() {
   const locations = await getLocationsHierarchy();
 
   return (
-    <div style={{ 
-      display: 'flex', 
-      minHeight: 'calc(100vh - 80px)', 
-      background: '#000000' 
-    }}>
-      <div style={{ 
-        flex: '1 1 50%', 
-        padding: '60px 40px', 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center' 
-      }}>
+    <div className="book-checkup-layout">
+      <div className="book-checkup-form-side">
         <BookCheckupClient availablePackages={allPackages} initialLocations={locations} />
       </div>
-      <div style={{ 
-        flex: '1 1 50%', 
-        backgroundImage: 'url(/images/ai-bg.png)', 
-        backgroundSize: 'cover', 
-        backgroundPosition: 'center', 
-        borderTopLeftRadius: '40px',
-        borderBottomLeftRadius: '40px',
-        boxShadow: '-10px 0 30px rgba(0,0,0,0.5)'
-      }}></div>
+      <div className="book-checkup-image-side"></div>
+
+      <style>{`
+        .book-checkup-layout {
+          display: flex;
+          min-height: calc(100vh - 80px);
+          background: #000000;
+        }
+        .book-checkup-form-side {
+          flex: 1 1 50%;
+          padding: 60px 40px;
+          display: flex;
+          justify-content: center;
+          align-items: flex-start;
+          overflow-y: auto;
+        }
+        .book-checkup-image-side {
+          flex: 1 1 50%;
+          background-image: url(/images/ai-bg.png);
+          background-size: cover;
+          background-position: center;
+          border-top-left-radius: 40px;
+          border-bottom-left-radius: 40px;
+          box-shadow: -10px 0 30px rgba(0,0,0,0.5);
+        }
+        @media (max-width: 768px) {
+          .book-checkup-layout {
+            flex-direction: column;
+          }
+          .book-checkup-form-side {
+            flex: unset;
+            width: 100%;
+            padding: 32px 16px;
+          }
+          .book-checkup-image-side {
+            display: none;
+          }
+        }
+      `}</style>
     </div>
   );
 }

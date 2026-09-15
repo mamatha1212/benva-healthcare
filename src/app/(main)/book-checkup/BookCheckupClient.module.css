@@ -263,22 +263,88 @@
 }
 
 /* ── Responsive ──────────────────────────────────────────────────── */
-@media (max-width: 640px) {
-  .formCard {
-    padding: 32px 20px;
+@media (max-width: 768px) {
+  .container {
+    padding: 24px 16px;
+    max-width: 100%;
   }
-  
+
   .heading {
     font-size: 28px;
+    line-height: 1.2;
   }
-  
+
+  .subHeading {
+    font-size: 14px;
+  }
+
   .formGrid {
     grid-template-columns: 1fr;
+    gap: 16px;
+  }
+
+  .groupTitle {
+    font-size: 16px;
+  }
+
+  .formGroup {
+    margin-bottom: 24px;
+  }
+
+  .input {
+    padding: 12px 14px;
+    font-size: 14px;
   }
 
   .packageBox {
     flex-direction: column;
     align-items: flex-start;
     gap: 8px;
+    padding: 16px;
+  }
+
+  .packageBox .packageTitle {
+    font-size: 14px;
+  }
+
+  .packageBox .packagePrice {
+    font-size: 18px;
+  }
+
+  .submitBtn {
+    padding: 16px;
+    font-size: 16px;
+    border-radius: 10px;
+  }
+
+  .modalCard {
+    padding: 32px 20px;
+    border-radius: 16px;
+  }
+
+  .modalTitle {
+    font-size: 20px;
+  }
+
+  .modalDesc {
+    font-size: 14px;
+  }
+
+  .consentField {
+    margin: 24px 0;
+  }
+
+  .consentText {
+    font-size: 13px;
+  }
+}
+
+@media (max-width: 400px) {
+  .container {
+    padding: 20px 12px;
+  }
+
+  .heading {
+    font-size: 24px;
   }
 }
