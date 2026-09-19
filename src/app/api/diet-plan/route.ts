@@ -7,10 +7,10 @@ export async function POST(req: Request) {
     const body = await req.json();
     const {
       fullName, mobile, whatsapp, email, state, district,
-      area, pincode, serviceType, age, gender, weight, height
+      area, pincode, serviceType, selectedPlan, age, gender, weight, height
     } = body;
 
-    const finalServiceType = `Diet Plan - PCOD/PCOS (6 Months) | Weight: ${weight || 'N/A'}, Height: ${height || 'N/A'}`;
+    const finalServiceType = `${selectedPlan || 'Diet Plan - PCOD/PCOS (6 Months)'} | Weight: ${weight || 'N/A'}, Height: ${height || 'N/A'}`;
 
     const lead = await prisma.lead.create({
       data: {
@@ -43,7 +43,9 @@ export async function POST(req: Request) {
       <p><strong>Service Type:</strong> ${finalServiceType}</p>
     `;
 
-    await sendAdminEmail("New Diet Plan Enquiry Received", adminHtml);
+    const emailPromises = [
+      sendAdminEmail("New Diet Plan Enquiry Received", adminHtml)
+    ];
 
     if (email) {
       const userHtml = `
@@ -52,8 +54,10 @@ export async function POST(req: Request) {
         <br/>
         <p>Best Regards,<br/>BENVA Healthcare Team</p>
       `;
-      await sendUserEmail(email, "Enquiry Received - BENVA Healthcare", userHtml);
+      emailPromises.push(sendUserEmail(email, "Enquiry Received - BENVA Healthcare", userHtml));
     }
+
+    await Promise.allSettled(emailPromises);
 
     return NextResponse.json({ success: true, leadId: lead.id }, { status: 200 });
 

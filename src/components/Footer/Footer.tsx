@@ -67,9 +67,10 @@ export default function Footer() {
             </h3>
             <ul className={styles.linkList}>
               <li><a href="/pages/privacy-policy">Privacy Policy</a></li>
+              <li><a href="/pages/consent-policy">Consent Policy</a></li>
               <li><a href="/pages/terms-conditions">Terms & Conditions</a></li>
               <li><a href="/pages/refund-policy">Refund Policy</a></li>
-              <li><a href="/pages/cancellation-policy">Cancellation Policy</a></li>
+              <li><a href="/pages/grievance-policy">Grievance Policy</a></li>
               <li><a href="/pages/disclaimer">Disclaimer</a></li>
             </ul>
 

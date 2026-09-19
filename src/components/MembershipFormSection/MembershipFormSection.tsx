@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './MembershipFormSection.module.css';
 import AnimatedHeading from '../AnimatedHeading/AnimatedHeading';
+import SearchableSelect from '../SearchableSelect/SearchableSelect';
 
 const DISTRICTS_AP = [
   'Anantapur', 'Chittoor', 'East Godavari', 'Guntur', 'Krishna', 'Kurnool', 
@@ -25,8 +26,14 @@ export default function MembershipFormSection() {
   const [formData, setFormData] = useState({
     fullName: '', mobile: '', whatsapp: '', email: '',
     state: '', district: '', area: '', pincode: '',
-    membershipType: '', consent: false
+    membershipType: '', consent: false, selectedOffice: ''
   });
+  
+  // Area check states
+  const [isCheckingArea, setIsCheckingArea] = useState(false);
+  const [availableAreas, setAvailableAreas] = useState<any[]>([]);
+  const [showAreaSelect, setShowAreaSelect] = useState(false);
+  const [checkAreaMessage, setCheckAreaMessage] = useState('');
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [showSuccess, setShowSuccess] = useState(false);
@@ -41,7 +48,9 @@ export default function MembershipFormSection() {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value, type } = e.target;
-    if (type === 'checkbox') {
+    if (name === 'pincode') {
+      setFormData(prev => ({ ...prev, pincode: value, selectedOffice: '' }));
+    } else if (type === 'checkbox') {
       const checked = (e.target as HTMLInputElement).checked;
       setFormData(prev => ({ ...prev, [name]: checked }));
     } else {
@@ -50,20 +59,70 @@ export default function MembershipFormSection() {
     if (errors[name]) setErrors(prev => ({ ...prev, [name]: '' }));
   };
 
+  const handleProtectedFocus = (e: React.FocusEvent<HTMLInputElement | HTMLSelectElement>) => {
+    if (!formData.selectedOffice && formData.pincode.length === 6 && showAreaSelect) {
+      e.target.blur();
+      setErrors(prev => ({ ...prev, pincode: 'Please click Check and select an area first' }));
+    }
+  };
+
   const validate = () => {
     const newErrors: Record<string, string> = {};
     if (!formData.fullName.trim()) newErrors.fullName = 'Required';
     if (!formData.mobile.trim()) newErrors.mobile = 'Required';
-    if (!formData.whatsapp.trim()) newErrors.whatsapp = 'Required';
     if (!formData.state) newErrors.state = 'Required';
     if (!formData.district) newErrors.district = 'Required';
-    if (!formData.area.trim()) newErrors.area = 'Required';
-    if (!formData.pincode.trim()) newErrors.pincode = 'Required';
+    
+    if (!formData.pincode.trim()) {
+      newErrors.pincode = 'Required';
+    } else if (formData.pincode.length !== 6) {
+      newErrors.pincode = 'Enter a valid 6 digit pincode';
+    } else if (!formData.selectedOffice && showAreaSelect) {
+      newErrors.pincode = 'Please select an area from the search dropdown';
+    }
+
     if (!formData.membershipType) newErrors.membershipType = 'Required';
     if (!formData.consent) newErrors.consent = 'Required';
 
     setErrors(newErrors);
     return Object.keys(newErrors).length === 0;
+  };
+
+  const handleCheckPincode = async () => {
+    if (!formData.pincode || formData.pincode.length < 6) {
+      setCheckAreaMessage('Please enter a valid 6-digit pincode');
+      return;
+    }
+    
+    setIsCheckingArea(true);
+    setCheckAreaMessage('');
+    setAvailableAreas([]);
+    setShowAreaSelect(false);
+
+    try {
+      const res = await fetch(`/api/admin/service-locations/check?pincode=${formData.pincode}`);
+      const data = await res.json();
+      
+      if (res.ok && data.locations && data.locations.length > 0) {
+        setAvailableAreas(data.locations);
+        setShowAreaSelect(true);
+      } else {
+        setCheckAreaMessage('No service areas found for this pincode. Please select manually.');
+      }
+    } catch (e) {
+      setCheckAreaMessage('Failed to check availability. Please select manually.');
+    } finally {
+      setIsCheckingArea(false);
+    }
+  };
+
+  const selectArea = (loc: any) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedOffice: loc.officeName || ''
+    }));
+    setShowAreaSelect(false);
+    if (errors.pincode) setErrors(prev => ({ ...prev, pincode: '' }));
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -95,10 +154,13 @@ export default function MembershipFormSection() {
   const closeForm = () => {
     setIsOpen(false);
     setShowSuccess(false);
+    setAvailableAreas([]);
+    setShowAreaSelect(false);
+    setCheckAreaMessage('');
     setFormData({
       fullName: '', mobile: '', whatsapp: '', email: '',
       state: '', district: '', area: '', pincode: '',
-      membershipType: '', consent: false
+      membershipType: '', consent: false, selectedOffice: ''
     });
     setErrors({});
   };
@@ -139,7 +201,7 @@ export default function MembershipFormSection() {
                     {errors.mobile && <span className={styles.error}>{errors.mobile}</span>}
                   </div>
                   <div className={styles.inputGroup}>
-                    <label>WhatsApp Number *</label>
+                    <label>WhatsApp Number</label>
                     <input type="number" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="e.g. 9876543210" />
                     {errors.whatsapp && <span className={styles.error}>{errors.whatsapp}</span>}
                   </div>
@@ -156,37 +218,112 @@ export default function MembershipFormSection() {
                 <div className={styles.inputGrid}>
                   <div className={styles.inputGroup}>
                     <label>State *</label>
-                    <select name="state" value={formData.state} onChange={handleChange}>
-                      <option value="">Select State</option>
-                      {locations.map(s => <option key={s.id} value={s.name}>{s.name}</option>)}
-                    </select>
+                    <SearchableSelect
+                      name="state"
+                      value={formData.state}
+                      onChange={(val) => handleChange({ target: { name: 'state', value: val, type: 'select-one' } } as any)}
+                      options={[
+                        { value: '', label: 'Select State' },
+                        ...locations.map(s => ({ value: s.name, label: s.name }))
+                      ]}
+                      className={errors.state ? styles.error : ''}
+                      placeholder="Select State"
+                    />
                     {errors.state && <span className={styles.error}>{errors.state}</span>}
                   </div>
                   <div className={styles.inputGroup}>
                     <label>District *</label>
-                    <select name="district" value={formData.district} onChange={handleChange} disabled={!formData.state}>
-                      <option value="">{formData.state ? 'Select District' : 'Please select state first'}</option>
-                      {locations.find(s => s.name === formData.state)?.districts.map((d: any) => (
-                        <option key={d.id} value={d.name}>{d.name}</option>
-                      ))}
-                    </select>
+                    <SearchableSelect
+                      name="district"
+                      value={formData.district}
+                      onChange={(val) => handleChange({ target: { name: 'district', value: val, type: 'select-one' } } as any)}
+                      disabled={!formData.state}
+                      options={[
+                        { value: '', label: formData.state ? 'Select District' : 'Please select state first' },
+                        ...(locations.find(s => s.name === formData.state)?.districts.map((d: any) => ({ value: d.name, label: d.name })) || [])
+                      ]}
+                      className={errors.district ? styles.error : ''}
+                      placeholder="Select District"
+                    />
                     {errors.district && <span className={styles.error}>{errors.district}</span>}
                   </div>
-                  <div className={styles.inputGroup}>
-                    <label>Area / Locality *</label>
-                    <select name="area" value={formData.area} onChange={handleChange} disabled={!formData.district}>
-                      <option value="">{formData.district ? 'Select Area' : 'Please select district first'}</option>
-                      {locations.find(s => s.name === formData.state)?.districts.find((d: any) => d.name === formData.district)?.areas.map((a: any) => (
-                        <option key={a.id} value={a.name}>{a.name}</option>
-                      ))}
-                    </select>
-                    {errors.area && <span className={styles.error}>{errors.area}</span>}
-                  </div>
-                  <div className={styles.inputGroup}>
+
+                  <div className={styles.inputGroup} style={{ position: 'relative', gridColumn: '1 / -1' }}>
                     <label>Pincode *</label>
-                    <input type="number" name="pincode" value={formData.pincode} onChange={handleChange} placeholder="e.g. 533005" />
+                    <div style={{ display: 'flex', gap: '8px' }}>
+                      <input type="number" name="pincode" value={formData.pincode} onChange={handleChange} placeholder="e.g. 533005" style={{ flex: 1 }} />
+                      <button 
+                        type="button" 
+                        onClick={handleCheckPincode}
+                        disabled={isCheckingArea || formData.pincode.length < 6}
+                        style={{
+                          background: 'var(--color-primary, #1d4ed8)',
+                          color: 'white',
+                          border: 'none',
+                          borderRadius: '8px',
+                          padding: '0 16px',
+                          fontWeight: '600',
+                          cursor: (isCheckingArea || formData.pincode.length < 6) ? 'not-allowed' : 'pointer',
+                          opacity: (isCheckingArea || formData.pincode.length < 6) ? 0.7 : 1,
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {isCheckingArea ? 'Checking...' : 'Check'}
+                      </button>
+                    </div>
+                    {formData.selectedOffice && !errors.pincode && (
+                      <div style={{ marginTop: '10px', padding: '10px 14px', background: '#ecfdf5', border: '1.5px solid #10b981', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="#10b981" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        <div>
+                          <div style={{ fontSize: '11px', color: '#065f46', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Selected Area</div>
+                          <div style={{ fontSize: '14px', color: '#047857', fontWeight: 700 }}>{formData.selectedOffice}</div>
+                        </div>
+                      </div>
+                    )}
+                    {checkAreaMessage && (
+                      <div style={{ 
+                        fontSize: '12px', 
+                        marginTop: '6px', 
+                        color: checkAreaMessage.includes('Error') || checkAreaMessage.includes('not found') || checkAreaMessage.includes('Failed') ? '#ef4444' : '#10b981',
+                        fontWeight: 500
+                      }}>
+                        {checkAreaMessage}
+                      </div>
+                    )}
                     {errors.pincode && <span className={styles.error}>{errors.pincode}</span>}
                   </div>
+                  
+                  {showAreaSelect && availableAreas.length > 0 && (
+                    <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '16px', marginBottom: '24px', gridColumn: '1 / -1' }}>
+                      <div style={{ fontSize: '14px', fontWeight: 600, color: '#334155', marginBottom: '12px' }}>Serviceability</div>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto' }}>
+                        {availableAreas.map((loc) => (
+                          <div key={loc.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '12px' }}>
+                            <div>
+                              <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '14px' }}>{loc.officeName}</div>
+                              <div style={{ fontSize: '12px', color: '#64748b' }}>{loc.type} • {loc.area} Area</div>
+                            </div>
+                            <button 
+                              type="button" 
+                              onClick={() => selectArea(loc)}
+                              style={{
+                                background: '#e0e7ff',
+                                color: '#4f46e5',
+                                border: 'none',
+                                padding: '6px 12px',
+                                borderRadius: '4px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              Select
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
 

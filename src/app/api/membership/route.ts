@@ -7,8 +7,11 @@ export async function POST(req: Request) {
     const body = await req.json();
     const {
       fullName, mobile, whatsapp, email, state, district,
-      area, pincode, membershipType
+      area, pincode, membershipType, selectedOffice
     } = body;
+    
+    // Use selectedOffice if available, otherwise fallback to area
+    const finalArea = selectedOffice || area || '';
 
     // 1. Save Lead to Database
     const lead = await prisma.lead.create({
@@ -20,7 +23,7 @@ export async function POST(req: Request) {
         email: email || null,
         state,
         district,
-        area,
+        area: finalArea,
         pincode,
         membershipType,
         age: "", // Dummy value to bypass old Prisma schema validation
@@ -39,7 +42,7 @@ export async function POST(req: Request) {
       <p><strong>Email:</strong> ${email || 'N/A'}</p>
       <p><strong>State:</strong> ${state}</p>
       <p><strong>District:</strong> ${district}</p>
-      <p><strong>Area:</strong> ${area}</p>
+      <p><strong>Area:</strong> ${finalArea}</p>
       <p><strong>Pincode:</strong> ${pincode}</p>
       <p><strong>Membership Type:</strong> ${membershipType}</p>
     `;

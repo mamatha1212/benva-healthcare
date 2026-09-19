@@ -49,7 +49,6 @@ export default function HomeHealthcareFormSection() {
     const newErrors: Record<string, string> = {};
     if (!formData.fullName.trim()) newErrors.fullName = 'Required';
     if (!formData.mobile.trim()) newErrors.mobile = 'Required';
-    if (!formData.whatsapp.trim()) newErrors.whatsapp = 'Required';
     if (!formData.state) newErrors.state = 'Required';
     if (!formData.district) newErrors.district = 'Required';
     if (!formData.area.trim()) newErrors.area = 'Required';
@@ -134,7 +133,7 @@ export default function HomeHealthcareFormSection() {
                     {errors.mobile && <span className={styles.error}>{errors.mobile}</span>}
                   </div>
                   <div className={styles.inputGroup}>
-                    <label>WhatsApp Number *</label>
+                    <label>WhatsApp Number</label>
                     <input type="number" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="e.g. 9876543210" />
                     {errors.whatsapp && <span className={styles.error}>{errors.whatsapp}</span>}
                   </div>

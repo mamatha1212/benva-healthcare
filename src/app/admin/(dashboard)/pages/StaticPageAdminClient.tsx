@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useTransition } from 'react';
 import { createStaticPage, updateStaticPage, deleteStaticPage } from './page-actions';
 import styles from '../page.module.css';
 
@@ -16,6 +16,28 @@ export default function StaticPageAdminClient({ pages }: { pages: StaticPage[] }
   const [selectedPageId, setSelectedPageId] = useState<string | null>(pages[0]?.id || null);
   const [isCreating, setIsCreating] = useState(false);
   const selectedPage = pages.find(p => p.id === selectedPageId);
+
+  const [isPending, startTransition] = useTransition();
+  const [saveStatus, setSaveStatus] = useState<'idle' | 'success' | 'error'>('idle');
+
+  const handleSubmit = (formData: FormData) => {
+    setSaveStatus('idle');
+    startTransition(async () => {
+      try {
+        if (isCreating) {
+          await createStaticPage(formData);
+          setIsCreating(false);
+        } else {
+          await updateStaticPage(selectedPage!.id, formData);
+        }
+        setSaveStatus('success');
+        setTimeout(() => setSaveStatus('idle'), 3000);
+      } catch (err) {
+        setSaveStatus('error');
+        setTimeout(() => setSaveStatus('idle'), 3000);
+      }
+    });
+  };
 
   return (
     <div className={styles.testsGrid}>
@@ -83,7 +105,7 @@ export default function StaticPageAdminClient({ pages }: { pages: StaticPage[] }
               )}
             </div>
 
-            <form action={isCreating ? createStaticPage : updateStaticPage.bind(null, selectedPage!.id)} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <form key={isCreating ? 'create' : selectedPage?.id} action={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
                 <div>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#4a5568' }}>Page Title</label>
@@ -136,8 +158,29 @@ export default function StaticPageAdminClient({ pages }: { pages: StaticPage[] }
                     Cancel
                   </button>
                 )}
-                <button type="submit" style={{ background: '#2563eb', color: 'white', border: 'none', padding: '12px 32px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, fontSize: '15px' }}>
-                  {isCreating ? 'Create Page' : 'Save Changes'}
+                <button 
+                  type="submit" 
+                  disabled={isPending}
+                  style={{ 
+                    background: saveStatus === 'success' ? '#10b981' : saveStatus === 'error' ? '#ef4444' : '#2563eb', 
+                    color: 'white', 
+                    border: 'none', 
+                    padding: '12px 32px', 
+                    borderRadius: '8px', 
+                    cursor: isPending ? 'wait' : 'pointer', 
+                    fontWeight: 600, 
+                    fontSize: '15px',
+                    transition: 'all 0.2s',
+                    opacity: isPending ? 0.7 : 1
+                  }}
+                >
+                  {isPending 
+                    ? 'Saving...' 
+                    : saveStatus === 'success' 
+                      ? 'Saved successfully!' 
+                      : saveStatus === 'error' 
+                        ? 'Failed to save' 
+                        : isCreating ? 'Create Page' : 'Save Changes'}
                 </button>
               </div>
             </form>

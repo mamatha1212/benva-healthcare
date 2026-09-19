@@ -2,7 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import statesData from '@/lib/statesData.json';
-
+import { useLocations } from '@/hooks/useLocations';
+import SearchableSelect from '@/components/SearchableSelect/SearchableSelect';
 export default function DietPlanPage() {
   const [formData, setFormData] = useState({
     fullName: '',
@@ -16,12 +17,30 @@ export default function DietPlanPage() {
     age: '',
     gender: '',
     weight: '',
-    height: ''
+    height: '',
+    selectedPlan: ''
   });
 
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState('');
+  
+  const { locations } = useLocations();
+
+  // Merge static all-India states with dynamic locations from DB
+  const allStates = statesData.states.map(s => {
+    const overrideState = locations.find((l: any) => l.name === s.state);
+    if (overrideState) {
+      return {
+        name: s.state,
+        districts: overrideState.districts.map((d: any) => ({ name: d.name }))
+      };
+    }
+    return {
+      name: s.state,
+      districts: s.districts.map(d => ({ name: d }))
+    };
+  });
   
   const [plans, setPlans] = useState<any[]>([]);
   const [plansLoading, setPlansLoading] = useState(true);
@@ -66,7 +85,7 @@ export default function DietPlanPage() {
       setFormData({
         fullName: '', mobile: '', whatsapp: '', email: '',
         state: '', district: '', area: '', pincode: '',
-        age: '', gender: '', weight: '', height: ''
+        age: '', gender: '', weight: '', height: '', selectedPlan: ''
       });
     } catch (err) {
       setError('Something went wrong. Please try again later.');
@@ -205,6 +224,18 @@ export default function DietPlanPage() {
                   <form onSubmit={handleSubmit}>
                 <div>
                   <div className={styles.formGroup}>
+                    <label className={styles.label}>Select Diet Plan *</label>
+                    <select name="selectedPlan" required className={styles.select} value={formData.selectedPlan} onChange={handleChange}>
+                      <option value="">Select a Diet Plan</option>
+                      {plans.map((p: any) => (
+                        <option key={p.id} value={p.title}>{p.title} {p.price ? `(₹${p.price})` : ''}</option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+
+                <div>
+                  <div className={styles.formGroup}>
                     <label className={styles.label}>Full Name *</label>
                     <input type="text" name="fullName" required className={styles.input} value={formData.fullName} onChange={handleChange} placeholder="Enter your full name" />
                   </div>
@@ -258,34 +289,30 @@ export default function DietPlanPage() {
                 <div className={styles.row}>
                   <div className={styles.formGroup}>
                     <label className={styles.label}>State *</label>
-                    <select 
-                      name="state" 
-                      required 
-                      className={styles.select} 
-                      value={formData.state} 
-                      onChange={(e) => setFormData(prev => ({ ...prev, state: e.target.value, district: '' }))}
-                    >
-                      <option value="">Select State</option>
-                      {statesData.states.map((s) => (
-                        <option key={s.state} value={s.state}>{s.state}</option>
-                      ))}
-                    </select>
+                    <SearchableSelect
+                      name="state"
+                      value={formData.state}
+                      onChange={(val) => setFormData(prev => ({ ...prev, state: val, district: '' }))}
+                      options={[
+                        { value: '', label: 'Select State' },
+                        ...allStates.map(s => ({ value: s.name, label: s.name }))
+                      ]}
+                      placeholder="Select State"
+                    />
                   </div>
                   <div className={styles.formGroup}>
                     <label className={styles.label}>District *</label>
-                    <select 
-                      name="district" 
-                      required 
-                      className={styles.select} 
-                      value={formData.district} 
-                      onChange={handleChange}
+                    <SearchableSelect
+                      name="district"
+                      value={formData.district}
+                      onChange={(val) => setFormData(prev => ({ ...prev, district: val }))}
                       disabled={!formData.state}
-                    >
-                      <option value="">Select District</option>
-                      {formData.state && statesData.states.find(s => s.state === formData.state)?.districts.map((d) => (
-                        <option key={d} value={d}>{d}</option>
-                      ))}
-                    </select>
+                      options={[
+                        { value: '', label: formData.state ? 'Select District' : 'Please select state first' },
+                        ...(allStates.find(s => s.name === formData.state)?.districts.map((d: any) => ({ value: d.name, label: d.name })) || [])
+                      ]}
+                      placeholder="Select District"
+                    />
                   </div>
                 </div>
 
