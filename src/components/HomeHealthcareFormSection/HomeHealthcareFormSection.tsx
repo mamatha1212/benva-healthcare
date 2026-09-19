@@ -139,8 +139,8 @@ export default function HomeHealthcareFormSection() {
                     {errors.whatsapp && <span className={styles.error}>{errors.whatsapp}</span>}
                   </div>
                   <div className={styles.inputGroup}>
-                    <label>Email Address *</label>
-                    <input type="email" required name="email" value={formData.email} onChange={handleChange} placeholder="e.g. name@gmail.com" />
+                    <label>Email Address</label>
+                    <input type="email" name="email" value={formData.email} onChange={handleChange} placeholder="e.g. name@gmail.com" />
                   </div>
                 </div>
               </div>

@@ -1,13 +1,13 @@
 'use client';
 import React from 'react';
+import { useRouter } from 'next/navigation';
 import styles from './PremiumCheckupSection.module.css';
 
 export default function BookCheckupButton({ title, price }: { title: string; price: string }) {
+  const router = useRouter();
+
   const handleClick = () => {
-    const event = new CustomEvent('openBookingModal', {
-      detail: { title, price }
-    });
-    window.dispatchEvent(event);
+    router.push(`/book-checkup?packageTitle=${encodeURIComponent(title)}&packagePrice=${encodeURIComponent(price)}`);
   };
 
   return (

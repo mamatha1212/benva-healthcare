@@ -271,10 +271,9 @@ export default function AvailabilityFormModal({ isOpen, onClose }: AvailabilityF
                     </div>
                     
                     <div className={styles.formGroup}>
-                      <label className={styles.label}>Email Address *</label>
+                      <label className={styles.label}>Email Address</label>
                       <input
                         type="email"
-                        required
                         placeholder="e.g. name@gmail.com"
                         className={styles.input}
                         value={formData.email}

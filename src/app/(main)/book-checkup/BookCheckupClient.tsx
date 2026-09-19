@@ -1,5 +1,6 @@
 'use client';
 import React, { useState } from 'react';
+import { useSearchParams } from 'next/navigation';
 import styles from './BookCheckupClient.module.css';
 import { useLocations } from '@/hooks/useLocations';
 import SearchableSelect from '@/components/SearchableSelect/SearchableSelect';
@@ -10,6 +11,10 @@ interface BookCheckupClientProps {
 }
 
 export default function BookCheckupClient({ availablePackages, initialLocations }: BookCheckupClientProps) {
+  const searchParams = useSearchParams();
+  const initPackageTitle = searchParams.get('packageTitle') || '';
+  const initPackagePrice = searchParams.get('packagePrice') || '';
+
   const [formData, setFormData] = useState({
     fullName: '',
     mobile: '',
@@ -22,8 +27,8 @@ export default function BookCheckupClient({ availablePackages, initialLocations 
     age: '',
     gender: '',
     consent: false,
-    packageTitle: '',
-    packagePrice: '',
+    packageTitle: initPackageTitle,
+    packagePrice: initPackagePrice,
     selectedOffice: ''
   });
 
@@ -307,24 +312,21 @@ export default function BookCheckupClient({ availablePackages, initialLocations 
 
         {/* ── Health Package ── */}
         <div className={styles.formGroup}>
-          <div className={styles.groupTitle}>Select Package</div>
+          <div className={styles.groupTitle}>Selected Package</div>
           <div className={styles.formGrid}>
             <div className={styles.field} style={{ gridColumn: '1 / -1' }}>
-              <label className={styles.label}>Health Package <span>*</span></label>
-              <select name="packageTitle" value={formData.packageTitle} onChange={handleInputChange} className={`${styles.input} ${errors.packageTitle ? styles.error : ''}`}>
-                <option value="">Select Package</option>
-                {availablePackages.map((pkg, idx) => (
-                  <option key={idx} value={pkg.title}>{pkg.title}</option>
-                ))}
-              </select>
+              {formData.packageTitle ? (
+                <div className={styles.packageBox}>
+                  <span className={styles.packageTitle}>{formData.packageTitle}</span>
+                  {formData.packagePrice && <span className={styles.packagePrice}>₹{formData.packagePrice}</span>}
+                </div>
+              ) : (
+                <div style={{ color: '#aaa', padding: '12px', background: '#222', border: '1px solid #333', borderRadius: '8px' }}>
+                  No package selected. Please go back and select a package.
+                </div>
+              )}
               {errors.packageTitle && <span className={styles.errorText}>{errors.packageTitle}</span>}
             </div>
-            {formData.packageTitle && formData.packagePrice && (
-              <div className={styles.packageBox}>
-                <span className={styles.packageTitle}>{formData.packageTitle}</span>
-                <span className={styles.packagePrice}>₹{formData.packagePrice}</span>
-              </div>
-            )}
           </div>
         </div>
 

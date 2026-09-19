@@ -5,9 +5,7 @@ import { revalidatePath } from 'next/cache';
 
 
 function generateSlug(title: string) {
-  const baseSlug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
-  const uniqueId = Math.random().toString(36).substring(2, 6);
-  return `${baseSlug}-${uniqueId}`;
+  return title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 }
 
 export async function addPackage(formData: FormData) {

@@ -94,10 +94,9 @@ export default function ContactForm() {
         </div>
 
         <div className={styles.formGroup}>
-          <label className={styles.label}>Email Address *</label>
+          <label className={styles.label}>Email Address</label>
           <input
             type="email"
-            required
             placeholder="Enter your email address"
             className={styles.input}
             value={formData.email}

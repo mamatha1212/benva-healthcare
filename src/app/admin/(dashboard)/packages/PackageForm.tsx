@@ -14,8 +14,19 @@ export default function PackageForm({ initialData }: { initialData?: any }) {
   const [theme, setTheme] = useState(initialData?.theme || 'themePink');
   const [layout, setLayout] = useState(initialData?.layout || 'left');
   const [isPopular, setIsPopular] = useState(initialData?.isPopular || false);
+  const [imagePreview, setImagePreview] = useState<string | null>(initialData?.image || null);
   
   const formRef = useRef<HTMLFormElement>(null);
+
+  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      const url = URL.createObjectURL(file);
+      setImagePreview(url);
+    } else {
+      setImagePreview(initialData?.image || null);
+    }
+  };
 
   // Auto-calculate price when originalPrice or discount changes (only if it wasn't pre-filled by initialData on mount)
   useEffect(() => {
@@ -94,7 +105,6 @@ export default function PackageForm({ initialData }: { initialData?: any }) {
             <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Original Price (₹)</label>
             <input 
               name="originalPrice" 
-              required 
               type="text" 
               style={inputStyle} 
               placeholder="2495"
@@ -106,7 +116,6 @@ export default function PackageForm({ initialData }: { initialData?: any }) {
             <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Discount Tag</label>
             <input 
               name="discount" 
-              required 
               type="text" 
               style={inputStyle} 
               placeholder="48% OFF"
@@ -148,7 +157,12 @@ export default function PackageForm({ initialData }: { initialData?: any }) {
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
           <label style={{ fontSize: '12px', fontWeight: 600, color: '#475569' }}>Upload Image {initialData && "(Leave blank to keep existing)"}</label>
-          <input name="imageFile" type="file" accept="image/*" required={!initialData} style={{ padding: '8px', border: '1px dashed #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#f8fafc', cursor: 'pointer', width: '100%', boxSizing: 'border-box' }} />
+          <input name="imageFile" type="file" accept="image/*" onChange={handleImageChange} required={!initialData} style={{ padding: '8px', border: '1px dashed #cbd5e1', borderRadius: '6px', fontSize: '13px', background: '#f8fafc', cursor: 'pointer', width: '100%', boxSizing: 'border-box' }} />
+          {imagePreview && (
+            <div style={{ marginTop: '8px', width: '120px', height: '120px', border: '1px solid #e2e8f0', borderRadius: '8px', overflow: 'hidden', background: '#f1f5f9' }}>
+              <img src={imagePreview} alt="Preview" style={{ width: '100%', height: '100%', objectFit: 'contain' }} />
+            </div>
+          )}
         </div>
 
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>

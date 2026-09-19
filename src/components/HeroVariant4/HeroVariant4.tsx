@@ -4,10 +4,10 @@ import Link from 'next/link';
 import styles from './HeroVariant4.module.css';
 
 const ITEMS = [
-  { id: 1, name: "Medicines", image: "/images/categories/cat_medicines_1788025281247.png" },
-  { id: 2, name: "Doctor Consultation", image: "/images/categories/cat_doctor_1788025303906.png" },
-  { id: 3, name: "Lab Tests", image: "/images/categories/cat_lab_1788025325186.png" },
-  { id: 4, name: "Memberships", image: "/images/categories/cat_memberships_1788025345793.png" },
+  { id: 1, name: "Medicines", image: "/images/banner/Banner img -1.png" },
+  { id: 2, name: "Doctor Consultation", image: "/images/banner/Banner img -2.png" },
+  { id: 3, name: "Lab Tests", image: "/images/banner/Banner img -3.png" },
+  { id: 4, name: "Memberships", image: "/images/banner/Banner img -4.png" },
 ];
 
 export default function HeroVariant4() {

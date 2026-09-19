@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { Suspense } from 'react';
 import BookCheckupClient from './BookCheckupClient';
 import { prisma } from '@/lib/prisma';
 import { getLocationsHierarchy } from '@/components/DoorstepSection/actions';
@@ -17,7 +17,9 @@ export default async function BookCheckupPage() {
   return (
     <div className="book-checkup-layout">
       <div className="book-checkup-form-side">
-        <BookCheckupClient availablePackages={allPackages} initialLocations={locations} />
+        <Suspense fallback={<div>Loading form...</div>}>
+          <BookCheckupClient availablePackages={allPackages} initialLocations={locations} />
+        </Suspense>
       </div>
       <div className="book-checkup-image-side"></div>
 
