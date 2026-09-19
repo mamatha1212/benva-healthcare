@@ -26,11 +26,20 @@ export const sendAdminEmail = async (subject: string, html: string) => {
 export const sendUserEmail = async (toEmail: string, subject: string, html: string) => {
   if (!toEmail) return;
   try {
+    // Generate a simple text fallback by stripping HTML tags
+    const textFallback = html.replace(/<[^>]*>?/gm, '');
+    
     const info = await transporter.sendMail({
-      from: `"Benva health care" <${process.env.SMTP_EMAIL || 'Benvahealthcaresupport@gmail.com'}>`,
+      from: `"BENVA Healthcare" <${process.env.SMTP_EMAIL || 'benvahealthcaresupport@gmail.com'}>`,
       to: toEmail,
+      replyTo: process.env.SMTP_EMAIL || 'benvahealthcaresupport@gmail.com',
       subject: subject,
+      text: textFallback,
       html: html,
+      headers: {
+        'X-Priority': '1 (Highest)',
+        'X-Mailer': 'Nodemailer'
+      }
     });
     console.log("User Confirmation Email sent:", info.messageId);
     return info;
