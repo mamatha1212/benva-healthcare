@@ -38,8 +38,7 @@ export async function POST(req: Request) {
           <p><strong>Name:</strong> ${data.fullName}</p>
           <p><strong>Email:</strong> ${data.email || 'N/A'}</p>
           <p><strong>Mobile:</strong> ${data.mobile}</p>
-          <p><strong>Message:</strong></p>
-          <blockquote>${data.message}</blockquote>
+          <p><strong>Message:</strong> ${data.message}</p>
           <br/>
           <p>Please contact the user to assist them.</p>
         `
