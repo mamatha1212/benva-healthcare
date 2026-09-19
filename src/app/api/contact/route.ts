@@ -30,22 +30,22 @@ export async function POST(req: Request) {
       },
     });
 
-    // Send Admin Notification
-    await sendAdminEmail(
-      `New Contact Request: ${data.fullName}`,
-      `
-        <h2>New Contact Message</h2>
-        <p><strong>Name:</strong> ${data.fullName}</p>
-        <p><strong>Email:</strong> ${data.email || 'N/A'}</p>
-        <p><strong>Mobile:</strong> ${data.mobile}</p>
-        <p><strong>Message:</strong></p>
-        <blockquote>${data.message}</blockquote>
-        <br/>
-        <p>Please contact the user to assist them.</p>
-      `
-    );
+    const emailPromises = [
+      sendAdminEmail(
+        `New Contact Request: ${data.fullName}`,
+        `
+          <h2>New Contact Message</h2>
+          <p><strong>Name:</strong> ${data.fullName}</p>
+          <p><strong>Email:</strong> ${data.email || 'N/A'}</p>
+          <p><strong>Mobile:</strong> ${data.mobile}</p>
+          <p><strong>Message:</strong></p>
+          <blockquote>${data.message}</blockquote>
+          <br/>
+          <p>Please contact the user to assist them.</p>
+        `
+      )
+    ];
 
-    // Send User Notification if email exists
     if (data.email) {
       const userHtml = `
         <p>Dear ${data.fullName},</p>
@@ -53,8 +53,10 @@ export async function POST(req: Request) {
         <br/>
         <p>Best Regards,<br/>BENVA Healthcare Team</p>
       `;
-      await sendUserEmail(data.email, 'Thank You for Contacting Us - BENVA Healthcare', userHtml);
+      emailPromises.push(sendUserEmail(data.email, 'Thank You for Contacting Us - BENVA Healthcare', userHtml));
     }
+
+    await Promise.allSettled(emailPromises);
 
     return NextResponse.json({ success: true, leadId: lead.id }, { status: 200 });
 
