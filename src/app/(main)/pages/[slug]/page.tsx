@@ -3,6 +3,8 @@ import { notFound } from 'next/navigation';
 import React from 'react';
 import styles from './StaticPage.module.css';
 
+export const revalidate = 0;
+
 export default async function StaticPageRender({ params }: { params: Promise<{ slug: string }> }) {
   const resolvedParams = await params;
   
