@@ -217,6 +217,21 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
       </nav>
 
       <div className={styles.sidebarFooter}>
+        <button 
+          onClick={() => {
+            if (typeof window !== 'undefined' && (window as any).triggerPWAInstall) {
+              (window as any).triggerPWAInstall();
+            }
+          }} 
+          className={styles.logoutBtn}
+          style={{ marginBottom: '12px' }}
+        >
+          <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-3 3m0 0l-3-3m3 3V4" />
+          </svg>
+          Install App
+        </button>
+
         <button onClick={handleLogout} className={styles.logoutBtn}>
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9" />

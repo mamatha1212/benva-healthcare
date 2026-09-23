@@ -22,6 +22,7 @@ export const metadata: Metadata = {
 };
 
 import FloatingContactButtons from '@/components/FloatingContactButtons/FloatingContactButtons';
+import InstallPrompt from '@/components/InstallPrompt/InstallPrompt';
 
 export default function RootLayout({
   children,
@@ -33,6 +34,7 @@ export default function RootLayout({
       <body suppressHydrationWarning>
         {children}
         <FloatingContactButtons />
+        <InstallPrompt />
       </body>
     </html>
   );
