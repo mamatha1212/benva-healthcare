@@ -10,7 +10,7 @@ export const metadata: Metadata = {
   description:
     'Join Benva Healthcare in our mission to provide food, shelter, education, and hope to communities in need. Every act of kindness brings us closer to a better world.',
   keywords: 'healthcare, charity, donation, children, hope, community',
-  manifest: '/manifest.webmanifest',
+  manifest: '/manifest.json',
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
