@@ -167,6 +167,56 @@
   50%       { transform: translateY(-20px); }
 }
 
+.cross1, .cross2 {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  opacity: 0.15;
+  animation: floatCircle 6s ease-in-out infinite;
+}
+
+.cross1::before, .cross1::after, .cross2::before, .cross2::after {
+  content: '';
+  position: absolute;
+  background: #06B6D4;
+  border-radius: 4px;
+}
+
+.cross1::before, .cross2::before {
+  top: 0; bottom: 0; left: 16px; right: 16px;
+}
+
+.cross1::after, .cross2::after {
+  left: 0; right: 0; top: 16px; bottom: 16px;
+}
+
+.cross1 {
+  top: 20%;
+  right: 15%;
+  transform: rotate(15deg);
+  animation-delay: 1s;
+}
+
+.cross2 {
+  bottom: 25%;
+  left: 15%;
+  transform: rotate(-15deg);
+  animation-delay: 2s;
+}
+
+.pill1 {
+  position: absolute;
+  width: 60px;
+  height: 24px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(6, 182, 212, 0.2) 50%, rgba(255, 255, 255, 0.1) 50%);
+  top: 15%;
+  left: 20%;
+  transform: rotate(30deg);
+  animation: floatCircle 7s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+
 /* ── Responsive ─────────────────────────────────────────────────── */
 @media (max-width: 640px) {
   .hero {

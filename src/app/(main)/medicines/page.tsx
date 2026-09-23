@@ -23,11 +23,17 @@ export default function MedicinesPage() {
             through our trusted partner pharmacy network — fast, safe, and reliable.
           </p>
           <div className={styles.discountHighlight}>
-            Order medicines easily by uploading your prescription and enjoy up to 20% savings with doorstep delivery from trusted pharmacy partners.
+            Order Medicines Through BENVA & Get Up To 20% Discount
           </div>
         </div>
-
-
+        <div className={styles.heroDecor}>
+          <div className={styles.circle1} />
+          <div className={styles.circle2} />
+          <div className={styles.circle3} />
+          <div className={styles.cross1}></div>
+          <div className={styles.cross2}></div>
+          <div className={styles.pill1}></div>
+        </div>
       </section>
 
       {/* ── Services Section ── */}
