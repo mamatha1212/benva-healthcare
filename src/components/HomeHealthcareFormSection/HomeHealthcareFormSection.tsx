@@ -20,7 +20,7 @@ export default function HomeHealthcareFormSection() {
   const [formData, setFormData] = useState({
     fullName: '', mobile: '', whatsapp: '', email: '',
     state: '', district: '', area: '', pincode: '',
-    serviceType: '', consent: false
+    serviceType: '', consent: true
   });
   const [errors, setErrors] = useState<Record<string, string>>({});
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -200,7 +200,7 @@ export default function HomeHealthcareFormSection() {
               <div className={styles.formSection}>
                 <label className={styles.checkboxLabel}>
                   <input type="checkbox" name="consent" checked={formData.consent} onChange={handleChange} />
-                  I Agree To Be Contacted By BENVA Healthcare Regarding This Service Request.
+                  I consent to be contacted by BENVA Healthcare regarding my service request and related services.
                 </label>
                 {errors.consent && <span className={styles.error} style={{ display: 'block', marginTop: '4px' }}>Please agree to proceed</span>}
               </div>

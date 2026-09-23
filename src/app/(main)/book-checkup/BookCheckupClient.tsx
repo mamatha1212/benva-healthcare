@@ -26,7 +26,7 @@ export default function BookCheckupClient({ availablePackages, initialLocations 
     pincode: '',
     age: '',
     gender: '',
-    consent: false,
+    consent: true,
     packageTitle: initPackageTitle,
     packagePrice: initPackagePrice,
     selectedOffice: ''
@@ -331,7 +331,7 @@ export default function BookCheckupClient({ availablePackages, initialLocations 
 
         <label className={styles.consentField}>
           <input type="checkbox" name="consent" checked={formData.consent} onChange={handleInputChange} />
-          <span className={styles.consentText}>I Agree To Be Contacted By BENVA Healthcare Regarding My Health Checkup Request.</span>
+          <span className={styles.consentText}>I consent to be contacted by BENVA Healthcare regarding my health check-up booking and related services.</span>
         </label>
         {errors.consent && <div className={styles.errorText} style={{ marginTop: '-12px', marginBottom: '24px', marginLeft: '32px' }}>{errors.consent}</div>}
 

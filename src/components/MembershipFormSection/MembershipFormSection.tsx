@@ -26,7 +26,7 @@ export default function MembershipFormSection() {
   const [formData, setFormData] = useState({
     fullName: '', mobile: '', whatsapp: '', email: '',
     state: '', district: '', area: '', pincode: '',
-    membershipType: '', consent: false, selectedOffice: ''
+    membershipType: '', consent: true, selectedOffice: ''
   });
   
   // Area check states
@@ -345,7 +345,7 @@ export default function MembershipFormSection() {
               <div className={styles.formSection}>
                 <label className={styles.checkboxLabel}>
                   <input type="checkbox" name="consent" checked={formData.consent} onChange={handleChange} />
-                  I Agree To Be Contacted By BENVA Healthcare Regarding Membership Registration.
+                  I consent to be contacted by BENVA Healthcare regarding my membership registration and related services.
                 </label>
                 {errors.consent && <span className={styles.error} style={{ display: 'block', marginTop: '4px' }}>Please agree to proceed</span>}
               </div>
