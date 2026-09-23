@@ -21,9 +21,7 @@ export default function MedicinesPage() {
           <p className={styles.heroSubtitle} style={{ marginBottom: '24px' }}>
             Order medicines easily by uploading your prescription and enjoy up to 20% savings with doorstep delivery from trusted pharmacy partners.
           </p>
-          <div className={styles.discountHighlight}>
-            Order medicines through BENVA and get a discount of 15% to 20%!
-          </div>
+
 
         </div>
         <div className={styles.heroDecor}>
