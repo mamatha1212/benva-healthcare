@@ -18,10 +18,13 @@ export default function MedicinesPage() {
           <h1 className={styles.heroTitle}>
             Order Medicines <span className={styles.heroAccent}>Online</span>
           </h1>
-          <p className={styles.heroSubtitle}>
+          <p className={styles.heroSubtitle} style={{ marginBottom: '24px' }}>
             Upload your doctor&apos;s prescription and get medicines delivered to your doorstep
             through our trusted partner pharmacy network — fast, safe, and reliable.
           </p>
+          <div className={styles.discountHighlight}>
+            Order medicines through BENVA and get a discount of 15% to 20%!
+          </div>
           <div className={styles.heroStats}>
             <div className={styles.statItem}>
               <span className={styles.statNumber}>500+</span>
