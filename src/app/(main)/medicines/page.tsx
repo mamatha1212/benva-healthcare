@@ -9,6 +9,10 @@ export const metadata: Metadata = {
 };
 
 export default function MedicinesPage() {
+  const whatsappNumber = "919111145556"; 
+  const medicineMsg = encodeURIComponent("Hello BENVA Healthcare, I would like to share my prescription to order medicines.");
+  const whatsappUrl = `https://wa.me/${whatsappNumber}?text=${medicineMsg}`;
+
   return (
     <main>
       {/* ── Hero Banner ── */}
@@ -41,7 +45,7 @@ export default function MedicinesPage() {
             </div>
           </div>
           
-          <button className={styles.heroApplyBtn}>
+          <a href={whatsappUrl} target="_blank" rel="noopener noreferrer" className={styles.heroApplyBtn}>
             UPLOAD PRESCRIPTION
             <svg 
               xmlns="http://www.w3.org/2000/svg" 
@@ -56,7 +60,7 @@ export default function MedicinesPage() {
             >
               <path d="M5 12h14M12 5l7 7-7 7"/>
             </svg>
-          </button>
+          </a>
         </div>
         <div className={styles.heroDecor}>
           <div className={styles.circle1} />
