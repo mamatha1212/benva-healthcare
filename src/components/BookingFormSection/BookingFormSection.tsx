@@ -309,9 +309,8 @@ export default function BookingFormSection() {
             )}
           </div>
 
-          {/* ── Patient Details ── */}
+          {/* ── Patient Details (No Heading) ── */}
           <div className={styles.formGroup}>
-            <div className={styles.groupTitle}>Patient Details</div>
             <div className={styles.formGrid}>
               <div className={styles.field}>
                 <label className={styles.label}>Age <span>*</span></label>
