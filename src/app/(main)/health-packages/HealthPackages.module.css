@@ -180,18 +180,18 @@
   position: absolute;
   top: 0;
   bottom: 0;
-  width: 95px;
+  width: 120px;
   z-index: 1;
   mix-blend-mode: multiply; /* Blends white background into card color */
 }
 
 /* Positioning based on card alignment */
 .card .imageWrapper {
-  right: -10px;
+  right: 0;
 }
 
 .cardRight .imageWrapper {
-  left: -10px;
+  left: 0;
 }
 
 /* Special Tag */
