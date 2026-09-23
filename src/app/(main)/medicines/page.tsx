@@ -19,8 +19,7 @@ export default function MedicinesPage() {
             Order Medicines <span className={styles.heroAccent}>Online</span>
           </h1>
           <p className={styles.heroSubtitle} style={{ marginBottom: '24px' }}>
-            Upload your doctor&apos;s prescription and get medicines delivered to your doorstep
-            through our trusted partner pharmacy network — fast, safe, and reliable.
+            Order medicines easily by uploading your prescription and enjoy up to 20% savings with doorstep delivery from trusted pharmacy partners.
           </p>
           <div className={styles.discountHighlight}>
             Order medicines through BENVA and get a discount of 15% to 20%!
