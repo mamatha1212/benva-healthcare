@@ -124,17 +124,17 @@ export default function HomeHealthcareFormSection() {
                 <div className={styles.inputGrid}>
                   <div className={styles.inputGroup}>
                     <label>Full Name *</label>
-                    <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="e.g. Ramesh Kumar" />
+                    <input type="text" name="fullName" value={formData.fullName} onChange={handleChange} placeholder="e.g. Your Name" />
                     {errors.fullName && <span className={styles.error}>{errors.fullName}</span>}
                   </div>
                   <div className={styles.inputGroup}>
                     <label>Mobile Number *</label>
-                    <input type="number" name="mobile" value={formData.mobile} onChange={handleChange} placeholder="e.g. 9876543210" />
+                    <input type="number" name="mobile" value={formData.mobile} onChange={handleChange} placeholder="e.g. Your Number" />
                     {errors.mobile && <span className={styles.error}>{errors.mobile}</span>}
                   </div>
                   <div className={styles.inputGroup}>
                     <label>WhatsApp Number</label>
-                    <input type="number" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="e.g. 9876543210" />
+                    <input type="number" name="whatsapp" value={formData.whatsapp} onChange={handleChange} placeholder="e.g. Your Number" />
                     {errors.whatsapp && <span className={styles.error}>{errors.whatsapp}</span>}
                   </div>
                   <div className={styles.inputGroup}>

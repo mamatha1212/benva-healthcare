@@ -206,17 +206,17 @@ export default function BookingFormSection() {
             <div className={styles.formGrid}>
               <div className={styles.field}>
                 <label className={styles.label}>Full Name <span>*</span></label>
-                <input type="text" name="fullName" placeholder="e.g. Ramesh Kumar" value={formData.fullName} onChange={handleInputChange} className={`${styles.input} ${errors.fullName ? styles.error : ''}`} />
+                <input type="text" name="fullName" placeholder="e.g. Your Name" value={formData.fullName} onChange={handleInputChange} className={`${styles.input} ${errors.fullName ? styles.error : ''}`} />
                 {errors.fullName && <span className={styles.errorText}>{errors.fullName}</span>}
               </div>
               <div className={styles.field}>
                 <label className={styles.label}>Mobile Number <span>*</span></label>
-                <input type="tel" name="mobile" placeholder="e.g. 9876543210" value={formData.mobile} onChange={handleInputChange} className={`${styles.input} ${errors.mobile ? styles.error : ''}`} />
+                <input type="tel" name="mobile" placeholder="e.g. Your Number" value={formData.mobile} onChange={handleInputChange} className={`${styles.input} ${errors.mobile ? styles.error : ''}`} />
                 {errors.mobile && <span className={styles.errorText}>{errors.mobile}</span>}
               </div>
               <div className={styles.field}>
                 <label className={styles.label}>WhatsApp Number</label>
-                <input type="tel" name="whatsapp" placeholder="e.g. 9876543210" value={formData.whatsapp} onChange={handleInputChange} className={`${styles.input} ${errors.whatsapp ? styles.error : ''}`} />
+                <input type="tel" name="whatsapp" placeholder="e.g. Your Number" value={formData.whatsapp} onChange={handleInputChange} className={`${styles.input} ${errors.whatsapp ? styles.error : ''}`} />
                 {errors.whatsapp && <span className={styles.errorText}>{errors.whatsapp}</span>}
               </div>
               <div className={styles.field}>
