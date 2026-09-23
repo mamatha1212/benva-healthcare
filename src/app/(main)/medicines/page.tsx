@@ -14,33 +14,15 @@ export default function MedicinesPage() {
       {/* ── Hero Banner ── */}
       <section className={styles.hero}>
         <div className={styles.heroContent}>
-          <span className={styles.heroBadge}>🏥 BENVA Pharmacy Services</span>
+          <span className={styles.heroBadge}>🏥 BENVA Healthcare Services</span>
           <h1 className={styles.heroTitle}>
             Order Medicines <span className={styles.heroAccent}>Online</span>
           </h1>
           <p className={styles.heroSubtitle} style={{ marginBottom: '24px' }}>
-            Upload your doctor&apos;s prescription and get medicines delivered to your doorstep
-            through our trusted partner pharmacy network — fast, safe, and reliable.
+            Order medicines easily by uploading your prescription and enjoy up to 20% savings with doorstep delivery from trusted pharmacy partners.
           </p>
-          <div className={styles.discountHighlight}>
-            Order medicines through BENVA and get a discount of 15% to 20%!
-          </div>
-          <div className={styles.heroStats}>
-            <div className={styles.statItem}>
-              <span className={styles.statNumber}>500+</span>
-              <span className={styles.statLabel}>Partner Pharmacies</span>
-            </div>
-            <div className={styles.statDivider} />
-            <div className={styles.statItem}>
-              <span className={styles.statNumber}>24/7</span>
-              <span className={styles.statLabel}>Support Available</span>
-            </div>
-            <div className={styles.statDivider} />
-            <div className={styles.statItem}>
-              <span className={styles.statNumber}>100%</span>
-              <span className={styles.statLabel}>Genuine Medicines</span>
-            </div>
-          </div>
+
+
         </div>
         <div className={styles.heroDecor}>
           <div className={styles.circle1} />
