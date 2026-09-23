@@ -106,6 +106,35 @@ export default function AdminLogin() {
             {isLoading ? 'Verifying...' : 'Login to Dashboard'}
           </button>
         </form>
+
+        <div style={{ marginTop: '24px', textAlign: 'center' }}>
+          <button 
+            type="button"
+            onClick={() => {
+              if (typeof window !== 'undefined' && (window as any).triggerPWAInstall) {
+                (window as any).triggerPWAInstall();
+              }
+            }} 
+            style={{
+              background: 'none',
+              border: '1px solid #e2e8f0',
+              padding: '8px 16px',
+              borderRadius: '8px',
+              color: '#64748b',
+              cursor: 'pointer',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '14px',
+              fontWeight: 500
+            }}
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '16px', height: '16px' }}>
+              <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-3 3m0 0l-3-3m3 3V4" />
+            </svg>
+            Install Admin App
+          </button>
+        </div>
       </div>
     </div>
   );
