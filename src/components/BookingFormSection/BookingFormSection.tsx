@@ -200,9 +200,9 @@ export default function BookingFormSection() {
 
         <form className={styles.formCard} onSubmit={handleSubmit}>
           
-          {/* ── Personal Details ── */}
+          {/* ── Basic Details ── */}
           <div className={styles.formGroup}>
-            <div className={styles.groupTitle}>Personal Details</div>
+            <div className={styles.groupTitle}>Basic Details</div>
             <div className={styles.formGrid}>
               <div className={styles.field}>
                 <label className={styles.label}>Full Name <span>*</span></label>

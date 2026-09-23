@@ -188,7 +188,7 @@ export default function MembershipFormSection() {
             <form className={styles.form} onSubmit={handleSubmit}>
               
               <div className={styles.formSection}>
-                <h3 className={styles.sectionTitle}>Personal Details</h3>
+                <h3 className={styles.sectionTitle}>Basic Details</h3>
                 <div className={styles.inputGrid}>
                   <div className={styles.inputGroup}>
                     <label>Full Name *</label>
