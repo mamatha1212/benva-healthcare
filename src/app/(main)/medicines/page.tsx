@@ -25,22 +25,7 @@ export default function MedicinesPage() {
           <div className={styles.discountHighlight}>
             Order medicines through BENVA and get a discount of 15% to 20%!
           </div>
-          <div className={styles.heroStats}>
-            <div className={styles.statItem}>
-              <span className={styles.statNumber}>500+</span>
-              <span className={styles.statLabel}>Partner Pharmacies</span>
-            </div>
-            <div className={styles.statDivider} />
-            <div className={styles.statItem}>
-              <span className={styles.statNumber}>24/7</span>
-              <span className={styles.statLabel}>Support Available</span>
-            </div>
-            <div className={styles.statDivider} />
-            <div className={styles.statItem}>
-              <span className={styles.statNumber}>100%</span>
-              <span className={styles.statLabel}>Genuine Medicines</span>
-            </div>
-          </div>
+
         </div>
         <div className={styles.heroDecor}>
           <div className={styles.circle1} />
