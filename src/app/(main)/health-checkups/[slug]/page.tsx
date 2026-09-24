@@ -25,6 +25,7 @@ export default async function PackageDetailsPage({ params }: { params: Promise<{
   const pkg = await prisma.healthPackage.findUnique({
     where: { slug: resolvedParams.slug },
     include: { 
+      tests: { orderBy: { order: 'asc' } },
       profiles: { 
         include: { parameters: { orderBy: { createdAt: 'asc' } } },
         orderBy: { createdAt: 'asc' } 
@@ -77,7 +78,20 @@ export default async function PackageDetailsPage({ params }: { params: Promise<{
               <div className={styles.testsSection}>
                 <h3 className={styles.sectionTitle}>Tests Included</h3>
                 <div className={styles.testsGrid}>
-                  {pkg.profiles && pkg.profiles.length > 0 ? pkg.profiles.map((profile, idx) => (
+                  {pkg.tests && pkg.tests.length > 0 ? pkg.tests.map((test, idx) => (
+                    <details key={idx} className={styles.testAccordion}>
+                      <summary className={styles.testAccordionSummary}>
+                        {test.name} ({test.parameters.split(',').length})
+                      </summary>
+                      <div className={styles.testAccordionContent}>
+                        <ul className={styles.testParamList}>
+                          {test.parameters.split(',').map((p, pIdx) => (
+                            <li key={pIdx} className={styles.testParamItem}>{p.trim()}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </details>
+                  )) : pkg.profiles && pkg.profiles.length > 0 ? pkg.profiles.map((profile, idx) => (
                     <details key={idx} className={styles.testAccordion}>
                       <summary className={styles.testAccordionSummary}>
                         {profile.name} ({profile.parameters.length})

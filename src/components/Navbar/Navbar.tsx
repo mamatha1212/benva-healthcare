@@ -1,11 +1,13 @@
 'use client';
 import React, { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import styles from './Navbar.module.css';
 
 const navLinks = ['Home', 'Health Packages', 'Medicines', 'Membership Card', /*'Home Healthcare',*/ 'Diet Plan', 'About Us', 'Contact Us'];
 
 export default function Navbar() {
   const [menuOpen, setMenuOpen] = useState(false);
+  const pathname = usePathname();
 
   return (
     <nav className={styles.navbar}>
@@ -61,7 +63,7 @@ export default function Navbar() {
                 '#';
               return (
                 <li key={link} className={styles.navItem}>
-                  <a href={href} className={styles.navLink}>
+                  <a href={href} className={`${styles.navLink} ${pathname === href ? styles.activeNavLink : ''}`}>
                     {link}
                   </a>
                 </li>

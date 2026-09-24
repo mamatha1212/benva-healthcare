@@ -229,12 +229,7 @@
   gap: 16px;
 }
 
-.bannerFooter::before, .bannerFooter::after {
-  content: '';
-  height: 1px;
-  width: 40px;
-  background: #cbd5e1;
-}
+/* Removed ::before and ::after lines */
 
 /* Decorative circles */
 .heroDecor {
@@ -331,20 +326,52 @@
 }
 
 /* ── Responsive ─────────────────────────────────────────────────── */
-@media (max-width: 640px) {
+@media (max-width: 768px) {
   .hero {
-    padding: 100px 20px 60px;
+    padding: 80px 16px 40px;
   }
 
-  .heroStats {
-    gap: 20px;
+  .bannerContent {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .pricingBox, .valueBox {
+    width: 100%;
+    max-width: 280px;
+    padding: 16px 20px;
   }
 
-  .statDivider {
-    display: none;
+  .amount {
+    font-size: 56px;
   }
 
-  .statNumber {
-    font-size: 26px;
+  .strikethroughPrice {
+    font-size: 36px;
+  }
+
+  .annualText, .perYear {
+    font-size: 14px;
+  }
+
+  .dailyCost, .saveBadge {
+    padding: 6px 12px;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+
+  .actualPriceText {
+    font-size: 12px;
+  }
+
+  .heroTitle {
+    font-size: clamp(32px, 8vw, 40px);
+  }
+
+  .bannerFooter {
+    font-size: 14px;
+    margin-top: 20px;
+    padding: 0 10px;
+    line-height: 1.5;
   }
 }

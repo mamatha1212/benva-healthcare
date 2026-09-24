@@ -110,7 +110,7 @@ export default function DrPayoutsPage() {
   };
 
   const deletePayout = (id: string) => {
-    if (!confirm('Are you sure you want to delete this payout?')) return;
+    if (!window.confirm('Do you want to delete are you sure?')) return;
     const updated = savedPayouts.filter(p => p.id !== id);
     setSavedPayouts(updated);
     localStorage.setItem('drPayouts', JSON.stringify(updated));
@@ -133,7 +133,7 @@ export default function DrPayoutsPage() {
   const [records, setRecords] = useState<ConsultationRecord[]>([
     {
       sNo: 1,
-      patientId: '-',
+      patientId: '',
       patientName: '',
       labReportDate: new Date().toISOString().split('T')[0],
       genDrName: '',
@@ -160,7 +160,7 @@ export default function DrPayoutsPage() {
       ...prev,
       {
         sNo: prev.length + 1,
-        patientId: '-',
+        patientId: '',
         patientName: '',
         labReportDate: new Date().toISOString().split('T')[0],
         genDrName: formData.consultingDoctor,
@@ -171,6 +171,7 @@ export default function DrPayoutsPage() {
   };
 
   const removeRecord = (index: number) => {
+    if (!window.confirm('Do you want to delete are you sure?')) return;
     setRecords(prev => prev.filter((_, i) => i !== index).map((r, i) => ({ ...r, sNo: i + 1 })));
   };
 
@@ -201,6 +202,7 @@ export default function DrPayoutsPage() {
               <table className={styles.table}>
               <thead>
                 <tr>
+                  <th style={{ width: '50px' }}>S.NO</th>
                   <th>Doctor Name</th>
                   <th>Period</th>
                   <th>Date</th>
@@ -212,13 +214,14 @@ export default function DrPayoutsPage() {
               <tbody>
                 {savedPayouts.length === 0 ? (
                   <tr>
-                    <td colSpan={6} style={{ textAlign: 'center', padding: '30px', color: '#777' }}>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '30px', color: '#777' }}>
                       No payouts recorded yet. Click "+ Add New Payout" to generate a new report.
                     </td>
                   </tr>
                 ) : (
-                  savedPayouts.map(payout => (
+                  savedPayouts.map((payout, index) => (
                     <tr key={payout.id}>
+                      <td>{index + 1}</td>
                       <td>{payout.consultingDoctor}</td>
                       <td>{payout.reportingPeriod}</td>
                       <td>{payout.payoutDate}</td>

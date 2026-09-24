@@ -5,7 +5,7 @@ import { jwtVerify } from 'jose';
 // Secret key for JWT. In production, this should be an environment variable.
 const SECRET = new TextEncoder().encode(process.env.JWT_SECRET || 'benva-super-secret-key-2026');
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   // Check if the user is trying to access the admin area
   if (request.nextUrl.pathname.startsWith('/admin')) {
     

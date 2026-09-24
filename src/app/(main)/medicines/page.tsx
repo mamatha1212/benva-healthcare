@@ -27,6 +27,7 @@ export default function MedicinesPage() {
               <div className={styles.pricingBox}>
                 <span className={styles.annualText}>EXCLUSIVE OFFER</span>
                 <div className={styles.priceDisplay}>
+                  <span className={styles.perYear}>UP TO</span>
                   <span className={styles.amount}>20%</span>
                   <span className={styles.perYear}>OFF</span>
                 </div>
@@ -41,7 +42,7 @@ export default function MedicinesPage() {
             </div>
 
             <div className={styles.bannerFooter}>
-              Order medicines easily by uploading your prescription from trusted pharmacy partners.
+              Order medicines easily by uploading your prescription and enjoy up to 20% savings with doorstep delivery from trusted pharmacy partners.
             </div>
           </div>
           
