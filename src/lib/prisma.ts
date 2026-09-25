@@ -1,6 +1,15 @@
 import { PrismaClient } from '@prisma/client';
 
-// Force instantiate a new Prisma Client to pick up schema changes
-export const prisma = new PrismaClient({
-  log: ['query'],
-});
+const prismaClientSingleton = () => {
+  return new PrismaClient({
+    log: ['query'],
+  });
+};
+
+declare const globalThis: {
+  prismaGlobal: ReturnType<typeof prismaClientSingleton>;
+} & typeof global;
+
+export const prisma = globalThis.prismaGlobal ?? prismaClientSingleton();
+
+if (process.env.NODE_ENV !== 'production') globalThis.prismaGlobal = prisma;

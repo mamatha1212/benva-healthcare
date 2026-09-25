@@ -16,6 +16,11 @@
   animation: fadeInDown 0.5s ease-out;
 }
 
+.headerActions {
+  display: flex;
+  gap: 10px;
+}
+
 .title {
   font-size: 32px;
   font-weight: 700;
@@ -278,6 +283,21 @@
     align-items: stretch;
     text-align: left;
     gap: 12px;
+  }
+
+  .headerActions {
+    flex-direction: row;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .headerActions .btn {
+    width: auto;
+    flex: 1;
+    padding: 8px 4px;
+    font-size: 11px;
+    margin-bottom: 0;
+    white-space: nowrap;
   }
 
   .title {

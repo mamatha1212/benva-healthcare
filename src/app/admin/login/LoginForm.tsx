@@ -107,7 +107,7 @@ export default function AdminLogin() {
           </button>
         </form>
 
-        <div style={{ marginTop: '24px', textAlign: 'center' }}>
+        <div style={{ marginTop: '24px', textAlign: 'center', display: 'none' }}>
           <button 
             type="button"
             onClick={() => {

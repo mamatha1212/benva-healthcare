@@ -9,6 +9,7 @@ export default function DrPayoutsPage() {
   const [isPreviewMode, setIsPreviewMode] = useState(false);
   const [savedPayouts, setSavedPayouts] = useState<any[]>([]);
   const [downloadingPayout, setDownloadingPayout] = useState<any | null>(null);
+  const [editingPayoutId, setEditingPayoutId] = useState<string | null>(null);
   const hiddenReportRef = useRef<HTMLDivElement>(null);
   const [doctors, setDoctors] = useState<any[]>([]);
   
@@ -51,19 +52,31 @@ export default function DrPayoutsPage() {
   }, [isFormMode, isPreviewMode]);
 
   const savePayout = () => {
-    const newPayout = {
-      id: Date.now().toString(),
-      ...formData,
-      records
-    };
-    const updated = [newPayout, ...savedPayouts];
+    let updated;
+    if (editingPayoutId) {
+      const updatedPayout = {
+        id: editingPayoutId,
+        ...formData,
+        records
+      };
+      updated = savedPayouts.map(p => p.id === editingPayoutId ? updatedPayout : p);
+    } else {
+      const newPayout = {
+        id: Date.now().toString(),
+        ...formData,
+        records
+      };
+      updated = [newPayout, ...savedPayouts];
+    }
     setSavedPayouts(updated);
     localStorage.setItem('drPayouts', JSON.stringify(updated));
+    setEditingPayoutId(null);
     setIsPreviewMode(false);
     setIsFormMode(false);
   };
 
   const viewSavedPayout = (payout: any) => {
+    setEditingPayoutId(payout.id);
     setFormData({
       consultingDoctor: payout.consultingDoctor,
       consultationMode: payout.consultationMode,
@@ -142,6 +155,36 @@ export default function DrPayoutsPage() {
     }
   ]);
 
+  const handleAddNewPayout = () => {
+    setEditingPayoutId(null);
+    setFormData({
+      consultingDoctor: '',
+      consultationMode: 'Audio Consultation',
+      reportingPeriod: 'JULY & AUGUST',
+      year: new Date().getFullYear().toString(),
+      totalPatientsConsulted: 0,
+      totalConsultationsCompleted: 0,
+      totalPayoutAmount: 0,
+      payoutDate: new Date().toISOString().split('T')[0],
+      paymentMode: 'UPI',
+      transactionReferenceNo: '',
+      paymentScreenshotUrl: ''
+    });
+    setRecords([
+      {
+        sNo: 1,
+        patientId: '',
+        patientName: '',
+        labReportDate: new Date().toISOString().split('T')[0],
+        genDrName: '',
+        dietDrName: '',
+        status: 'COMPLETED'
+      }
+    ]);
+    setIsFormMode(true);
+    setIsPreviewMode(false);
+  };
+
   const reportRef = useRef<HTMLDivElement>(null);
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
@@ -193,7 +236,7 @@ export default function DrPayoutsPage() {
         <>
           <div className={styles.header}>
             <h1 className={styles.title}>Doctor Payouts</h1>
-            <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => setIsFormMode(true)}>
+            <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={handleAddNewPayout}>
               + Add New Payout
             </button>
           </div>
@@ -244,7 +287,7 @@ export default function DrPayoutsPage() {
         <>
           <div className={styles.header}>
             <h1 className={styles.title}>{isPreviewMode ? 'Report Preview' : 'Create Doctor Payout'}</h1>
-            <div style={{ display: 'flex', gap: '10px' }}>
+            <div className={styles.headerActions}>
               {isPreviewMode ? (
                 <>
                   <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => setIsPreviewMode(false)}>

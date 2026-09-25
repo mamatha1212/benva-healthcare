@@ -356,6 +356,8 @@
   }
   
   .imageCol {
+    position: relative;
+    top: auto;
     height: 500px;
   }
 
