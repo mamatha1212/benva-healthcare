@@ -16,6 +16,8 @@ function ReportsManagementContent() {
   const [selectedYear, setSelectedYear] = useState<number | null>(null);
   const [selectedMonth, setSelectedMonth] = useState<number | null>(null); 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [monthCounts, setMonthCounts] = useState<{month: number, count: number}[]>([]);
+  const [dayCounts, setDayCounts] = useState<{day: number, count: number}[]>([]);
   
   const [reports, setReports] = useState<any[]>([]);
   const [searchResults, setSearchResults] = useState<any[]>([]);
@@ -113,12 +115,17 @@ function ReportsManagementContent() {
       fetchReportsForDate(dt);
       setView('REPORTS');
     } else if (year && month) {
-      setSelectedYear(parseInt(year));
-      setSelectedMonth(parseInt(month));
+      const y = parseInt(year);
+      const m = parseInt(month);
+      setSelectedYear(y);
+      setSelectedMonth(m);
       setView('CALENDAR');
+      fetchDayCounts(y, m);
     } else if (year) {
-      setSelectedYear(parseInt(year));
+      const parsedYear = parseInt(year);
+      setSelectedYear(parsedYear);
       setView('MONTHS');
+      fetchMonthCounts(parsedYear);
     } else {
       setSelectedYear(null);
       setSelectedMonth(null);
@@ -132,6 +139,26 @@ function ReportsManagementContent() {
       const res = await fetch('/api/admin/report-years');
       const data = await res.json();
       setYears(data);
+    } catch (e) { console.error(e); }
+  };
+
+  const fetchMonthCounts = async (year: number) => {
+    try {
+      const res = await fetch(`/api/admin/reports/monthly-counts?year=${year}`);
+      if (res.ok) {
+        const data = await res.json();
+        setMonthCounts(data);
+      }
+    } catch (e) { console.error(e); }
+  };
+
+  const fetchDayCounts = async (year: number, month: number) => {
+    try {
+      const res = await fetch(`/api/admin/reports/daily-counts?year=${year}&month=${month}`);
+      if (res.ok) {
+        const data = await res.json();
+        setDayCounts(data);
+      }
     } catch (e) { console.error(e); }
   };
 
@@ -691,11 +718,31 @@ function ReportsManagementContent() {
                 <div 
                   key={y.id} 
                   onClick={() => { setSelectedYear(y.year); navigateView('MONTHS', y.year); }}
-                  style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '24px', textAlign: 'center', cursor: 'pointer', fontSize: '24px', fontWeight: 700, color: '#334155', transition: 'all 0.2s' }}
+                  style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '24px', textAlign: 'center', cursor: 'pointer', fontSize: '24px', fontWeight: 700, color: '#334155', transition: 'all 0.2s', position: 'relative' }}
                   onMouseOver={(e) => e.currentTarget.style.borderColor = '#2563eb'}
                   onMouseOut={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
                 >
                   📁 {y.year}
+                  {y.count !== undefined && y.count > 0 && (
+                    <div style={{
+                      position: 'absolute',
+                      top: '-10px',
+                      right: '-10px',
+                      background: '#ef4444',
+                      color: 'white',
+                      fontSize: '14px',
+                      fontWeight: 'bold',
+                      padding: '4px 10px',
+                      borderRadius: '999px',
+                      boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      minWidth: '24px'
+                    }}>
+                      {y.count}
+                    </div>
+                  )}
                 </div>
               ))}
               {years.length === 0 && <p style={{ color: '#64748b' }}>No years added yet.</p>}
@@ -705,17 +752,40 @@ function ReportsManagementContent() {
 
         {view === 'MONTHS' && (
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: '16px' }}>
-            {months.map((m, idx) => (
+            {months.map((m, idx) => {
+              const countObj = monthCounts.find(c => c.month === idx);
+              const count = countObj ? countObj.count : 0;
+              return (
               <div 
                 key={m} 
-                onClick={() => { setSelectedMonth(idx); navigateView('CALENDAR', selectedYear, idx); }}
-                style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '24px', textAlign: 'center', cursor: 'pointer', fontSize: '18px', fontWeight: 600, color: '#334155', transition: 'all 0.2s' }}
+                onClick={() => { setSelectedMonth(idx); fetchDayCounts(selectedYear as number, idx); navigateView('CALENDAR', selectedYear, idx); }}
+                style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '24px', textAlign: 'center', cursor: 'pointer', fontSize: '18px', fontWeight: 600, color: '#334155', transition: 'all 0.2s', position: 'relative' }}
                 onMouseOver={(e) => e.currentTarget.style.borderColor = '#2563eb'}
                 onMouseOut={(e) => e.currentTarget.style.borderColor = '#e2e8f0'}
               >
                 📁 {m}
+                {count > 0 && (
+                  <div style={{
+                    position: 'absolute',
+                    top: '-10px',
+                    right: '-10px',
+                    background: '#ef4444',
+                    color: 'white',
+                    fontSize: '12px',
+                    fontWeight: 'bold',
+                    padding: '4px 8px',
+                    borderRadius: '999px',
+                    boxShadow: '0 2px 4px rgba(0,0,0,0.2)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    minWidth: '20px'
+                  }}>
+                    {count}
+                  </div>
+                )}
               </div>
-            ))}
+            )})}
           </div>
         )}
 
@@ -731,6 +801,9 @@ function ReportsManagementContent() {
               ))}
               {Array.from({ length: getDaysInMonth(selectedYear, selectedMonth) }).map((_, i) => {
                 const day = i + 1;
+                const countObj = dayCounts.find(c => c.day === day);
+                const count = countObj ? countObj.count : 0;
+                
                 return (
                   <div 
                     key={day}
@@ -740,11 +813,27 @@ function ReportsManagementContent() {
                       fetchReportsForDate(date);
                       navigateView('REPORTS', selectedYear, selectedMonth, day); 
                     }}
-                    style={{ background: '#f1f5f9', borderRadius: '8px', padding: '16px 8px', textAlign: 'center', cursor: 'pointer', fontWeight: 500, color: '#334155', border: '1px solid transparent' }}
+                    style={{ background: '#f1f5f9', borderRadius: '8px', padding: '16px 8px', textAlign: 'center', cursor: 'pointer', fontWeight: 500, color: '#334155', border: '1px solid transparent', position: 'relative' }}
                     onMouseOver={(e) => { e.currentTarget.style.background = '#e2e8f0'; e.currentTarget.style.borderColor = '#cbd5e1'; }}
                     onMouseOut={(e) => { e.currentTarget.style.background = '#f1f5f9'; e.currentTarget.style.borderColor = 'transparent'; }}
                   >
                     {day}
+                    {count > 0 && (
+                      <div style={{
+                        position: 'absolute',
+                        top: '-6px',
+                        right: '-6px',
+                        background: '#ef4444',
+                        color: 'white',
+                        fontSize: '10px',
+                        fontWeight: 'bold',
+                        padding: '2px 6px',
+                        borderRadius: '999px',
+                        boxShadow: '0 2px 4px rgba(0,0,0,0.2)'
+                      }}>
+                        {count}
+                      </div>
+                    )}
                   </div>
                 );
               })}

@@ -6,7 +6,25 @@ export async function GET() {
     const years = await prisma.reportYear.findMany({
       orderBy: { year: 'desc' }
     });
-    return NextResponse.json(years);
+
+    // Get count of reports per year
+    // Since prisma doesn't support groupBy on date parts easily, we can use queryRaw
+    const counts: any = await prisma.$queryRaw`
+      SELECT EXTRACT(YEAR FROM date) as year, COUNT(*)::int as count 
+      FROM "ReportFile" 
+      GROUP BY EXTRACT(YEAR FROM date)
+    `;
+    const countMap = new Map();
+    if (Array.isArray(counts)) {
+      counts.forEach(c => countMap.set(Number(c.year), Number(c.count)));
+    }
+
+    const yearsWithCounts = years.map(y => ({
+      ...y,
+      count: countMap.get(y.year) || 0
+    }));
+
+    return NextResponse.json(yearsWithCounts);
   } catch (error) {
     console.error('Error fetching report years:', error);
     return NextResponse.json({ error: 'Failed to fetch years' }, { status: 500 });

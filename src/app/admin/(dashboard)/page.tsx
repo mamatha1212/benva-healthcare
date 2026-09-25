@@ -11,6 +11,7 @@ import LeadRemarksUpdater from '@/components/LeadRemarksUpdater/LeadRemarksUpdat
 import ServiceabilityCheck from '@/components/ServiceabilityCheck/ServiceabilityCheck';
 import AdminAddLeadButton from '@/components/AdminAddLeadButton/AdminAddLeadButton';
 import LeadsTableClient from './LeadsTableClient';
+import ClientPayoutCount from './ClientPayoutCount';
 
 import LeadsChart from './LeadsChart';
 
@@ -248,7 +249,9 @@ export default async function AdminDashboard({
                 borderColor: `${item.color}40`,
                 boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)',
               }}>
-                <span style={{ color: item.color, fontSize: '28px', fontWeight: '900', lineHeight: '1' }}>{count}</span>
+                <span style={{ color: item.color, fontSize: '28px', fontWeight: '900', lineHeight: '1' }}>
+                  {item.key === "PAYOUTS" ? <ClientPayoutCount /> : count}
+                </span>
                 <span style={{ color: '#4a5568', fontSize: '11px', fontWeight: '800', marginTop: '8px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>{item.label}</span>
               </Link>
             );
