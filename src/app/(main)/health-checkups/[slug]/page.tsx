@@ -45,29 +45,31 @@ export default async function PackageDetailsPage({ params }: { params: Promise<{
         </div>
 
         <div className={styles.heroContent}>
-          <span className={styles.heroBadge}>🏥 BENVA OFFER PRICE</span>
-          <h1 className={styles.heroTitle}>{pkg.title}</h1>
-          <p className={styles.heroSubtitle}>{pkg.subtitle}</p>
-          
-          <div className={styles.bannerContent}>
-            <div className={styles.pricingBox}>
-              <span className={styles.annualText}>EXCLUSIVE OFFER</span>
-              <div className={styles.priceDisplay}>
-                <span className={styles.perYear}>₹</span>
-                <span className={styles.amount}>{pkg.price}</span>
+          <div className={styles.heroTextCol}>
+            <span className={styles.heroBadge}>🏥 BENVA OFFER PRICE</span>
+            <h1 className={styles.heroTitle}>{pkg.title}</h1>
+            <p className={styles.heroSubtitle}>{pkg.subtitle}</p>
+            
+            <div className={styles.bannerContent}>
+              <div className={styles.pricingBox}>
+                <span className={styles.annualText}>EXCLUSIVE OFFER</span>
+                <div className={styles.priceDisplay}>
+                  <span className={styles.perYear}>₹</span>
+                  <span className={styles.amount}>{pkg.price}</span>
+                </div>
+                <div className={styles.dailyCost}>Only</div>
               </div>
-              <div className={styles.dailyCost}>Only</div>
-            </div>
 
-            <div className={styles.valueBox}>
-              <span className={styles.actualPriceText}>Package Highlights</span>
-              <div className={styles.strikethroughPrice}>72+ Tests</div>
-              <div className={styles.saveBadge}>Home Collection</div>
+              <div className={styles.valueBox}>
+                <span className={styles.actualPriceText}>Package Highlights</span>
+                <div className={styles.strikethroughPrice}>72+ Tests</div>
+                <div className={styles.saveBadge}>Home Collection</div>
+              </div>
             </div>
-          </div>
-          
-          <div style={{ marginTop: '32px' }}>
-             <BookCheckupButton title={pkg.title} price={pkg.price} />
+            
+            <div style={{ marginTop: '32px' }}>
+               <BookCheckupButton title={pkg.title} price={pkg.price} />
+            </div>
           </div>
 
           <div className={styles.heroImageWrapper}>
