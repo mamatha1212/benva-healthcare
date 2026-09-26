@@ -24,8 +24,8 @@ export const metadata: Metadata = {
     images: [
       {
         url: 'https://www.benvahealthcare.in/og-image.jpg',
-        width: 1200,
-        height: 630,
+        width: 800,
+        height: 800,
         type: 'image/jpeg',
         alt: 'Benva Healthcare Logo',
       },
