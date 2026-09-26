@@ -1,7 +1,6 @@
 'use client';
 import React from 'react';
 import styles from './Footer.module.css';
-import ScrollReveal from '../ScrollReveal/ScrollReveal';
 
 export default function Footer() {
   return (
@@ -11,7 +10,7 @@ export default function Footer() {
         <div className={styles.grid}>
           
           {/* Column 1: About & Contact */}
-          <ScrollReveal animation="fadeUp" delay={0.1} className={styles.col}>
+          <div className={styles.col}>
             <div className={styles.logoGroup}>
               <img src="/images/Benva%20NEW.png" alt="Benva Healthcare" style={{ height: '70px', width: 'auto', transform: 'scale(2.5)', transformOrigin: 'left center' }} />
             </div>
@@ -24,10 +23,10 @@ export default function Footer() {
               <p><strong>Email:</strong> Benvahealthcaresupport@gmail.com</p>
               <p><strong>Service Areas:</strong> Andhra Pradesh & Telangana</p>
             </div>
-          </ScrollReveal>
+          </div>
 
           {/* Column 2: Quick Links */}
-          <ScrollReveal animation="fadeUp" delay={0.3} className={styles.col}>
+          <div className={styles.col}>
             <h3 className={styles.heading}>
               Quick Links
               <div className={styles.headingLine} />
@@ -40,10 +39,10 @@ export default function Footer() {
               <li><a href="/service-areas">Check Service Availability</a></li>
               <li><a href="/#faq">FAQ</a></li>
             </ul>
-          </ScrollReveal>
+          </div>
 
           {/* Column 3: Services */}
-          <ScrollReveal animation="fadeUp" delay={0.5} className={styles.col}>
+          <div className={styles.col}>
             <h3 className={styles.heading}>
               Services
               <div className={styles.headingLine} />
@@ -57,10 +56,10 @@ export default function Footer() {
               {/* <li><a href="/home-healthcare">Home Healthcare Services</a></li> */}
               <li><a href="/diet-plan">Diet Plan</a></li>
             </ul>
-          </ScrollReveal>
+          </div>
 
           {/* Column 4: Legal & Social */}
-          <ScrollReveal animation="fadeUp" delay={0.7} className={styles.col}>
+          <div className={styles.col}>
             <h3 className={styles.heading}>
               Legal Links
               <div className={styles.headingLine} />
@@ -109,7 +108,7 @@ export default function Footer() {
                 </svg>
               </a>
             </div>
-          </ScrollReveal>
+          </div>
 
         </div>
 
