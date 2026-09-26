@@ -33,29 +33,44 @@ export default async function PackageDetailsPage({ params }: { params: Promise<{
 
   return (
     <div style={{ backgroundColor: '#f8fafc', minHeight: '100vh' }}>
-      {/* ── Hero Section ── */}
+      {/* ── Hero Section (Medicines Layout Style) ── */}
       <section className={styles.heroSection}>
-        <div className={styles.heroContainer}>
-          <div className={styles.heroContent}>
-            <AnimatedHeading className={styles.heroTitle}>{pkg.title}</AnimatedHeading>
-            <p className={styles.heroSubtitle}>{pkg.subtitle}</p>
-            
-            <div className={styles.heroPricingCard}>
-              <div className={styles.heroPriceLabel}>BENVA OFFER PRICE</div>
-              <div className={styles.heroPriceValue}>₹{pkg.price} <span>Only</span></div>
-              <div className={styles.heroHighlights}>
-                <div>{simpleCheckIcon} 72+ Tests</div>
-                <div>{simpleCheckIcon} Home Sample Collection</div>
-                <div>{simpleCheckIcon} Digital Reports</div>
-                <div>{simpleCheckIcon} Doctor Guidance</div>
+        <div className={styles.heroDecor}>
+          <div className={styles.circle1} />
+          <div className={styles.circle2} />
+          <div className={styles.circle3} />
+          <div className={styles.cross1}></div>
+          <div className={styles.cross2}></div>
+          <div className={styles.pill1}></div>
+        </div>
+
+        <div className={styles.heroContent}>
+          <span className={styles.heroBadge}>🏥 BENVA OFFER PRICE</span>
+          <h1 className={styles.heroTitle}>{pkg.title}</h1>
+          <p className={styles.heroSubtitle}>{pkg.subtitle}</p>
+          
+          <div className={styles.bannerContent}>
+            <div className={styles.pricingBox}>
+              <span className={styles.annualText}>EXCLUSIVE OFFER</span>
+              <div className={styles.priceDisplay}>
+                <span className={styles.perYear}>₹</span>
+                <span className={styles.amount}>{pkg.price}</span>
               </div>
-              <div className={styles.heroActions}>
-                <BookCheckupButton title={pkg.title} price={pkg.price} />
-              </div>
+              <div className={styles.dailyCost}>Only</div>
+            </div>
+
+            <div className={styles.valueBox}>
+              <span className={styles.actualPriceText}>Package Highlights</span>
+              <div className={styles.strikethroughPrice}>72+ Tests</div>
+              <div className={styles.saveBadge}>Home Collection</div>
             </div>
           </div>
           
-          <div className={styles.heroImageCol}>
+          <div style={{ marginTop: '32px' }}>
+             <BookCheckupButton title={pkg.title} price={pkg.price} />
+          </div>
+
+          <div className={styles.heroImageWrapper}>
             <div className={styles.heroImage} style={{ backgroundImage: `url(${pkg.image})` }} />
           </div>
         </div>

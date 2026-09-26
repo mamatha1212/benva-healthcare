@@ -1,119 +1,261 @@
 .heroSection {
-  background: linear-gradient(-45deg, #f8fafc, #edf2f7, #e6fffa, #ebf8ff);
-  background-size: 400% 400%;
-  animation: gradientBG 15s ease infinite;
-  padding: 60px 0;
-  border-bottom: 1px solid #e2e8f0;
-}
-
-@keyframes gradientBG {
-  0% { background-position: 0% 50%; }
-  50% { background-position: 100% 50%; }
-  100% { background-position: 0% 50%; }
-}
-
-.heroContainer {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 0 24px;
-  display: grid;
-  grid-template-columns: 1.2fr 1fr;
-  gap: 48px;
-  align-items: center;
+  position: relative;
+  background: linear-gradient(135deg, #0f172a 0%, #02559d 50%, #0891B2 100%);
+  padding: 120px 24px 80px;
+  overflow: hidden;
+  text-align: center;
 }
 
 .heroContent {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
+  position: relative;
+  z-index: 2;
+  max-width: 900px;
+  margin: 0 auto;
+}
+
+.heroBadge {
+  display: inline-block;
+  background: rgba(6, 182, 212, 0.2);
+  border: 1px solid rgba(6, 182, 212, 0.5);
+  color: #67e8f9;
+  font-size: 14px;
+  font-weight: 700;
+  letter-spacing: 1px;
+  padding: 8px 20px;
+  border-radius: 50px;
+  margin-bottom: 24px;
+  text-transform: uppercase;
 }
 
 .heroTitle {
-  font-family: var(--font-heading);
-  color: var(--color-dark);
-  font-size: 42px;
+  font-size: clamp(40px, 6vw, 64px);
   font-weight: 900;
+  font-family: var(--font-heading);
+  color: #fff;
   line-height: 1.1;
-  margin: 0;
+  margin-bottom: 20px;
 }
 
 .heroSubtitle {
-  font-size: 20px;
-  line-height: 1.5;
-  color: #4a5568;
-  font-weight: 500;
-  margin: 0 0 16px 0;
+  font-size: 18px;
+  color: #cbd5e1;
+  line-height: 1.7;
+  margin-bottom: 48px;
+  font-weight: 400;
+  max-width: 620px;
+  margin-left: auto;
+  margin-right: auto;
 }
 
-.heroPricingCard {
-  background: #ffffff;
-  padding: 32px;
-  border-radius: 20px;
-  box-shadow: 0 20px 40px rgba(0,0,0,0.08);
-  border: 1px solid #edf2f7;
+/* Banner Section */
+.bannerContent {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  gap: 32px;
+  width: 100%;
 }
 
-.heroPriceLabel {
-  font-size: 14px;
+.pricingBox {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 16px;
+  padding: 24px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  backdrop-filter: blur(10px);
+}
+
+.annualText {
+  font-size: 16px;
   font-weight: 700;
-  color: #a0aec0;
+  letter-spacing: 2px;
+  color: #e2e8f0;
+  margin-bottom: 8px;
   text-transform: uppercase;
-  letter-spacing: 1px;
 }
 
-.heroPriceValue {
+.priceDisplay {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.amount {
+  font-size: 80px;
+  font-weight: 900;
+  color: #fbbf24;
+  line-height: 1;
+  text-shadow: 0 4px 12px rgba(0,0,0,0.3);
+}
+
+.perYear {
+  font-size: 18px;
+  font-weight: 700;
+  color: #e2e8f0;
+  text-transform: uppercase;
+}
+
+.dailyCost {
+  background: #fbbf24;
+  color: #0f172a;
+  padding: 6px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  font-weight: 800;
+  text-transform: uppercase;
+  margin-top: 12px;
+}
+
+.valueBox {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 24px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  color: #0f172a;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+}
+
+.actualPriceText {
+  font-size: 14px;
+  font-weight: 800;
+  color: #475569;
+  text-transform: uppercase;
+  margin-bottom: 4px;
+}
+
+.strikethroughPrice {
   font-size: 48px;
   font-weight: 900;
-  color: var(--color-primary);
-  font-family: var(--font-heading);
-  margin-top: 8px;
-  margin-bottom: 24px;
-}
-
-.heroPriceValue span {
-  font-size: 20px;
-  font-weight: 600;
-  color: #718096;
-}
-
-.heroHighlights {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 16px;
-  margin-bottom: 32px;
-}
-
-.heroHighlights div {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 600;
-  color: #2d3748;
-}
-
-.heroHighlights svg {
-  stroke: var(--color-primary);
-}
-
-.heroImageCol {
+  color: #0f172a;
   position: relative;
+  line-height: 1;
+  margin-bottom: 12px;
+}
+
+.saveBadge {
+  background: #fbbf24;
+  color: #0f172a;
+  padding: 8px 24px;
+  border-radius: 8px;
+  font-size: 18px;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.heroDecor {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  z-index: 1;
+}
+
+.circle1 {
+  position: absolute;
+  width: 500px;
   height: 500px;
-  border-radius: 24px;
-  overflow: hidden;
-  box-shadow: 0 24px 64px rgba(0,0,0,0.1);
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(6, 182, 212, 0.15) 0%, transparent 70%);
+  top: -150px;
+  right: -150px;
+}
+
+.circle2 {
+  position: absolute;
+  width: 350px;
+  height: 350px;
+  border-radius: 50%;
+  background: radial-gradient(circle, rgba(8, 145, 178, 0.12) 0%, transparent 70%);
+  bottom: -100px;
+  left: -80px;
+}
+
+.circle3 {
+  position: absolute;
+  width: 200px;
+  height: 200px;
+  border-radius: 50%;
+  border: 1px solid rgba(6, 182, 212, 0.2);
+  top: 40px;
+  left: 10%;
+  animation: floatCircle 8s ease-in-out infinite;
+}
+
+@keyframes floatCircle {
+  0%, 100% { transform: translateY(0px); }
+  50%       { transform: translateY(-20px); }
+}
+
+.cross1, .cross2 {
+  position: absolute;
+  width: 40px;
+  height: 40px;
+  opacity: 0.15;
+  animation: floatCircle 6s ease-in-out infinite;
+}
+
+.cross1::before, .cross1::after, .cross2::before, .cross2::after {
+  content: '';
+  position: absolute;
+  background: #06B6D4;
+  border-radius: 4px;
+}
+
+.cross1::before, .cross2::before {
+  top: 0; bottom: 0; left: 16px; right: 16px;
+}
+
+.cross1::after, .cross2::after {
+  left: 0; right: 0; top: 16px; bottom: 16px;
+}
+
+.cross1 {
+  top: 20%;
+  right: 15%;
+  transform: rotate(15deg);
+  animation-delay: 1s;
+}
+
+.cross2 {
+  bottom: 25%;
+  left: 15%;
+  transform: rotate(-15deg);
+  animation-delay: 2s;
+}
+
+.pill1 {
+  position: absolute;
+  width: 60px;
+  height: 24px;
+  border-radius: 12px;
+  background: linear-gradient(90deg, rgba(6, 182, 212, 0.2) 50%, rgba(255, 255, 255, 0.1) 50%);
+  top: 15%;
+  left: 20%;
+  transform: rotate(30deg);
+  animation: floatCircle 7s ease-in-out infinite;
+  animation-delay: 0.5s;
+}
+
+.heroImageWrapper {
+  margin-top: 60px;
+  display: flex;
+  justify-content: center;
 }
 
 .heroImage {
-  position: absolute;
-  inset: 0;
+  width: 100%;
+  max-width: 800px;
+  height: 400px;
+  border-radius: 24px;
   background-size: cover;
   background-position: center;
-  transition: transform 0.6s ease;
-}
-
-.heroImageCol:hover .heroImage {
-  transform: scale(1.05);
+  box-shadow: 0 24px 64px rgba(0,0,0,0.3);
+  border: 4px solid rgba(255, 255, 255, 0.1);
 }
 
 /* ── Main Content ── */
@@ -363,10 +505,55 @@
   }
 }
 
+@media (max-width: 768px) {
+  .bannerContent {
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .pricingBox, .valueBox {
+    width: 100%;
+    max-width: 320px;
+    padding: 16px 20px;
+    margin: 0 auto;
+  }
+
+  .amount {
+    font-size: 56px;
+  }
+
+  .strikethroughPrice {
+    font-size: 36px;
+  }
+
+  .annualText, .perYear {
+    font-size: 14px;
+  }
+
+  .dailyCost, .saveBadge {
+    padding: 6px 12px;
+    font-size: 12px;
+    margin-top: 8px;
+  }
+
+  .actualPriceText {
+    font-size: 12px;
+  }
+
+  .heroTitle {
+    font-size: clamp(32px, 8vw, 40px);
+  }
+  
+  .heroImage {
+    height: 300px;
+  }
+}
+
 @media (max-width: 640px) {
   .heroTitle {
     font-size: 32px;
   }
+
   
   .heroHighlights {
     grid-template-columns: 1fr;
