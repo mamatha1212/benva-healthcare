@@ -46,34 +46,57 @@ export default async function PackageDetailsPage({ params }: { params: Promise<{
 
         <div className={styles.heroContent}>
           <div className={styles.heroTextCol}>
-            <span className={styles.heroBadge}>🏥 BENVA OFFER PRICE</span>
+            <div className={styles.badgeRow}>
+              <span className={styles.heroBadge}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+                Verified by Doctors
+              </span>
+              <span className={styles.heroBadge}>
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                NABL Accredited
+              </span>
+            </div>
+            
             <h1 className={styles.heroTitle}>{pkg.title}</h1>
             <p className={styles.heroSubtitle}>{pkg.subtitle}</p>
             
-            <div className={styles.bannerContent}>
-              <div className={styles.pricingBox}>
-                <span className={styles.annualText}>EXCLUSIVE OFFER</span>
-                <div className={styles.priceDisplay}>
-                  <span className={styles.perYear}>₹</span>
-                  <span className={styles.amount}>{pkg.price}</span>
-                </div>
-                <div className={styles.dailyCost}>Only</div>
-              </div>
-
-              <div className={styles.valueBox}>
-                <span className={styles.actualPriceText}>Package Highlights</span>
-                <div className={styles.strikethroughPrice}>72+ Tests</div>
-                <div className={styles.saveBadge}>Home Collection</div>
-              </div>
+            <div className={styles.infoRow}>
+               <div className={styles.infoItem}>
+                 <span className={styles.infoLabel}>Total Parameters</span>
+                 <span className={styles.infoValue}>72+ Tests</span>
+               </div>
+               <div className={styles.infoDivider} />
+               <div className={styles.infoItem}>
+                 <span className={styles.infoLabel}>Report Time</span>
+                 <span className={styles.infoValue}>24 Hours</span>
+               </div>
+               <div className={styles.infoDivider} />
+               <div className={styles.infoItem}>
+                 <span className={styles.infoLabel}>Sample Collection</span>
+                 <span className={styles.infoValue}>Free Home Visit</span>
+               </div>
             </div>
-            
-            <div style={{ marginTop: '32px' }}>
-               <BookCheckupButton title={pkg.title} price={pkg.price} />
+
+            <div className={styles.priceActionRow}>
+              <div className={styles.priceCol}>
+                <span className={styles.originalPrice}>₹2999</span>
+                <span className={styles.currentPrice}>₹{pkg.price}</span>
+              </div>
+              <BookCheckupButton title={pkg.title} price={pkg.price} />
             </div>
           </div>
 
           <div className={styles.heroImageWrapper}>
             <div className={styles.heroImage} style={{ backgroundImage: `url(${pkg.image})` }} />
+            <div className={styles.floatingCard}>
+               <div className={styles.floatingIcon}>
+                 <svg width="20" height="20" viewBox="0 0 24 24" fill="#fbbf24" stroke="#fbbf24" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+               </div>
+               <div>
+                  <div className={styles.floatingTitle}>4.9/5</div>
+                  <div className={styles.floatingSub}>Patient Rating</div>
+               </div>
+            </div>
           </div>
         </div>
       </section>
