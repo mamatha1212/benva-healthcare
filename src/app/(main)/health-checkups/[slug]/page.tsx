@@ -118,7 +118,7 @@ export default async function PackageDetailsPage({ params }: { params: Promise<{
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="#10b981" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="20 6 9 17 4 12"></polyline>
                           </svg>
-                          {test.name} ({test.parameters.split(',').length})
+                          <span style={{ fontWeight: 900 }}>{test.name} ({test.parameters.split(',').length})</span>
                         </div>
                       </summary>
                       <div className={styles.testAccordionContent}>
@@ -136,7 +136,7 @@ export default async function PackageDetailsPage({ params }: { params: Promise<{
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="#10b981" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="20 6 9 17 4 12"></polyline>
                           </svg>
-                          {profile.name} ({profile.parameters.length})
+                          <span style={{ fontWeight: 900 }}>{profile.name} ({profile.parameters.length})</span>
                         </div>
                       </summary>
                       <div className={styles.testAccordionContent}>
