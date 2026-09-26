@@ -23,10 +23,10 @@ export const metadata: Metadata = {
     siteName: 'Benva Healthcare',
     images: [
       {
-        url: 'https://www.benvahealthcare.in/icon-512x512.png',
-        width: 512,
-        height: 512,
-        type: 'image/png',
+        url: 'https://www.benvahealthcare.in/og-image.jpg',
+        width: 1200,
+        height: 630,
+        type: 'image/jpeg',
         alt: 'Benva Healthcare Logo',
       },
     ],
@@ -34,10 +34,10 @@ export const metadata: Metadata = {
     type: 'website',
   },
   twitter: {
-    card: 'summary',
+    card: 'summary_large_image',
     title: 'Benva Healthcare — Healthcare At Your Doorstep',
     description: 'Making Quality Healthcare Accessible For Every Home',
-    images: ['https://www.benvahealthcare.in/icon-512x512.png'],
+    images: ['https://www.benvahealthcare.in/og-image.jpg'],
   },
   appleWebApp: {
     capable: true,
