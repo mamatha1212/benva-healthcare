@@ -563,7 +563,10 @@
 }
 
 @media (max-width: 768px) {
-  .heroImageWrapper {
+  .heroImageWrapper,
+  .pill1,
+  .cross1,
+  .cross2 {
     display: none;
   }
 
