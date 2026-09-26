@@ -115,7 +115,7 @@ export default async function PackageDetailsPage({ params }: { params: Promise<{
                     <details key={idx} className={styles.testAccordion}>
                       <summary className={styles.testAccordionSummary}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="#10b981" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="20 6 9 17 4 12"></polyline>
                           </svg>
                           {test.name} ({test.parameters.split(',').length})
@@ -133,7 +133,7 @@ export default async function PackageDetailsPage({ params }: { params: Promise<{
                     <details key={idx} className={styles.testAccordion}>
                       <summary className={styles.testAccordionSummary}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="#10b981" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                             <polyline points="20 6 9 17 4 12"></polyline>
                           </svg>
                           {profile.name} ({profile.parameters.length})
