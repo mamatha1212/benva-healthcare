@@ -114,7 +114,12 @@ export default async function PackageDetailsPage({ params }: { params: Promise<{
                   {pkg.tests && pkg.tests.length > 0 ? pkg.tests.map((test, idx) => (
                     <details key={idx} className={styles.testAccordion}>
                       <summary className={styles.testAccordionSummary}>
-                        {test.name} ({test.parameters.split(',').length})
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                          {test.name} ({test.parameters.split(',').length})
+                        </div>
                       </summary>
                       <div className={styles.testAccordionContent}>
                         <ul className={styles.testParamList}>
@@ -127,7 +132,12 @@ export default async function PackageDetailsPage({ params }: { params: Promise<{
                   )) : pkg.profiles && pkg.profiles.length > 0 ? pkg.profiles.map((profile, idx) => (
                     <details key={idx} className={styles.testAccordion}>
                       <summary className={styles.testAccordionSummary}>
-                        {profile.name} ({profile.parameters.length})
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                          </svg>
+                          {profile.name} ({profile.parameters.length})
+                        </div>
                       </summary>
                       <div className={styles.testAccordionContent}>
                         <ul className={styles.testParamList}>
