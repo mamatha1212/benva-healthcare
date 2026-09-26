@@ -36,7 +36,6 @@
   letter-spacing: 1.5px;
   padding: 8px 18px;
   border-radius: 100px;
-  margin-bottom: 24px;
   text-transform: uppercase;
 }
 
@@ -571,8 +570,8 @@
   .badgeRow {
     flex-direction: row;
     flex-wrap: wrap;
-    gap: 8px;
-    margin-bottom: 20px;
+    gap: 6px;
+    margin-bottom: 12px;
   }
 
   .heroBadge {
@@ -580,15 +579,20 @@
     padding: 6px 10px;
   }
 
+  .heroSubtitle {
+    margin-bottom: 20px;
+    font-size: 15px;
+  }
+
   .infoRow {
     flex-direction: column;
     align-items: center;
-    gap: 12px;
+    gap: 8px;
     padding: 0;
     background: transparent;
     border: none;
     margin-bottom: 16px;
-    margin-top: 24px;
+    margin-top: 0;
   }
 
   .infoItem {
@@ -596,7 +600,7 @@
     align-items: center;
     text-align: center;
     background: rgba(255, 255, 255, 0.05);
-    padding: 12px;
+    padding: 10px;
     border-radius: 12px;
   }
   
