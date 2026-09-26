@@ -338,26 +338,28 @@
 .testAccordion {
   background: #fff;
   border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border-radius: 8px;
   overflow: hidden;
-  transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.02);
+  transition: all 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
 
 .testAccordion[open] {
-  border-color: var(--color-primary);
-  box-shadow: 0 4px 16px rgba(0,0,0,0.06);
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
 }
 
 .testAccordionSummary {
-  color: #1a202c;
+  color: #334155;
   cursor: pointer;
   user-select: none;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 24px;
-  font-size: 16px;
+  padding: 18px 20px;
+  font-size: 14px;
   font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
   list-style: none;
   display: flex;
 }
@@ -369,17 +371,17 @@
 .testAccordionSummary::after {
   content: '';
   display: inline-block;
-  width: 10px;
-  height: 10px;
-  border-right: 2px solid #a0aec0;
-  border-bottom: 2px solid #a0aec0;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid #94a3b8;
+  border-bottom: 2px solid #94a3b8;
   transform: rotate(45deg);
-  transition: transform 0.3s ease;
+  transition: transform 0.2s ease;
 }
 
 .testAccordion[open] .testAccordionSummary::after {
   transform: rotate(-135deg);
-  border-color: var(--color-primary);
+  border-color: #64748b;
 }
 
 .testAccordionContent {
