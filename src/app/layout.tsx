@@ -6,11 +6,39 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  title: 'Benva Healthcare — Change A Life Today',
-  description:
-    'Join Benva Healthcare in our mission to provide food, shelter, education, and hope to communities in need. Every act of kindness brings us closer to a better world.',
-  keywords: 'healthcare, charity, donation, children, hope, community',
+  metadataBase: new URL('https://www.benvahealthcare.in'),
+  title: 'Benva Healthcare — Healthcare At Your Doorstep',
+  description: 'Making Quality Healthcare Accessible For Every Home',
+  keywords: 'healthcare, lab tests, medicines, home healthcare, health checkup, benva healthcare',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/icon-192x192.png',
+    shortcut: '/icon-192x192.png',
+    apple: '/icon-512x512.png',
+  },
+  openGraph: {
+    title: 'Benva Healthcare — Healthcare At Your Doorstep',
+    description: 'Making Quality Healthcare Accessible For Every Home',
+    url: 'https://www.benvahealthcare.in',
+    siteName: 'Benva Healthcare',
+    images: [
+      {
+        url: 'https://www.benvahealthcare.in/icon-512x512.png',
+        width: 512,
+        height: 512,
+        type: 'image/png',
+        alt: 'Benva Healthcare Logo',
+      },
+    ],
+    locale: 'en_IN',
+    type: 'website',
+  },
+  twitter: {
+    card: 'summary',
+    title: 'Benva Healthcare — Healthcare At Your Doorstep',
+    description: 'Making Quality Healthcare Accessible For Every Home',
+    images: ['https://www.benvahealthcare.in/icon-512x512.png'],
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'default',
