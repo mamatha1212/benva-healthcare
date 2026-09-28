@@ -158,3 +158,54 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Modal Responsive Classes */
+.modalContent {
+  padding: 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 32px;
+  background: #f8fafc;
+}
+
+.modalSection {
+  background: white;
+  padding: 32px;
+  border-radius: 16px;
+  box-shadow: 0 4px 6px -1px rgba(0,0,0,0.02), 0 2px 4px -2px rgba(0,0,0,0.02);
+  border: 1px solid #f1f5f9;
+}
+
+.modalGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+  gap: 24px;
+}
+
+.modalHeader {
+  background: linear-gradient(135deg, #f8fafc, #f1f5f9);
+  padding: 24px 32px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid #e2e8f0;
+  border-top-left-radius: 16px;
+  border-top-right-radius: 16px;
+}
+
+@media (max-width: 768px) {
+  .modalContent {
+    padding: 16px;
+    gap: 16px;
+  }
+  .modalSection {
+    padding: 20px 16px;
+  }
+  .modalGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .modalHeader {
+    padding: 20px 16px;
+  }
+}

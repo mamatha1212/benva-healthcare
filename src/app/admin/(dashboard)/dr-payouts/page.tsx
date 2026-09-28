@@ -29,12 +29,18 @@ export default function DrPayoutsPage() {
   }, []);
 
   useEffect(() => {
-    const stored = localStorage.getItem('drPayouts');
-    if (stored) {
+    const fetchPayouts = async () => {
       try {
-        setSavedPayouts(JSON.parse(stored));
-      } catch (e) {}
-    }
+        const res = await fetch('/api/payouts');
+        if (res.ok) {
+          const data = await res.json();
+          setSavedPayouts(data);
+        }
+      } catch (e) {
+        console.error('Failed to fetch payouts', e);
+      }
+    };
+    fetchPayouts();
   }, []);
 
   useEffect(() => {
@@ -51,28 +57,38 @@ export default function DrPayoutsPage() {
     }
   }, [isFormMode, isPreviewMode]);
 
-  const savePayout = () => {
-    let updated;
-    if (editingPayoutId) {
-      const updatedPayout = {
-        id: editingPayoutId,
-        ...formData,
-        records
-      };
-      updated = savedPayouts.map(p => p.id === editingPayoutId ? updatedPayout : p);
-    } else {
-      const newPayout = {
-        id: Date.now().toString(),
-        ...formData,
-        records
-      };
-      updated = [newPayout, ...savedPayouts];
+  const savePayout = async () => {
+    try {
+      let payoutData = { ...formData, records };
+      if (editingPayoutId) {
+        payoutData.id = editingPayoutId;
+      }
+      
+      const res = await fetch('/api/payouts', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payoutData)
+      });
+      
+      if (res.ok) {
+        const savedData = await res.json();
+        let updated;
+        if (editingPayoutId) {
+          updated = savedPayouts.map(p => p.id === editingPayoutId ? savedData : p);
+        } else {
+          updated = [savedData, ...savedPayouts];
+        }
+        setSavedPayouts(updated);
+        setEditingPayoutId(null);
+        setIsPreviewMode(false);
+        setIsFormMode(false);
+      } else {
+        alert('Failed to save payout');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('An error occurred while saving.');
     }
-    setSavedPayouts(updated);
-    localStorage.setItem('drPayouts', JSON.stringify(updated));
-    setEditingPayoutId(null);
-    setIsPreviewMode(false);
-    setIsFormMode(false);
   };
 
   const viewSavedPayout = (payout: any) => {
@@ -122,11 +138,20 @@ export default function DrPayoutsPage() {
     setDownloadingPayout(payout);
   };
 
-  const deletePayout = (id: string) => {
+  const deletePayout = async (id: string) => {
     if (!window.confirm('Do you want to delete are you sure?')) return;
-    const updated = savedPayouts.filter(p => p.id !== id);
-    setSavedPayouts(updated);
-    localStorage.setItem('drPayouts', JSON.stringify(updated));
+    try {
+      const res = await fetch(`/api/payouts/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        const updated = savedPayouts.filter(p => p.id !== id);
+        setSavedPayouts(updated);
+      } else {
+        alert('Failed to delete payout');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('An error occurred');
+    }
   };
 
   const [formData, setFormData] = useState({

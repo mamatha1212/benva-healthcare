@@ -16,7 +16,7 @@ export default function LeadSearch() {
   };
 
   return (
-    <div style={{ display: 'flex', gap: '6px', flex: '1 1 auto', maxWidth: '300px', marginLeft: '16px', marginRight: '16px' }}>
+    <div style={{ display: 'flex', gap: '6px', flex: '1 1 auto', width: '100%', minWidth: '200px' }}>
       <input 
         type="text" 
         placeholder="Search name or mobile..."

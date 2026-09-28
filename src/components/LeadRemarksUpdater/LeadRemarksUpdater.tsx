@@ -33,6 +33,7 @@ export default function LeadRemarksUpdater({ leadId, initialRemarks = '' }: { le
               minHeight: '60px',
               padding: '6px',
               fontSize: '12px',
+              fontFamily: 'inherit',
               borderRadius: '6px',
               border: '1px solid #cbd5e1',
               resize: 'vertical',

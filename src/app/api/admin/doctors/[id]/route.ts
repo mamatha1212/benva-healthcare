@@ -5,11 +5,11 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
   try {
     const { id } = await params;
     const body = await req.json();
-    const { name, type, phone } = body;
+    const { name, type, phone, email, password } = body;
 
     const doctor = await prisma.doctor.update({
       where: { id },
-      data: { name, type, phone }
+      data: { name, type, phone, email, password }
     });
 
     return NextResponse.json(doctor);

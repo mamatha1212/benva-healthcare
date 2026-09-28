@@ -6,6 +6,7 @@ import styles from './AdminLogin.module.css';
 import Image from 'next/image';
 
 export default function AdminLogin() {
+  const [role, setRole] = useState<'admin' | 'doctor'>('admin');
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -19,18 +20,21 @@ export default function AdminLogin() {
     setError('');
 
     try {
-      const res = await fetch('/api/admin/login', {
+      const endpoint = role === 'admin' ? '/api/admin/login' : '/api/doctor/login';
+      const payload = role === 'admin' ? { username, password } : { email: username, password };
+      
+      const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
-        router.push('/admin');
+        router.push(role === 'admin' ? '/admin' : '/doctor');
         router.refresh();
       } else {
         const data = await res.json();
-        setError(data.error || 'Invalid password');
+        setError(data.error || 'Invalid credentials');
       }
     } catch (err) {
       setError('Something went wrong. Please try again.');
@@ -49,14 +53,31 @@ export default function AdminLogin() {
           </svg>
         </div>
         
-        <h1 className={styles.title}>Admin Access</h1>
-        <p className={styles.subtitle}>Please enter your password to continue.</p>
+        <h1 className={styles.title}>Welcome Back</h1>
+        <p className={styles.subtitle}>Please login to access your dashboard.</p>
+
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', background: '#f1f5f9', padding: '4px', borderRadius: '8px' }}>
+          <button 
+            type="button"
+            onClick={() => { setRole('admin'); setError(''); }}
+            style={{ flex: 1, padding: '8px', borderRadius: '6px', border: 'none', background: role === 'admin' ? 'white' : 'transparent', color: role === 'admin' ? '#0f172a' : '#64748b', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', boxShadow: role === 'admin' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}
+          >
+            Admin
+          </button>
+          <button 
+            type="button"
+            onClick={() => { setRole('doctor'); setError(''); }}
+            style={{ flex: 1, padding: '8px', borderRadius: '6px', border: 'none', background: role === 'doctor' ? 'white' : 'transparent', color: role === 'doctor' ? '#0f172a' : '#64748b', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', boxShadow: role === 'doctor' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}
+          >
+            Doctor
+          </button>
+        </div>
 
         <form onSubmit={handleLogin} className={styles.form}>
           <div className={styles.inputGroup}>
             <input
               type="text"
-              placeholder="Username"
+              placeholder={role === 'admin' ? "Admin Username" : "Doctor Username"}
               value={username}
               onChange={(e) => setUsername(e.target.value)}
               className={styles.input}
@@ -66,7 +87,7 @@ export default function AdminLogin() {
           <div className={styles.inputGroup} style={{ position: 'relative' }}>
             <input
               type={showPassword ? 'text' : 'password'}
-              placeholder="Enter Admin Password"
+              placeholder="Enter Password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
               className={styles.input}
@@ -103,7 +124,7 @@ export default function AdminLogin() {
           {error && <div className={styles.error}>{error}</div>}
 
           <button type="submit" className={styles.submitBtn} disabled={isLoading || !password || !username}>
-            {isLoading ? 'Verifying...' : 'Login to Dashboard'}
+            {isLoading ? 'Verifying...' : `Login as ${role === 'admin' ? 'Admin' : 'Doctor'}`}
           </button>
         </form>
 
@@ -132,7 +153,7 @@ export default function AdminLogin() {
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '16px', height: '16px' }}>
               <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-3 3m0 0l-3-3m3 3V4" />
             </svg>
-            Install Admin App
+            Install App
           </button>
         </div>
       </div>

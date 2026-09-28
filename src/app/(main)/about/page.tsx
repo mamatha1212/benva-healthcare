@@ -3,6 +3,7 @@ import { Metadata } from 'next';
 import AboutHeroBanner from '@/components/AboutHeroBanner/AboutHeroBanner';
 import AboutStorySection from '@/components/AboutStorySection/AboutStorySection';
 import VisionMissionSection from '@/components/VisionMissionSection/VisionMissionSection';
+import DoctorSignupCallToAction from '@/components/DoctorSignupCallToAction/DoctorSignupCallToAction';
 
 export const metadata: Metadata = {
   title: 'About Us | BENVA Healthcare',
@@ -15,6 +16,7 @@ export default function AboutPage() {
       <AboutHeroBanner />
       <AboutStorySection />
       <VisionMissionSection />
+      <DoctorSignupCallToAction />
     </main>
   );
 }

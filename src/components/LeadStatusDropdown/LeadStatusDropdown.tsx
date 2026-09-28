@@ -17,7 +17,8 @@ const NORMAL_STATUS_OPTIONS = [
   "Call not pickup",
   "Not connected",
   "Not confirmed by user",
-  "Reminder"
+  "Reminder",
+  "Completed"
 ];
 
 export default function LeadStatusDropdown({ leadId, currentStatus, tab }: { leadId: string, currentStatus: string, tab?: string }) {
@@ -51,6 +52,7 @@ export default function LeadStatusDropdown({ leadId, currentStatus, tab }: { lea
       case "Not connected": return "#718096"; // Gray
       case "Not confirmed by user": return "#805ad5"; // Purple
       case "Reminder": return "#319795"; // Teal
+      case "Completed": return "#00b5d8"; // Cyan
       default: return "#4a5568";
     }
   };

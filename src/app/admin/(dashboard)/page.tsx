@@ -11,6 +11,7 @@ import LeadRemarksUpdater from '@/components/LeadRemarksUpdater/LeadRemarksUpdat
 import ServiceabilityCheck from '@/components/ServiceabilityCheck/ServiceabilityCheck';
 import AdminAddLeadButton from '@/components/AdminAddLeadButton/AdminAddLeadButton';
 import LeadsTableClient from './LeadsTableClient';
+import DoctorApplicationsTableClient from './DoctorApplicationsTableClient';
 import ClientPayoutCount from './ClientPayoutCount';
 
 import LeadsChart from './LeadsChart';
@@ -70,6 +71,46 @@ export default async function AdminDashboard({
   const totalPatients = await prisma.patientRecord.count();
   const totalReports = await prisma.reportFile.count();
   const totalDoctors = await prisma.doctor.count();
+
+  let allDoctorApplications: any[] = [];
+  if (tab === 'doctor-applications') {
+    allDoctorApplications = await prisma.doctorApplication.findMany({
+      orderBy: { createdAt: 'desc' }
+    });
+
+    if (statusFilter !== 'all') {
+      allDoctorApplications = allDoctorApplications.filter(app => app.status === statusFilter);
+    }
+
+    if (stateFilter !== 'all') {
+      allDoctorApplications = allDoctorApplications.filter(app => app.state === stateFilter);
+    }
+
+    if (districtFilter !== 'all') {
+      allDoctorApplications = allDoctorApplications.filter(app => app.city === districtFilter); // Assuming city maps to district for doctors
+    }
+
+    if (searchFilter) {
+      const searchLower = searchFilter.toLowerCase();
+      allDoctorApplications = allDoctorApplications.filter(app => 
+        (app.fullName?.toLowerCase().includes(searchLower)) ||
+        (app.mobile?.toLowerCase().includes(searchLower)) ||
+        (app.email?.toLowerCase().includes(searchLower))
+      );
+    }
+
+    if (yearFilter !== 'all') {
+      allDoctorApplications = allDoctorApplications.filter(app => new Date(app.createdAt).getFullYear().toString() === yearFilter);
+    }
+
+    if (monthFilter !== 'all') {
+      allDoctorApplications = allDoctorApplications.filter(app => String(new Date(app.createdAt).getMonth() + 1).padStart(2, '0') === monthFilter);
+    }
+
+    if (dateFilter !== 'all') {
+      allDoctorApplications = allDoctorApplications.filter(app => new Date(app.createdAt).toISOString().split('T')[0] === dateFilter);
+    }
+  }
 
   // Bypass Prisma Client cache lock to fetch the newly added 'remarks' column
   let rawRemarks: any[] = [];
@@ -156,6 +197,11 @@ export default async function AdminDashboard({
 
   const paginatedLeads = filteredLeads.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
+  const paginatedDoctorApps = tab === 'doctor-applications' 
+    ? allDoctorApplications.slice((currentPage - 1) * pageSize, currentPage * pageSize) 
+    : [];
+  const totalDoctorAppsPages = Math.ceil(allDoctorApplications.length / pageSize) || 1;
+
   const statusCounts = await prisma.lead.groupBy({
     by: ['status'],
     where: baseWhereClause,
@@ -189,11 +235,12 @@ export default async function AdminDashboard({
     if (tab === 'contact') return 'Contact Messages';
     if (tab === 'callback') return 'Callback Requests';
     if (tab === 'diet-plan') return 'Diet Plan Leads';
+    if (tab === 'doctor-applications') return 'Doctor Applications';
     return 'All Leads';
   };
 
   return (
-    <div className={styles.container}>
+    <div className={styles.container} style={{ paddingBottom: '100px' }}>
       
       {/* UPCOMING REMINDERS */}
       {upcomingReminders.length > 0 && (
@@ -263,9 +310,9 @@ export default async function AdminDashboard({
       )}
 
       {/* Status Metrics Row for Specific Tabs */}
-      {tab !== 'all' && tab !== 'availability' && tab !== 'checkups' && tab !== 'contact' && tab !== 'callback' && tab !== 'diet-plan' && (
+      {tab !== 'all' && tab !== 'availability' && tab !== 'checkups' && tab !== 'contact' && tab !== 'callback' && tab !== 'diet-plan' && tab !== 'doctor-applications' && (
       <div className={styles.metricsGrid} style={{ marginBottom: '28px' }}>
-        {["All", "New Lead", "Interested", "Not Interested", "Call not pickup", "Not connected", "Not confirmed by user"].map(status => {
+        {["All", "New Lead", "Interested", "Not Interested", "Call not pickup", "Not connected", "Not confirmed by user", "Completed"].map(status => {
           let color = "#3182ce";
           let bgColor = "#ebf8ff";
           if (status === "All") { color = "#475569"; bgColor = "#f8fafc"; }
@@ -274,6 +321,7 @@ export default async function AdminDashboard({
           else if (status === "Call not pickup") { color = "#dd6b20"; bgColor = "#fffff0"; }
           else if (status === "Not connected") { color = "#718096"; bgColor = "#edf2f7"; }
           else if (status === "Not confirmed by user") { color = "#805ad5"; bgColor = "#faf5ff"; }
+          else if (status === "Completed") { color = "#00b5d8"; bgColor = "#e6fffa"; }
           
           const newParams = new URLSearchParams();
           if (tab !== 'all') newParams.set('tab', tab);
@@ -336,44 +384,71 @@ export default async function AdminDashboard({
         <>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '16px' }}>
             
-            {/* Top Row: Title, Search, and Actions */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
-              <div className={styles.header} style={{ marginBottom: 0, flexShrink: 1, minWidth: 0, overflow: 'hidden' }}>
-                <h1 className={styles.title} style={{ marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-                  {tab === 'availability' ? `${stateFilter} Enquiries` : getTabTitle()}
-                </h1>
-                <p className={styles.subtitle} style={{ margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>Showing {paginatedLeads.length} of {totalLeads} total entries.</p>
+            {/* Top Row: Title, Actions, then Search */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '8px' }}>
+              
+              {/* Header Group */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', width: '100%', gap: '12px', flexWrap: 'nowrap' }}>
+                <div className={styles.header} style={{ marginBottom: 0, flexShrink: 1, minWidth: 0, overflow: 'hidden' }}>
+                  <h1 className={styles.title} style={{ marginBottom: '4px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    {tab === 'availability' ? `${stateFilter} Enquiries` : getTabTitle()}
+                  </h1>
+                  <p className={styles.subtitle} style={{ margin: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                    Showing {tab === 'doctor-applications' ? paginatedDoctorApps.length : paginatedLeads.length} of {tab === 'doctor-applications' ? allDoctorApplications.length : totalLeads} total entries.
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexShrink: 0, marginTop: '2px' }}>
+                  {tab === 'checkups' && <AdminAddLeadButton availablePackages={allPackages as any[]} />}
+                  <ImportExportButtons />
+                </div>
               </div>
 
               {/* Search Bar */}
-              <div style={{ flex: '1 1 auto', display: 'flex', justifyContent: 'center' }}>
+              <div style={{ flex: '1 1 100%', display: 'flex', justifyContent: 'center', margin: '4px 0 8px 0' }}>
                 <LeadSearch />
-              </div>
-
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                {tab === 'checkups' && <AdminAddLeadButton availablePackages={allPackages as any[]} />}
-                <ImportExportButtons />
               </div>
             </div>
 
             {/* Bottom Row: Filters Section */}
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', width: '100%' }}>
               <LeadsFilters 
-                availableStates={Array.from(new Set(allLeads.map(l => l.state).filter(s => s && s !== 'N/A' && s !== 'Not Listed')))}
-                availableDistricts={Array.from(new Set(allLeads.filter(l => stateFilter === 'all' || l.state === stateFilter).map(l => l.district).filter(d => d && d !== 'N/A' && d !== 'Not Listed')))} 
+                availableStates={Array.from(new Set(
+                  tab === 'doctor-applications' 
+                  ? allDoctorApplications.map(a => a.state).filter(s => s && s !== 'N/A' && s !== 'Not Listed')
+                  : allLeads.map(l => l.state).filter(s => s && s !== 'N/A' && s !== 'Not Listed')
+                ))}
+                availableDistricts={Array.from(new Set(
+                  tab === 'doctor-applications'
+                  ? allDoctorApplications.filter(a => stateFilter === 'all' || a.state === stateFilter).map(a => a.city).filter(d => d && d !== 'N/A' && d !== 'Not Listed')
+                  : allLeads.filter(l => stateFilter === 'all' || l.state === stateFilter).map(l => l.district).filter(d => d && d !== 'N/A' && d !== 'Not Listed')
+                ))} 
                 availablePackages={Array.from(new Set([
                   ...allPackages.map(p => p.title),
                   ...allLeads.filter(l => l.enquiryType === 'HEALTH_CHECKUP' && l.package).map(l => l.package as string)
                 ]))}
-                availableYears={Array.from(new Set(allLeads.map(l => new Date(l.createdAt).getFullYear().toString()))).sort().reverse()}
+                availableYears={Array.from(new Set(
+                  (tab === 'doctor-applications' ? allDoctorApplications : allLeads)
+                  .map(l => new Date(l.createdAt).getFullYear().toString())
+                )).sort().reverse()}
               />
             </div>
 
           </div>
 
           <div className={styles.tableContainer}>
-            {paginatedLeads.length === 0 ? (
+            {tab === 'doctor-applications' ? (
+              paginatedDoctorApps.length === 0 ? (
+                <div className={styles.emptyState}>No doctor applications found.</div>
+              ) : (
+                <DoctorApplicationsTableClient 
+                  applications={paginatedDoctorApps} 
+                  currentPage={currentPage} 
+                  pageSize={pageSize} 
+                />
+              )
+            ) : paginatedLeads.length === 0 ? (
               <div className={styles.emptyState}>No leads found for this category.</div>
             ) : (
               <LeadsTableClient 
@@ -385,7 +460,7 @@ export default async function AdminDashboard({
             )}
           </div>
           
-          <LeadsPagination currentPage={currentPage} totalPages={totalPages} />
+          <LeadsPagination currentPage={currentPage} totalPages={tab === 'doctor-applications' ? totalDoctorAppsPages : totalPages} />
         </>
       )}
     </div>

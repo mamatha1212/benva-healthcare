@@ -23,12 +23,18 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
         <select 
           value={searchParams.get('status') || 'all'}
           onChange={(e) => updateParams('status', e.target.value)}
-          style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: '1 1 120px', minWidth: '0' }}
+          style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: '0 0 calc(50% - 4px)', minWidth: '0' }}
         >
           <option value="all">All Statuses</option>
-          <option value="New Lead">New Lead</option>
-          {searchParams.get('tab') === 'callback' ? (
+          {searchParams.get('tab') === 'doctor-applications' ? (
             <>
+              <option value="PENDING">PENDING</option>
+              <option value="ACCEPTED">ACCEPTED</option>
+              <option value="REJECTED">REJECTED</option>
+            </>
+          ) : searchParams.get('tab') === 'callback' ? (
+            <>
+              <option value="New Lead">New Lead</option>
               <option value="Call Done">Call Done</option>
               <option value="Call not pickup">Call not pickup</option>
               <option value="Not connected">Not connected</option>
@@ -36,12 +42,14 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
             </>
           ) : (
             <>
+              <option value="New Lead">New Lead</option>
               <option value="Interested">Interested</option>
               <option value="Not Interested">Not Interested</option>
               <option value="Call not pickup">Call not pickup</option>
               <option value="Not connected">Not connected</option>
               <option value="Not confirmed by user">Not confirmed by user</option>
               <option value="Reminder">Reminder</option>
+              <option value="Completed">Completed</option>
             </>
           )}
         </select>
@@ -51,7 +59,7 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
         <select 
           value={searchParams.get('membershipType') || 'all'}
           onChange={(e) => updateParams('membershipType', e.target.value)}
-          style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: '1 1 120px', minWidth: '0' }}
+          style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: '0 0 calc(50% - 4px)', minWidth: '0' }}
         >
           <option value="all">All Memberships</option>
           <option value="Individual Membership">Individual</option>
@@ -63,7 +71,7 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
         <select 
           value={searchParams.get('state') || 'all'}
           onChange={(e) => updateParams('state', e.target.value)}
-          style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: '1 1 120px', minWidth: '0' }}
+          style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: '0 0 calc(50% - 4px)', minWidth: '0' }}
         >
           <option value="all">All States</option>
           {availableStates.sort().map(s => (
@@ -76,7 +84,7 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
         <select 
           value={searchParams.get('district') || 'all'}
           onChange={(e) => updateParams('district', e.target.value)}
-          style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: '1 1 120px', minWidth: '0' }}
+          style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: '0 0 calc(50% - 4px)', minWidth: '0' }}
         >
           <option value="all">All Districts</option>
           {availableDistricts.sort().map(d => (
@@ -89,7 +97,7 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
         <select 
           value={searchParams.get('package') || 'all'}
           onChange={(e) => updateParams('package', e.target.value)}
-          style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: '1 1 120px', minWidth: '0' }}
+          style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: '0 0 calc(50% - 4px)', minWidth: '0' }}
         >
           <option value="all">All Packages</option>
           {availablePackages.sort().map(p => (
@@ -102,7 +110,7 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
       <select 
         value={searchParams.get('year') || 'all'}
         onChange={(e) => updateParams('year', e.target.value)}
-        style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: '1 1 120px', minWidth: '0' }}
+        style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: '0 0 calc(50% - 4px)', minWidth: '0' }}
       >
         <option value="all">All Years</option>
         {availableYears.map(y => (
@@ -114,7 +122,7 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
       <select 
         value={searchParams.get('month') || 'all'}
         onChange={(e) => updateParams('month', e.target.value)}
-        style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: '1 1 120px', minWidth: '0' }}
+        style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: '0 0 calc(50% - 4px)', minWidth: '0' }}
       >
         <option value="all">All Months</option>
         <option value="01">January</option>
@@ -135,7 +143,7 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
         type="date"
         value={searchParams.get('date') || ''}
         onChange={(e) => updateParams('date', e.target.value)}
-        style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: '1 1 140px', minWidth: '0' }}
+        style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: '0 0 calc(50% - 4px)', minWidth: '0' }}
         title="Filter by Specific Date"
       />
     </>

@@ -172,6 +172,7 @@ model PatientFile {
   fileUrl   String
   fileName  String
   fileType  String        // e.g., 'PRESCRIPTION', 'BILL', 'REPORT'
+  status    String        @default("DRAFT") // 'DRAFT' or 'SUBMITTED'
   createdAt DateTime      @default(now())
 }
 
@@ -216,6 +217,8 @@ model Doctor {
   name      String
   type      String   // 'CONSULTANT' or 'DIETICIAN'
   phone     String?
+  email     String?  @unique
+  password  String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 }
@@ -243,4 +246,61 @@ model ReportFile {
   reminderDate  DateTime?
 
   createdAt    DateTime @default(now())
+}
+
+model DoctorApplication {
+  id                    String   @id @default(cuid())
+  fullName              String
+  title                 String
+  gender                String
+  dob                   String
+  mobile                String
+  email                 String
+  address               String
+  city                  String
+  state                 String
+  photoUrl              String?
+  medicalQualification  String
+  medicalCollege        String
+  yearOfGraduation      String
+  yearOfPostGraduation  String?
+  medicalCouncilReg     String
+  registeringAuthority  String
+  registrationStatus    String
+  primarySpecialization String
+  secondarySpecialization String?
+  clinicalFocus         String?
+  experience            String
+  languages             String
+  telemedicine          Boolean
+  documents             Json?
+  accountName           String
+  bankName              String
+  accountNumber         String
+  ifscCode              String
+  panNumber             String
+  branchName            String
+  signatureName         String
+  signatureDate         String
+  status                String   @default("PENDING")
+  createdAt             DateTime @default(now())
+  updatedAt             DateTime @updatedAt
+}
+
+model DrPayout {
+  id                          String   @id @default(cuid())
+  consultingDoctor            String
+  consultationMode            String?
+  reportingPeriod             String?
+  year                        String?
+  totalPatientsConsulted      Int?     @default(0)
+  totalConsultationsCompleted Int?     @default(0)
+  totalPayoutAmount           Float?   @default(0)
+  payoutDate                  String?
+  paymentMode                 String?
+  transactionReferenceNo      String?
+  paymentScreenshotUrl        String?
+  records                     Json?
+  createdAt                   DateTime @default(now())
+  updatedAt                   DateTime @updatedAt
 }

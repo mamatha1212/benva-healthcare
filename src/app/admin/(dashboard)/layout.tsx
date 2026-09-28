@@ -95,6 +95,21 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
           Callback Requests
         </Link>
 
+        <Link 
+          href="/admin?tab=doctor-applications" 
+          className={`${styles.navItem} ${searchParams.get('tab') === 'doctor-applications' && !usePathname().includes('/packages') ? styles.active : ''}`}
+        >
+          <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
+            <rect x="8" y="2" width="8" height="4" rx="1" ry="1"></rect>
+            <path d="M12 11h4"></path>
+            <path d="M12 16h4"></path>
+            <path d="M8 11h.01"></path>
+            <path d="M8 16h.01"></path>
+          </svg>
+          Doctor Applications
+        </Link>
+
 
         <p className={styles.navHeader} style={{ marginTop: '24px' }}>MANAGE DOCTORS</p>
         <Link 
@@ -122,6 +137,25 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
             <path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
           </svg>
           Dr Payouts
+        </Link>
+        <Link 
+          href="/admin/prescriptions" 
+          onClick={(e) => {
+            if (window.location.pathname === '/admin/prescriptions') {
+              e.preventDefault();
+              window.location.href = '/admin/prescriptions';
+            }
+          }}
+          className={`${styles.navItem} ${usePathname().includes('/admin/prescriptions') ? styles.active : ''}`}
+        >
+          <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+            <polyline points="14 2 14 8 20 8" />
+            <line x1="16" y1="13" x2="8" y2="13" />
+            <line x1="16" y1="17" x2="8" y2="17" />
+            <polyline points="10 9 9 9 8 9" />
+          </svg>
+          Prescriptions
         </Link>
 
         <p className={styles.navHeader} style={{ marginTop: '24px' }}>REPORT MANAGEMENT</p>
@@ -271,10 +305,9 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 <line x1="3" y1="18" x2="21" y2="18"></line>
               </svg>
             </button>
-            <div className={styles.breadcrumb}>
-              <span>Admin</span>
-              <span className={styles.separator}>/</span>
-              <span className={styles.current}>Leads Dashboard</span>
+            <div className={styles.breadcrumb} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', gap: '2px', marginLeft: '12px', lineHeight: '1.2' }}>
+              <span style={{ fontSize: '18px', fontWeight: '900', letterSpacing: '0.5px', color: '#0f172a' }}>ADMIN</span>
+              <span className={styles.current} style={{ fontSize: '12px', color: '#64748b', fontWeight: '500' }}>Leads Dashboard</span>
             </div>
           </div>
           <div className={styles.userProfile}>
