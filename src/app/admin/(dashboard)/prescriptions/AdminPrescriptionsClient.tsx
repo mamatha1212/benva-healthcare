@@ -455,7 +455,7 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                         const html2pdf = (await import('html2pdf.js')).default;
                         
                         const opt = {
-                          margin:       [15, 0, 15, 0],
+                          margin:       [15, 0, 15, 0] as [number, number, number, number],
                           filename:     `prescription_${viewingFile?.fileInfo?.patient?.name || 'details'}.pdf`,
                           image:        { type: 'jpeg' as const, quality: 0.98 },
                           html2canvas:  { scale: 2, useCORS: true },

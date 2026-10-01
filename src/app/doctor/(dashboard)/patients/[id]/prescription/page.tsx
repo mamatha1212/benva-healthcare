@@ -397,7 +397,7 @@ export default function PrescriptionPage() {
         const html2pdf = (await import('html2pdf.js')).default;
         
         const opt = {
-          margin:       [10, 0, 10, 0],
+          margin:       [10, 0, 10, 0] as [number, number, number, number],
           filename:     `${formData.patientName || 'Patient'}_${formData.patientUhid ? formData.patientUhid.replace(/BENVA-UHID-0+/, 'BENVA-UHID-') : 'PENDING'}.pdf`,
           image:        { type: 'jpeg' as const, quality: 0.98 },
           html2canvas:  { scale: 2, useCORS: true },
@@ -423,7 +423,7 @@ export default function PrescriptionPage() {
         const html2pdf = (await import('html2pdf.js')).default;
         
         const opt = {
-          margin:       [10, 0, 10, 0],
+          margin:       [10, 0, 10, 0] as [number, number, number, number],
           filename:     `${formData.patientName || 'Patient'}_${formData.patientUhid ? formData.patientUhid.replace(/BENVA-UHID-0+/, 'BENVA-UHID-') : 'PENDING'}.pdf`,
           image:        { type: 'jpeg' as const, quality: 0.98 },
           html2canvas:  { scale: 2, useCORS: true },
