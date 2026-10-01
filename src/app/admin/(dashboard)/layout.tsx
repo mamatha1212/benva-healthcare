@@ -40,7 +40,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
           </svg>
         </button>
       </div>
-      
+
       <nav className={styles.nav}>
         <p className={styles.navHeader}>ALL LEADS</p>
         {navItems.map((item) => {
@@ -63,9 +63,9 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
             </Link>
           );
         })}
-        
-        <Link 
-          href="/admin?tab=availability" 
+
+        <Link
+          href="/admin?tab=availability"
           className={`${styles.navItem} ${searchParams.get('tab') === 'availability' && !usePathname().includes('/packages') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -75,8 +75,8 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
           Area Enquiries
         </Link>
 
-        <Link 
-          href="/admin?tab=contact" 
+        <Link
+          href="/admin?tab=contact"
           className={`${styles.navItem} ${searchParams.get('tab') === 'contact' && !usePathname().includes('/packages') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -85,8 +85,8 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
           Contact Messages
         </Link>
 
-        <Link 
-          href="/admin?tab=callback" 
+        <Link
+          href="/admin?tab=callback"
           className={`${styles.navItem} ${searchParams.get('tab') === 'callback' && !usePathname().includes('/packages') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -95,8 +95,8 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
           Callback Requests
         </Link>
 
-        <Link 
-          href="/admin?tab=doctor-applications" 
+        <Link
+          href="/admin?tab=doctor-applications"
           className={`${styles.navItem} ${searchParams.get('tab') === 'doctor-applications' && !usePathname().includes('/packages') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -112,8 +112,8 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
 
 
         <p className={styles.navHeader} style={{ marginTop: '24px' }}>MANAGE DOCTORS</p>
-        <Link 
-          href="/admin/manage-doctors" 
+        <Link
+          href="/admin/manage-doctors"
           className={`${styles.navItem} ${usePathname().includes('/admin/manage-doctors') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -122,8 +122,8 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
           </svg>
           Manage Doctors
         </Link>
-        <Link 
-          href="/admin/dr-payouts" 
+        <Link
+          href="/admin/dr-payouts"
           onClick={(e) => {
             if (window.location.pathname === '/admin/dr-payouts') {
               e.preventDefault();
@@ -138,8 +138,8 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
           </svg>
           Dr Payouts
         </Link>
-        <Link 
-          href="/admin/prescriptions" 
+        <Link
+          href="/admin/prescriptions"
           onClick={(e) => {
             if (window.location.pathname === '/admin/prescriptions') {
               e.preventDefault();
@@ -159,8 +159,8 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
         </Link>
 
         <p className={styles.navHeader} style={{ marginTop: '24px' }}>REPORT MANAGEMENT</p>
-        <Link 
-          href="/admin/reports" 
+        <Link
+          href="/admin/reports"
           onClick={(e) => {
             if (window.location.pathname === '/admin/reports') {
               e.preventDefault();
@@ -180,8 +180,8 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
         </Link>
 
         <p className={styles.navHeader} style={{ marginTop: '24px' }}>MANAGE CONTENT</p>
-        <Link 
-          href="/admin/packages" 
+        <Link
+          href="/admin/packages"
           className={`${styles.navItem} ${usePathname().includes('/admin/packages') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -191,8 +191,8 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
           Add Health Checkups Options
         </Link>
 
-        <Link 
-          href="/admin/diet-plans" 
+        <Link
+          href="/admin/diet-plans"
           className={`${styles.navItem} ${usePathname().includes('/admin/diet-plans') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -201,8 +201,8 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
           Add Diet Plans Options
         </Link>
 
-        <Link 
-          href="/admin/tests" 
+        <Link
+          href="/admin/tests"
           className={`${styles.navItem} ${usePathname().includes('/admin/tests') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -212,9 +212,9 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
           </svg>
           Manage Tests
         </Link>
-        
-        <Link 
-          href="/admin/locations" 
+
+        <Link
+          href="/admin/locations"
           className={`${styles.navItem} ${usePathname().includes('/admin/locations') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -223,9 +223,9 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
           </svg>
           Manage Service Locations
         </Link>
-        
-        <Link 
-          href="/admin/pages" 
+
+        <Link
+          href="/admin/pages"
           className={`${styles.navItem} ${usePathname().includes('/admin/pages') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -237,9 +237,9 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
           </svg>
           Manage Static Pages
         </Link>
-        
-        <Link 
-          href="/admin/service-areas" 
+
+        <Link
+          href="/admin/service-areas"
           className={`${styles.navItem} ${usePathname().includes('/admin/service-areas') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -251,12 +251,12 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
       </nav>
 
       <div className={styles.sidebarFooter}>
-        <button 
+        <button
           onClick={() => {
             if (typeof window !== 'undefined' && (window as any).triggerPWAInstall) {
               (window as any).triggerPWAInstall();
             }
-          }} 
+          }}
           className={styles.logoutBtn}
           style={{ marginBottom: '12px' }}
         >
@@ -288,7 +288,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       {isMobileMenuOpen && (
         <div className={styles.overlay} onClick={closeMobileMenu} />
       )}
-      
+
       {/* Sidebar with Suspense boundary for useSearchParams */}
       <Suspense fallback={<aside className={styles.sidebar}>Loading...</aside>}>
         <SidebarContent isOpen={isMobileMenuOpen} onClose={closeMobileMenu} />
