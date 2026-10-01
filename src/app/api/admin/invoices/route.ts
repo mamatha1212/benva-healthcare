@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { generateNextUhid } from '@/lib/uhid';
 
 export async function GET(req: NextRequest) {
   try {
@@ -30,44 +31,51 @@ export async function POST(req: NextRequest) {
     if (patientId) {
       const existingPatient = await prisma.patientRecord.findUnique({ where: { id: patientId } });
       if (!existingPatient) {
+        const nextUhid = await generateNextUhid();
         try {
           await prisma.patientRecord.create({
             data: {
               id: patientId,
               name: patientName || 'Unknown',
               phone: patientPhone || 'Unknown',
-              address, age, gender, consultant
+              address, age, gender, consultant,
+              uhid: nextUhid
             }
           });
         } catch (e) {
-          // If creation fails (e.g., ID format issue), create a new one without forcing the ID
           const newP = await prisma.patientRecord.create({
             data: {
               name: patientName || 'Unknown',
               phone: patientPhone || 'Unknown',
-              address, age, gender, consultant
+              address, age, gender, consultant,
+              uhid: nextUhid
             }
           });
           actualPatientId = newP.id;
         }
       } else {
-        // Update existing patient with any newly provided details
-        await prisma.patientRecord.update({
-          where: { id: patientId },
-          data: {
+        const updateData: any = {
             address: address || existingPatient.address,
             age: age || existingPatient.age,
             gender: gender || existingPatient.gender,
             consultant: consultant || existingPatient.consultant
-          }
+        };
+        if (!existingPatient.uhid) {
+           updateData.uhid = await generateNextUhid();
+        }
+        await prisma.patientRecord.update({
+          where: { id: patientId },
+          data: updateData
         });
       }
     } else {
+      const nextUhid = await generateNextUhid();
       const newP = await prisma.patientRecord.create({
         data: {
           name: patientName || 'Unknown',
           phone: patientPhone || 'Unknown',
-          address, age, gender, consultant
+          address, age, gender, consultant,
+          uhid: nextUhid
         }
       });
       actualPatientId = newP.id;

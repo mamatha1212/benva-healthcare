@@ -59,7 +59,7 @@ export default function DrPayoutsPage() {
 
   const savePayout = async () => {
     try {
-      let payoutData = { ...formData, records };
+      let payoutData: any = { ...formData, records };
       if (editingPayoutId) {
         payoutData.id = editingPayoutId;
       }

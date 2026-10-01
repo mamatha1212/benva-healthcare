@@ -16,14 +16,24 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, type, phone, email, password } = body;
+    const { name, type, phone, email, password, qualification, speciality, medicalCouncilReg, signature } = body;
 
     if (!name || !type) {
       return NextResponse.json({ error: 'Name and type are required' }, { status: 400 });
     }
 
     const doctor = await prisma.doctor.create({
-      data: { name, type, phone, email, password }
+      data: { 
+        name, 
+        type, 
+        phone: phone || null, 
+        email: email || null, 
+        password: password || null, 
+        qualification: qualification || null, 
+        speciality: speciality || null, 
+        medicalCouncilReg: medicalCouncilReg || null, 
+        signature: signature || null 
+      }
     });
 
     return NextResponse.json(doctor);

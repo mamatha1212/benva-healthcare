@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
+import { generateNextUhid } from '@/lib/uhid';
 
 export async function POST(req: NextRequest) {
   try {
@@ -22,15 +23,31 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Name and phone are required' }, { status: 400 });
     }
 
-    const patient = await prisma.patientRecord.create({
-      data: {
-        name,
-        phone,
-        age,
-        gender,
-        consultant
-      }
+    let patient = await prisma.patientRecord.findFirst({
+      where: { name, phone }
     });
+
+    if (patient) {
+      if (!patient.uhid) {
+        const nextUhid = await generateNextUhid();
+        patient = await prisma.patientRecord.update({
+          where: { id: patient.id },
+          data: { uhid: nextUhid, age: age || patient.age, gender: gender || patient.gender, consultant: consultant || patient.consultant }
+        });
+      }
+    } else {
+      const nextUhid = await generateNextUhid();
+      patient = await prisma.patientRecord.create({
+        data: {
+          name,
+          phone,
+          age,
+          gender,
+          consultant,
+          uhid: nextUhid
+        }
+      });
+    }
 
     return NextResponse.json(patient);
   } catch (error: any) {

@@ -412,7 +412,7 @@ export default async function AdminDashboard({
             </div>
 
             {/* Bottom Row: Filters Section */}
-            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap', width: '100%' }}>
+            <div className={styles.filtersContainer}>
               <LeadsFilters 
                 availableStates={Array.from(new Set(
                   tab === 'doctor-applications' 

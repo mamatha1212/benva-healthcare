@@ -17,7 +17,17 @@ export async function POST(request: Request) {
     }
 
     // Process files
-    const uploadPromises = fileKeys.map(async ({ key, name }) => {
+    const fileKeys = [
+      { key: 'doc_passport_photo', name: 'passportPhotoUrl' },
+      { key: 'doc_gov_id', name: 'govIdUrl' },
+      { key: 'doc_mbbs', name: 'mbbsUrl' },
+      { key: 'doc_pg', name: 'pgUrl' },
+      { key: 'doc_med_reg', name: 'medRegUrl' },
+      { key: 'doc_pan', name: 'panUrl' },
+      { key: 'doc_bank', name: 'bankDetailsUrl' }
+    ];
+    
+    const uploadPromises = fileKeys.map(async ({ key, name }: { key: string, name: string }) => {
       const file = formData.get(key) as File;
       if (file && file.size > 0 && file.name) {
         const ext = path.extname(file.name) || '.pdf';
@@ -38,7 +48,7 @@ export async function POST(request: Request) {
     });
 
     const uploadedDocs = await Promise.all(uploadPromises);
-    const documents = uploadedDocs.filter(doc => doc !== null) as { name: string; url: string }[];
+    const documents = uploadedDocs.filter((doc: any) => doc !== null) as { name: string; url: string }[];
     
     const application = await prisma.doctorApplication.create({
       data: {

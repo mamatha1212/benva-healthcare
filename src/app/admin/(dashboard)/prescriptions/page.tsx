@@ -11,5 +11,15 @@ export default async function AdminPrescriptionsPage() {
     orderBy: { createdAt: 'desc' }
   });
 
-  return <AdminPrescriptionsClient initialPrescriptions={submittedPrescriptions} />;
+  const doctors = await prisma.doctor.findMany();
+  
+  const mappedPrescriptions = submittedPrescriptions.map(file => {
+    const doctor = doctors.find(d => d.name === file.patient.consultant);
+    return {
+      ...file,
+      doctorProfile: doctor || null
+    };
+  });
+
+  return <AdminPrescriptionsClient initialPrescriptions={mappedPrescriptions} />;
 }

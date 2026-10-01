@@ -32,6 +32,7 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
   const [prescriptions] = useState(initialPrescriptions);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewingFile, setViewingFile] = useState<{ text: string, fileInfo: any } | null>(null);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const filteredPrescriptions = prescriptions.filter(p => 
     p.patient.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -173,111 +174,248 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                 
                 {/* Body */}
                 <div style={{ padding: 'clamp(16px, 5vw, 32px)' }}>
-              {(() => {
+                {(() => {
+                const colors = {
+                  headerBg: '#0f3162',
+                  leftColBg: '#eaf1f8',
+                  borderColor: '#8caecc',
+                  textColor: 'black'
+                };
+              
+                const renderFrequencyPDF = (freq: string) => {
+                  if (!freq) return <>M [   ] &nbsp; A [   ] &nbsp; N [   ]</>;
+                  if (freq === 'SOS') return <span>SOS</span>;
+                  const parts = freq.split('-');
+                  if (parts.length === 3) {
+                    const m = parts[0] === '1' ? 'X' : ' ';
+                    const a = parts[1] === '1' ? 'X' : ' ';
+                    const n = parts[2] === '1' ? 'X' : ' ';
+                    return <>M [ {m} ] &nbsp; A [ {a} ] &nbsp; N [ {n} ]</>;
+                  }
+                  return <span>{freq}</span>;
+                };
+
                 try {
                   const parsed = JSON.parse(viewingFile.text);
+                  const patient = viewingFile.fileInfo.patient || {};
+                  
                   return (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                      
-                      {/* Grid for top info */}
-                      <div style={{ display: 'flex', flexWrap: 'wrap', gap: '16px' }}>
-                        <div style={{ flex: '1 1 min(100%, 250px)', background: '#ffffff', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                            <div style={{ background: '#f1f5f9', padding: '6px', borderRadius: '8px', color: '#475569' }}>
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polygon points="23 7 16 12 23 17 23 7"></polygon><rect x="1" y="5" width="15" height="14" rx="2" ry="2"></rect></svg>
-                            </div>
-                            <span style={{ color: '#64748b', fontSize: '12px', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>Consultation Mode</span>
+                    <div style={{ padding: 'clamp(10px, 3vw, 20px)', background: '#f8fafc', overflowX: 'auto', width: '100%' }}>
+                      <div id="prescription-pdf-content" style={{ margin: '0 auto', minWidth: '210mm', width: '210mm', minHeight: '297mm', padding: '10mm', backgroundColor: 'white', fontFamily: '"Times New Roman", Times, serif', color: colors.textColor, fontSize: '15px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}>
+                        <style dangerouslySetInnerHTML={{ __html: `
+                          #prescription-pdf-content, #prescription-pdf-content * {
+                            box-sizing: border-box !important;
+                          }
+                        ` }} />
+                        <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: `2px solid ${colors.headerBg}`, paddingBottom: '24px', marginBottom: '24px', paddingTop: '16px' }}>
+                          <div style={{ height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                            <img src="/images/Benva%20NEW.png" alt="Benva Healthcare" style={{ width: '380px', height: 'auto', objectFit: 'contain' }} />
                           </div>
-                          <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '15px' }}>{parsed.consultationMode || 'N/A'}</div>
                         </div>
 
-                        <div style={{ flex: '1 1 min(100%, 250px)', background: '#ffffff', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px' }}>
-                            <div style={{ background: '#f0fdf4', padding: '6px', borderRadius: '8px', color: '#16a34a' }}>
-                              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                            </div>
-                            <span style={{ color: '#64748b', fontSize: '12px', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>Status</span>
-                          </div>
-                          <div style={{ fontWeight: 600, color: '#16a34a', fontSize: '15px' }}>Completed</div>
-                        </div>
-                      </div>
+                        <h2 style={{ textAlign: 'center', color: colors.headerBg, fontSize: '20px', marginBottom: '20px', fontFamily: 'Arial, sans-serif' }}>TELEMEDICINE PRESCRIPTION</h2>
 
-                      {/* Clinical Summary */}
-                      <div style={{ background: '#ffffff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                          <span style={{ color: '#0f172a', fontSize: '14px', fontWeight: 700 }}>Clinical Summary</span>
+                        {/* Doctor Details */}
+                        <div style={{ marginBottom: '20px' }}>
+                          <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>DOCTOR DETAILS <span style={{ fontSize: '12px', fontWeight: 'normal', fontStyle: 'italic' }}>(AUTO)</span></div>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed', wordWrap: 'break-word' }}>
+                            <tbody>
+                              <tr>
+                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '30%', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Doctor Name</td>
+                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>Dr. {patient.consultant || ''}</td>
+                              </tr>
+                              {viewingFile.fileInfo.doctorProfile?.qualification && (
+                                <tr>
+                                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Qualification</td>
+                                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{viewingFile.fileInfo.doctorProfile.qualification}</td>
+                                </tr>
+                              )}
+                              {viewingFile.fileInfo.doctorProfile?.speciality && (
+                                <tr>
+                                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Speciality</td>
+                                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{viewingFile.fileInfo.doctorProfile.speciality}</td>
+                                </tr>
+                              )}
+                              {viewingFile.fileInfo.doctorProfile?.medicalCouncilReg && (
+                                <tr>
+                                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Medical Council Reg. No.</td>
+                                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{viewingFile.fileInfo.doctorProfile.medicalCouncilReg}</td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
                         </div>
-                        <div style={{ color: '#334155', fontSize: '14px', lineHeight: '1.6', whiteSpace: 'pre-wrap', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #f1f5f9' }}>{parsed.clinicalSummary || 'None'}</div>
-                      </div>
-
-                      {/* Medicines */}
-                      {parsed.medicines && parsed.medicines.length > 0 && parsed.medicines.some((m:any) => m.name) && (
-                        <div style={{ background: '#ffffff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '16px' }}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="8" width="18" height="4" rx="1"></rect><path d="M12 8v13"></path><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path><path d="M7.5 8a2.5 2.5 0 0 1 0-5A4.8 8 0 0 1 12 8a4.8 8 0 0 1 4.5-5 2.5 2.5 0 0 1 0 5"></path></svg>
-                            <span style={{ color: '#0f172a', fontSize: '14px', fontWeight: 700 }}>Prescribed Medicines</span>
+                        
+                        {/* Consultation Details */}
+                        <div style={{ marginBottom: '20px' }}>
+                          <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>CONSULTATION DETAILS</div>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed', wordWrap: 'break-word' }}>
+                            <tbody>
+                              <tr>
+                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '30%', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Consultation Date</td>
+                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>
+                                  {new Date(viewingFile.fileInfo.createdAt).toLocaleDateString()}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Consultation Mode</td>
+                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>
+                                  {parsed.consultationMode || 'N/A'}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Full Name</td>
+                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>
+                                  {patient.name || ''}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '0', height: '100%' }} colSpan={2}>
+                                  <div style={{ display: 'flex', height: '100%' }}>
+                                    <div style={{ width: '30%', padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg, borderRight: `1px solid ${colors.borderColor}` }}>Age</div>
+                                    <div style={{ width: '20%', padding: '8px', borderRight: `1px solid ${colors.borderColor}` }}>
+                                      {patient.age || parsed.patientAge || ''}
+                                    </div>
+                                    <div style={{ width: '25%', padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg, borderRight: `1px solid ${colors.borderColor}` }}>Gender</div>
+                                    <div style={{ width: '25%', padding: '8px' }}>
+                                      {patient.gender || parsed.patientGender || ''}
+                                    </div>
+                                  </div>
+                                </td>
+                              </tr>
+                            </tbody>
+                          </table>
+                        </div>
+                        
+                        {/* Clinical Summary */}
+                        <div style={{ marginBottom: '20px' }}>
+                          <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>CLINICAL SUMMARY</div>
+                          <div style={{ border: `1px solid ${colors.borderColor}`, padding: '12px', minHeight: '80px', backgroundColor: colors.leftColBg }}>
+                            <div style={{ whiteSpace: 'pre-wrap' }}>{parsed.clinicalSummary}</div>
                           </div>
-                          
-                          <div style={{ borderRadius: '8px', border: '1px solid #e2e8f0', overflowX: 'auto' }}>
-                            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '13px', minWidth: '600px' }}>
+                        </div>
+
+                        {/* Medicines */}
+                        {parsed.medicines && parsed.medicines.length > 0 && parsed.medicines.some((m:any) => m.name) && (
+                          <div style={{ marginBottom: '20px' }}>
+                            <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>PRESCRIBED MEDICINES</div>
+                            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', tableLayout: 'fixed', wordWrap: 'break-word' }}>
                               <thead>
-                                <tr style={{ background: '#f8fafc', color: '#475569', textAlign: 'left', borderBottom: '1px solid #e2e8f0' }}>
-                                  <th style={{ padding: '12px 16px', fontWeight: 600, whiteSpace: 'nowrap' }}>Medicine Name</th>
-                                  <th style={{ padding: '12px 16px', fontWeight: 600, whiteSpace: 'nowrap' }}>Dosage</th>
-                                  <th style={{ padding: '12px 16px', fontWeight: 600, whiteSpace: 'nowrap' }}>Freq</th>
-                                  <th style={{ padding: '12px 16px', fontWeight: 600, whiteSpace: 'nowrap' }}>Duration</th>
-                                  <th style={{ padding: '12px 16px', fontWeight: 600, whiteSpace: 'nowrap' }}>Instructions</th>
+                                <tr style={{ backgroundColor: colors.headerBg, color: 'white' }}>
+                                  <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '5%' }}>S.No</th>
+                                  <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '25%' }}>Medicine Name</th>
+                                  <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '10%' }}>Dosage</th>
+                                  <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '20%' }}>Frequency (M / A / N)</th>
+                                  <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '15%' }}>Duration</th>
+                                  <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '25%' }}>Instructions</th>
                                 </tr>
                               </thead>
                               <tbody>
-                                {parsed.medicines.filter((m:any) => m.name).map((med: any, idx: number) => (
-                                  <tr key={idx} style={{ background: idx % 2 === 0 ? 'white' : '#fafaf9', borderBottom: idx !== parsed.medicines.filter((m:any) => m.name).length -1 ? '1px solid #f1f5f9' : 'none' }}>
-                                    <td style={{ padding: '12px 16px', color: '#0f172a', fontWeight: 500, whiteSpace: 'nowrap' }}>{med.name}</td>
-                                    <td style={{ padding: '12px 16px', color: '#475569', whiteSpace: 'nowrap' }}>{med.dosage}</td>
-                                    <td style={{ padding: '12px 16px', color: '#475569', whiteSpace: 'nowrap' }}>
-                                      <span style={{ background: '#e2e8f0', padding: '2px 8px', borderRadius: '12px', fontSize: '12px', fontWeight: 600, whiteSpace: 'nowrap' }}>{med.frequency}</span>
-                                    </td>
-                                    <td style={{ padding: '12px 16px', color: '#475569', whiteSpace: 'nowrap' }}>{med.duration}</td>
-                                    <td style={{ padding: '12px 16px', color: '#475569', whiteSpace: 'nowrap' }}>{med.instructions}</td>
-                                  </tr>
-                                ))}
+                                {parsed.medicines.map((med: any, idx: number) => {
+                                  if (!med.name) return null;
+                                  return (
+                                    <tr key={idx}>
+                                      <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{idx + 1}</td>
+                                      <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', textAlign: 'left' }}>{med.name}</td>
+                                      <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{med.dosage}</td>
+                                      <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', whiteSpace: 'nowrap' }}>
+                                        {renderFrequencyPDF(med.frequency)}
+                                      </td>
+                                      <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{med.duration}</td>
+                                      <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{med.instructions}</td>
+                                    </tr>
+                                  );
+                                })}
                               </tbody>
                             </table>
                           </div>
-                        </div>
-                      )}
+                        )}
 
-                      {/* Investigations & Advice */}
-                      {/* Investigations & Advice */}
-                      {parsed.investigations && (
-                        <div style={{ background: '#ffffff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#8b5cf6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
-                            <span style={{ color: '#0f172a', fontSize: '14px', fontWeight: 700 }}>Investigations</span>
+                        {/* Investigations */}
+                        {!isGeneratingPdf && parsed.investigations && (
+                          <div data-html2canvas-ignore="true" style={{ marginBottom: '20px' }}>
+                            <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>INVESTIGATIONS</div>
+                            <div style={{ border: `1px solid ${colors.borderColor}`, padding: '12px', minHeight: '60px', backgroundColor: colors.leftColBg }}>
+                              <div style={{ whiteSpace: 'pre-wrap' }}>{parsed.investigations}</div>
+                            </div>
                           </div>
-                          <div style={{ color: '#334155', fontSize: '14px', lineHeight: '1.6', whiteSpace: 'pre-wrap', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #f1f5f9' }}>{parsed.investigations}</div>
-                        </div>
-                      )}
+                        )}
 
-                      {parsed.advice && (
-                        <div style={{ background: '#ffffff', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"></path></svg>
-                            <span style={{ color: '#0f172a', fontSize: '14px', fontWeight: 700 }}>Advice</span>
+                        {/* Advice */}
+                        {!isGeneratingPdf && parsed.advice && (
+                          <div data-html2canvas-ignore="true" style={{ marginBottom: '20px' }}>
+                            <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>ADVICE</div>
+                            <div style={{ border: `1px solid ${colors.borderColor}`, padding: '12px', minHeight: '60px', backgroundColor: colors.leftColBg }}>
+                              <div style={{ whiteSpace: 'pre-wrap' }}>{parsed.advice}</div>
+                            </div>
                           </div>
-                          <div style={{ color: '#334155', fontSize: '14px', lineHeight: '1.6', whiteSpace: 'pre-wrap', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #f1f5f9' }}>{parsed.advice}</div>
-                        </div>
-                      )}
+                        )}
 
+                        <div style={{ marginBottom: '20px' }}>
+                          <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>IMPORTANT DISCLAIMER</div>
+                          <ul style={{ fontSize: '12px', paddingLeft: '20px', marginTop: '8px' }}>
+                            <li style={{ marginBottom: '4px' }}>This prescription has been generated following a telemedicine consultation.</li>
+                            <li style={{ marginBottom: '4px' }}>The prescription is based on information provided by the patient during the consultation.</li>
+                            <li style={{ marginBottom: '4px' }}>Benva Healthcare acts solely as a technology platform facilitating consultation between the patient and Registered Medical Practitioner.</li>
+                            <li style={{ marginBottom: '4px' }}>Medical responsibility for diagnosis, treatment and prescription rests solely with the consulting Registered Medical Practitioner.</li>
+                            <li style={{ marginBottom: '4px' }}>Certain medical conditions may require physical examination and in-person consultation.</li>
+                            <li style={{ marginBottom: '4px' }}>In case of emergency, visit the nearest hospital immediately or call the Emergency Helpline number provided.</li>
+                          </ul>
+                        </div>
+
+                        <div style={{ marginBottom: '20px', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                          <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>DOCTOR DIGITAL SIGNATURE</div>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed', wordWrap: 'break-word' }}>
+                            <tbody>
+                              <tr>
+                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '30%', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg, height: '60px' }}>Doctor Signature</td>
+                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', verticalAlign: 'bottom', fontStyle: 'italic', color: colors.headerBg }}>
+                                  {viewingFile.fileInfo.doctorProfile?.signature || ''}
+                                </td>
+                              </tr>
+                              <tr>
+                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Doctor Name</td>
+                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>Dr. {patient.consultant || ''}</td>
+                              </tr>
+                              {viewingFile.fileInfo.doctorProfile?.qualification && (
+                                <tr>
+                                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Qualification</td>
+                                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{viewingFile.fileInfo.doctorProfile.qualification}</td>
+                                </tr>
+                              )}
+                              {viewingFile.fileInfo.doctorProfile?.medicalCouncilReg && (
+                                <tr>
+                                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Registration Number</td>
+                                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{viewingFile.fileInfo.doctorProfile.medicalCouncilReg}</td>
+                                </tr>
+                              )}
+                            </tbody>
+                          </table>
+                          <div style={{ textAlign: 'center', marginTop: '10px', fontSize: '14px', backgroundColor: colors.leftColBg, padding: '8px', border: `1px solid ${colors.borderColor}`, color: colors.headerBg, fontWeight: 'bold' }}>
+                            ✓ Digitally Signed Prescription — No Physical Signature Required
+                          </div>
+                        </div>
+
+                        <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: `2px solid ${colors.headerBg}`, paddingTop: '10px', fontSize: '12px', color: '#64748b', marginTop: '40px' }}>
+                          <span><strong>Website:</strong> www.benvahealthcare.in</span>
+                          <span><strong>Contact:</strong> +91 91111 45556</span>
+                          <span><strong>Emergency Helpline:</strong> +91 91111 45556</span>
+                        </div>
+                      </div>
                     </div>
                   );
                 } catch (e) {
                   return (
-                    <div style={{ background: '#ffffff', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)' }}>
-                      <pre style={{ margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'monospace', fontSize: '14px', lineHeight: '1.6', color: '#1e293b' }}>
+                    <div style={{ background: '#ffffff', padding: '32px', borderRadius: '12px', border: '1px solid #e2e8f0', borderLeft: '4px solid #3b82f6', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03)', position: 'relative', overflow: 'hidden' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '24px', paddingBottom: '16px', borderBottom: '2px solid #f1f5f9' }}>
+                        <div style={{ background: '#eff6ff', padding: '8px', borderRadius: '8px' }}>
+                          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        </div>
+                        <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>Clinical Notes & Prescription</h3>
+                      </div>
+                      <div style={{ margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'system-ui, -apple-system, sans-serif', fontSize: '15px', lineHeight: '1.8', color: '#334155' }}>
                         {viewingFile.text}
-                      </pre>
+                      </div>
                     </div>
                   );
                 }
@@ -308,48 +446,54 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                 </button>
                 <button 
                   onClick={async () => {
-                    try {
-                      const element = document.getElementById('prescription-pdf-content');
-                      if (!element) return;
-                      
-                      const html2pdf = (await import('html2pdf.js')).default;
-                      
-                      const opt = {
-                        margin:       10,
-                        filename:     `prescription_${viewingFile?.fileInfo?.patient?.name || 'details'}.pdf`,
-                        image:        { type: 'jpeg', quality: 0.98 },
-                        html2canvas:  { scale: 2, useCORS: true },
-                        jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
-                      };
+                    setIsGeneratingPdf(true);
+                    setTimeout(async () => {
+                      try {
+                        const element = document.getElementById('prescription-pdf-content');
+                        if (!element) return;
+                        
+                        const html2pdf = (await import('html2pdf.js')).default;
+                        
+                        const opt = {
+                          margin:       [15, 0, 15, 0],
+                          filename:     `prescription_${viewingFile?.fileInfo?.patient?.name || 'details'}.pdf`,
+                          image:        { type: 'jpeg' as const, quality: 0.98 },
+                          html2canvas:  { scale: 2, useCORS: true },
+                          pagebreak:    { mode: ['css', 'legacy'] },
+                          jsPDF:        { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const }
+                        };
 
-                      const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
-                      const file = new File([pdfBlob], opt.filename, { type: 'application/pdf' });
-                      
-                      if (navigator.canShare && navigator.canShare({ files: [file] })) {
-                        await navigator.share({
-                          title: 'Prescription Details',
-                          files: [file]
-                        });
-                      } else {
-                        // Fallback: download if sharing files isn't supported
-                        html2pdf().set(opt).from(element).save();
+                        const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
+                        const file = new File([pdfBlob], opt.filename, { type: 'application/pdf' });
+                        
+                        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                          await navigator.share({
+                            title: 'Prescription Details',
+                            files: [file]
+                          });
+                        } else {
+                          html2pdf().set(opt).from(element).save();
+                        }
+                      } catch (err) {
+                        console.error('Failed to share PDF: ', err);
+                        const formattedText = getFormattedPrescription(viewingFile?.text || '');
+                        if (navigator.share) {
+                          navigator.share({ title: 'Prescription Details', text: formattedText }).catch(console.error);
+                        } else {
+                          navigator.clipboard.writeText(formattedText).then(() => alert('Copied to clipboard')).catch(console.error);
+                        }
+                      } finally {
+                        setIsGeneratingPdf(false);
                       }
-                    } catch (err) {
-                      console.error('Failed to share PDF: ', err);
-                      // Absolute fallback to text
-                      const formattedText = getFormattedPrescription(viewingFile?.text || '');
-                      navigator.clipboard.writeText(formattedText)
-                        .then(() => alert('Prescription details copied to clipboard (PDF sharing not supported on this device)!'))
-                        .catch(e => console.error('Failed to copy: ', e));
-                    }
+                    }, 150);
                   }}
-                  style={{ background: '#eff6ff', color: '#2563eb', border: '1px solid #bfdbfe', padding: '10px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '6px' }}
-                  onMouseOver={(e) => { e.currentTarget.style.background = '#dbeafe'; }}
-                  onMouseOut={(e) => { e.currentTarget.style.background = '#eff6ff'; }}
+                  style={{ background: '#38bdf8', color: '#0f172a', border: 'none', padding: '10px 16px', borderRadius: '8px', fontSize: '14px', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', display: 'flex', alignItems: 'center', gap: '6px', opacity: isGeneratingPdf ? 0.7 : 1 }}
+                  disabled={isGeneratingPdf}
                 >
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-                  Share
+                  {isGeneratingPdf ? 'Generating...' : 'Share / Download PDF'}
                 </button>
+
               </div>
               <button 
                 onClick={() => setViewingFile(null)}

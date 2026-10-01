@@ -66,7 +66,8 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
 
   const filteredPatients = patients.filter(p => 
     p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    p.phone.includes(searchTerm)
+    p.phone.includes(searchTerm) ||
+    (p.uhid && p.uhid.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
   return (
@@ -116,7 +117,7 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
                 <td style={{ padding: '16px 24px', color: '#475569' }}>
                   {patient.age ? `${patient.age} Yrs` : '-'} {patient.gender ? `/ ${patient.gender}` : ''}
                 </td>
-                <td style={{ padding: '16px 24px', color: '#475569' }}>{new Date(patient.createdAt).toLocaleDateString()}</td>
+                <td suppressHydrationWarning style={{ padding: '16px 24px', color: '#475569' }}>{new Date(patient.createdAt).toLocaleDateString()}</td>
                 <td style={{ padding: '16px 24px', textAlign: 'right' }}>
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                     <button onClick={() => router.push(`/doctor/patients/${patient.id}`)} style={{ background: '#f1f5f9', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 500, color: '#475569', cursor: 'pointer', transition: 'all 0.2s' }}>View</button>

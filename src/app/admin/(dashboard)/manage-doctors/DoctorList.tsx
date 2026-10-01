@@ -9,16 +9,16 @@ export default function DoctorList({ initialDoctors }: { initialDoctors: any[] }
   const [editingDoctor, setEditingDoctor] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   
-  const [formData, setFormData] = useState({ name: '', type: '', phone: '', email: '', password: '' });
+  const [formData, setFormData] = useState({ name: '', type: '', phone: '', email: '', password: '', qualification: '', speciality: '', medicalCouncilReg: '', signature: '' });
   const router = useRouter();
 
   const handleOpenModal = (doctor: any = null) => {
     if (doctor) {
       setEditingDoctor(doctor);
-      setFormData({ name: doctor.name, type: doctor.type, phone: doctor.phone || '', email: doctor.email || '', password: doctor.password || '' });
+      setFormData({ name: doctor.name, type: doctor.type, phone: doctor.phone || '', email: doctor.email || '', password: doctor.password || '', qualification: doctor.qualification || '', speciality: doctor.speciality || '', medicalCouncilReg: doctor.medicalCouncilReg || '', signature: doctor.signature || '' });
     } else {
       setEditingDoctor(null);
-      setFormData({ name: '', type: '', phone: '', email: '', password: '' });
+      setFormData({ name: '', type: '', phone: '', email: '', password: '', qualification: '', speciality: '', medicalCouncilReg: '', signature: '' });
     }
     setIsModalOpen(true);
   };
@@ -209,6 +209,50 @@ export default function DoctorList({ initialDoctors }: { initialDoctors: any[] }
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} 
                 />
+              </div>
+
+              <div style={{ display: 'flex', gap: '16px' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Qualification</label>
+                  <input 
+                    type="text" 
+                    value={formData.qualification}
+                    onChange={(e) => setFormData({...formData, qualification: e.target.value})}
+                    placeholder="e.g. MBBS, MD"
+                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} 
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Speciality</label>
+                  <input 
+                    type="text" 
+                    value={formData.speciality}
+                    onChange={(e) => setFormData({...formData, speciality: e.target.value})}
+                    placeholder="e.g. General Physician"
+                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} 
+                  />
+                </div>
+              </div>
+
+              <div style={{ display: 'flex', gap: '16px' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Medical Council Reg. No.</label>
+                  <input 
+                    type="text" 
+                    value={formData.medicalCouncilReg}
+                    onChange={(e) => setFormData({...formData, medicalCouncilReg: e.target.value})}
+                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} 
+                  />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Digital Signature (Initials)</label>
+                  <input 
+                    type="text" 
+                    value={formData.signature}
+                    onChange={(e) => setFormData({...formData, signature: e.target.value})}
+                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} 
+                  />
+                </div>
               </div>
 
               <div>

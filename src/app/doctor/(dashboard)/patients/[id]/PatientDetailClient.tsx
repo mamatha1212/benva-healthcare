@@ -294,54 +294,40 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
 
   const [viewingFileText, setViewingFileText] = useState<string | null>(null);
 
-  const handleViewPrescription = (fileUrl: string) => {
-    if (fileUrl.startsWith('data:')) {
-      try {
-        const base64Data = fileUrl.split(',')[1];
-        const decodedText = atob(base64Data);
-        setViewingFileText(decodedText);
-      } catch (e) {
-        window.open(fileUrl);
-      }
+  const handleViewPrescription = (file: any) => {
+    if (file.fileUrl.startsWith('data:')) {
+      router.push(`/doctor/patients/${patient.id}/prescription?fileId=${file.id}&view=true`);
     } else {
-      window.open(fileUrl, '_blank');
+      window.open(file.fileUrl, '_blank');
     }
   };
 
   const handleEditPrescription = (file: any) => {
     if (file.fileUrl.startsWith('data:')) {
-      try {
-        const base64Data = file.fileUrl.split(',')[1];
-        const decodedText = atob(base64Data);
-        try {
-          const parsed = JSON.parse(decodedText);
-          setPrescriptionData({
-            consultationMode: parsed.consultationMode || 'Video',
-            clinicalSummary: parsed.clinicalSummary || '',
-            medicines: parsed.medicines && parsed.medicines.length > 0 ? parsed.medicines : [{ name: '', dosage: '', frequency: '', duration: '', instructions: '' }],
-            investigations: parsed.investigations || '',
-            advice: parsed.advice || ''
-          });
-        } catch (err) {
-          // Fallback if old plain text
-          setPrescriptionData({
-            consultationMode: 'Video',
-            clinicalSummary: decodedText,
-            medicines: [{ name: '', dosage: '', frequency: '', duration: '', instructions: '' }],
-            investigations: '',
-            advice: ''
-          });
-        }
-        
-        setEditingFileId(file.id);
-        setIsPrescriptionModalOpen(true);
-      } catch (e) {
-        alert("This file format cannot be edited.");
-      }
+      router.push(`/doctor/patients/${patient.id}/prescription?fileId=${file.id}`);
     } else {
       alert("Only text notes can be edited directly.");
     }
   };
+
+  const handleSubmitPrescription = async (fileId: string) => {
+    if (!confirm('Are you sure you want to submit this prescription to the admin? It can no longer be edited after submission.')) return;
+    
+    try {
+      const res = await fetch(`/api/doctor/patients/${patient.id}/files/${fileId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'SUBMITTED' })
+      });
+      if (!res.ok) throw new Error('Failed to submit');
+      
+      alert('Prescription submitted successfully!');
+      router.refresh();
+    } catch (e) {
+      alert('Failed to submit prescription.');
+    }
+  };
+
 
   const handleOpenNewPrescription = () => {
     setPrescriptionData({
@@ -392,7 +378,7 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
         
         <div style={{ marginLeft: 'auto', display: 'flex', flexWrap: 'wrap' }}>
           <button 
-            onClick={handleOpenNewPrescription}
+            onClick={() => router.push(`/doctor/patients/${patient.id}/prescription`)}
             style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
@@ -432,15 +418,23 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
                   </div>
                   <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                     {file.status !== 'SUBMITTED' && (
-                      <button 
-                        onClick={() => handleEditPrescription(file)}
-                        style={{ background: '#eff6ff', border: '1px solid #bfdbfe', color: '#2563eb', padding: '8px 16px', borderRadius: '6px', fontWeight: 500, cursor: 'pointer', fontSize: '13px' }}
-                      >
-                        Edit Note
-                      </button>
+                      <>
+                        <button 
+                          onClick={() => handleEditPrescription(file)}
+                          style={{ background: '#eff6ff', border: '1px solid #bfdbfe', color: '#2563eb', padding: '8px 16px', borderRadius: '6px', fontWeight: 500, cursor: 'pointer', fontSize: '13px' }}
+                        >
+                          Edit Note
+                        </button>
+                        <button 
+                          onClick={() => handleSubmitPrescription(file.id)}
+                          style={{ background: '#10b981', border: 'none', color: 'white', padding: '8px 16px', borderRadius: '6px', fontWeight: 500, cursor: 'pointer', fontSize: '13px' }}
+                        >
+                          Submit to Admin
+                        </button>
+                      </>
                     )}
                     <button 
-                      onClick={() => handleViewPrescription(file.fileUrl)}
+                      onClick={() => handleViewPrescription(file)}
                       style={{ background: 'white', border: '1px solid #cbd5e1', color: '#334155', padding: '8px 16px', borderRadius: '6px', fontWeight: 500, cursor: 'pointer', fontSize: '13px' }}
                     >
                       View Note

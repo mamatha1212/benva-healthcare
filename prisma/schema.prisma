@@ -153,6 +153,7 @@ model ServiceLocation {
 
 model PatientRecord {
   id         String        @id @default(cuid())
+  uhid       String?       @unique
   name       String
   phone      String
   age        String?
@@ -213,14 +214,18 @@ model InvoiceItem {
 }
 
 model Doctor {
-  id        String   @id @default(cuid())
-  name      String
-  type      String   // 'CONSULTANT' or 'DIETICIAN'
-  phone     String?
-  email     String?  @unique
-  password  String?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id                String   @id @default(cuid())
+  name              String
+  type              String   // 'CONSULTANT' or 'DIETICIAN'
+  phone             String?
+  email             String?  @unique
+  password          String?
+  qualification     String?
+  speciality        String?
+  medicalCouncilReg String?
+  signature         String?  @db.Text
+  createdAt         DateTime @default(now())
+  updatedAt         DateTime @updatedAt
 }
 
 model ReportYear {

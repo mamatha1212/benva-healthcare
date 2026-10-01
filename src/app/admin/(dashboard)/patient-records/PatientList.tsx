@@ -7,6 +7,7 @@ import InvoiceView from './InvoiceView';
 
 export default function PatientList({ initialPatients, doctors }: { initialPatients: any[], doctors: any[] }) {
   const [patients, setPatients] = useState(initialPatients);
+  const [searchTerm, setSearchTerm] = useState('');
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [invoiceModalPatient, setInvoiceModalPatient] = useState<any>(null);
   const [viewInvoice, setViewInvoice] = useState<any>(null);
@@ -29,9 +30,15 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
     setInvoiceModalPatient(null);
   };
 
+  const filteredPatients = patients.filter((p: any) => 
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+    p.phone.includes(searchTerm) ||
+    (p.uhid && p.uhid.toLowerCase().includes(searchTerm.toLowerCase()))
+  );
+
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '32px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#1a202c', margin: '0 0 8px 0' }}>Patient Records</h1>
           <p style={{ color: '#64748b', margin: 0, fontSize: '15px' }}>
@@ -55,6 +62,16 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
         </button>
       </div>
 
+      <div style={{ marginBottom: '20px', display: 'flex', gap: '16px', alignItems: 'center' }}>
+        <input 
+          type="text" 
+          placeholder="Search by Name, Phone, or UHID..." 
+          value={searchTerm}
+          onChange={(e) => setSearchTerm(e.target.value)}
+          style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', width: '100%', maxWidth: '400px' }}
+        />
+      </div>
+
       <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', overflow: 'hidden' }}>
         <table style={{ width: '100%', borderCollapse: 'collapse' }}>
           <thead>
@@ -67,14 +84,14 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
             </tr>
           </thead>
           <tbody>
-            {patients.length === 0 ? (
+            {filteredPatients.length === 0 ? (
               <tr>
                 <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
-                  No patient records found. Click "Add New Patient Data" to get started.
+                  No patient records found.
                 </td>
               </tr>
             ) : (
-              patients.map(patient => (
+              filteredPatients.map((patient: any) => (
                 <tr key={patient.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
                   <td style={{ padding: '16px' }}>
                     <div style={{ fontWeight: 600, color: '#1e293b' }}>{patient.name}</div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { put } from '@vercel/blob';
+import { generateNextUhid } from '@/lib/uhid';
 
 export async function GET() {
   try {
@@ -28,10 +29,24 @@ export async function POST(req: NextRequest) {
     const address = formData.get('address') as string;
     const consultant = formData.get('consultant') as string;
     
-    // Create patient
-    const patient = await prisma.patientRecord.create({
-      data: { name, phone, age, gender, address, consultant }
+    let patient = await prisma.patientRecord.findFirst({
+      where: { name, phone }
     });
+
+    if (patient) {
+      if (!patient.uhid) {
+        const nextUhid = await generateNextUhid();
+        patient = await prisma.patientRecord.update({
+          where: { id: patient.id },
+          data: { uhid: nextUhid, age: age || patient.age, gender: gender || patient.gender, address: address || patient.address, consultant: consultant || patient.consultant }
+        });
+      }
+    } else {
+      const nextUhid = await generateNextUhid();
+      patient = await prisma.patientRecord.create({
+        data: { name, phone, age, gender, address, consultant, uhid: nextUhid }
+      });
+    }
 
     // Handle files
     const dbRecords: any[] = [];

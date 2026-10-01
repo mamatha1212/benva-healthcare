@@ -19,15 +19,15 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     const body = await req.json();
     const { fileContent, status } = body;
 
-    // Convert text content to a base64 Data URL so it acts like a file
-    const fileUrl = `data:text/plain;base64,${Buffer.from(fileContent).toString('base64')}`;
+    const updateData: any = {};
+    if (status) updateData.status = status;
+    if (fileContent !== undefined) {
+      updateData.fileUrl = `data:text/plain;base64,${Buffer.from(fileContent).toString('base64')}`;
+    }
 
     const updatedFile = await prisma.patientFile.update({
       where: { id: fileId },
-      data: {
-        fileUrl,
-        ...(status && { status })
-      }
+      data: updateData
     });
 
     return NextResponse.json(updatedFile);
