@@ -3,6 +3,7 @@
 import React, { useState } from 'react';
 import CustomFileInput from '@/components/CustomFileInput/CustomFileInput';
 import styles from '@/app/(main)/doctor-onboarding/page.module.css';
+import { upload } from '@vercel/blob/client';
 
 export default function DoctorOnboardingForm() {
   const reqStar = <span className={styles.asterisk}>*</span>;
@@ -34,24 +35,25 @@ export default function DoctorOnboardingForm() {
       for (const { key, name } of fileKeys) {
         const file = formData.get(key) as File;
         if (file && file.size > 0 && file.name) {
-          const fileData = new FormData();
-          fileData.append('file', file);
-          fileData.append('folder', 'doctors');
-          
-          const uploadRes = await fetch('/api/upload', {
-            method: 'POST',
-            body: fileData
-          });
-          
-          if (!uploadRes.ok) {
-            throw new Error(`Failed to upload ${file.name}`);
+          try {
+            const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+            const lastDot = file.name.lastIndexOf('.');
+            const ext = lastDot !== -1 ? file.name.substring(lastDot) : '.pdf';
+            const filename = `${key}-${uniqueSuffix}${ext}`;
+
+            const blob = await upload(`doctors/${filename}`, file, {
+              access: 'public',
+              handleUploadUrl: '/api/upload',
+            });
+            
+            uploadedDocs.push({
+              name: name,
+              url: blob.url
+            });
+          } catch (err: any) {
+             console.error("Upload error details:", err);
+             throw new Error(`Cloud Upload Error for ${file.name}: ${err.message || 'Check your internet or file size'}`);
           }
-          
-          const data = await uploadRes.json();
-          uploadedDocs.push({
-            name: name,
-            url: data.url
-          });
         }
         // Remove file from main formData to save payload size
         formData.delete(key);
