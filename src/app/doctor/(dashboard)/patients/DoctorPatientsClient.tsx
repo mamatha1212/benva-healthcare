@@ -12,6 +12,7 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
   const [searchTerm, setSearchTerm] = useState('');
   const [formError, setFormError] = useState('');
   const [familyMembers, setFamilyMembers] = useState<any[]>([]);
+  const submitActionRef = React.useRef<'save' | 'save-and-add'>('save');
   
   const router = useRouter();
 
@@ -58,10 +59,24 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
       if (editingPatient) {
         setPatients(patients.map(p => p.id === savedPatient.id ? savedPatient : p));
       } else {
-        setPatients([savedPatient, ...patients]);
+        setPatients(prev => [savedPatient, ...prev]);
       }
       
-      setIsModalOpen(false);
+      if (submitActionRef.current === 'save-and-add') {
+        // Keep phone, clear others
+        setFormData(prev => ({ ...prev, name: '', age: '', gender: '' }));
+        // Also refresh family members list
+        try {
+          const fmRes = await fetch(`/api/patients/by-phone?phone=${encodeURIComponent(formData.phone)}`);
+          if (fmRes.ok) {
+            const data = await fmRes.json();
+            if (data && data.length > 0) setFamilyMembers(data);
+          }
+        } catch(e) {}
+        setFormError('Patient saved. You can add another family member.');
+      } else {
+        setIsModalOpen(false);
+      }
     } catch (error: any) {
       console.error(error);
       setFormError(error.message || 'Error saving patient');
@@ -387,8 +402,25 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
               
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
                 <button type="button" onClick={() => setIsModalOpen(false)} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
-                <button type="submit" disabled={isSubmitting} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#3b82f6', color: 'white', fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.7 : 1 }}>
-                  {isSubmitting ? 'Saving...' : editingPatient ? 'Save Changes' : 'Add Patient'}
+                
+                {!editingPatient && (
+                  <button 
+                    type="submit" 
+                    onClick={() => { submitActionRef.current = 'save-and-add'; }}
+                    disabled={isSubmitting} 
+                    style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #3b82f6', background: 'white', color: '#3b82f6', fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.7 : 1 }}
+                  >
+                    Save & Add Another
+                  </button>
+                )}
+
+                <button 
+                  type="submit" 
+                  onClick={() => { submitActionRef.current = 'save'; }}
+                  disabled={isSubmitting} 
+                  style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#3b82f6', color: 'white', fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.7 : 1 }}
+                >
+                  {isSubmitting && submitActionRef.current === 'save' ? 'Saving...' : editingPatient ? 'Save Changes' : 'Save Patient'}
                 </button>
               </div>
             </form>

@@ -12,9 +12,11 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
   const [invoiceModalPatient, setInvoiceModalPatient] = useState<any>(null);
   const [viewInvoice, setViewInvoice] = useState<any>(null);
 
-  const handlePatientAdded = (newPatient: any) => {
-    setPatients([newPatient, ...patients]);
-    setIsAddModalOpen(false);
+  const handlePatientAdded = (newPatient: any, action: 'save' | 'save-and-add' = 'save') => {
+    setPatients(prev => [newPatient, ...prev]);
+    if (action !== 'save-and-add') {
+      setIsAddModalOpen(false);
+    }
   };
 
   const handleInvoiceGenerated = (newInvoice: any) => {

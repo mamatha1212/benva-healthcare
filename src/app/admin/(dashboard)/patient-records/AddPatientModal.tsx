@@ -7,6 +7,7 @@ export default function AddPatientModal({ onClose, onAdded, doctors = [] }: { on
   const [formError, setFormError] = useState('');
   const [familyMembers, setFamilyMembers] = useState<any[]>([]);
   const formRef = useRef<HTMLFormElement>(null);
+  const submitActionRef = useRef<'save' | 'save-and-add'>('save');
 
   const [selectedName, setSelectedName] = useState('');
 
@@ -29,7 +30,30 @@ export default function AddPatientModal({ onClose, onAdded, doctors = [] }: { on
       }
       
       const newPatient = await res.json();
-      onAdded(newPatient);
+      
+      onAdded(newPatient, submitActionRef.current);
+      
+      if (submitActionRef.current === 'save-and-add') {
+        if (formRef.current) {
+          const nameInput = formRef.current.elements.namedItem('name') as HTMLInputElement;
+          const ageInput = formRef.current.elements.namedItem('age') as HTMLInputElement;
+          const genderSelect = formRef.current.elements.namedItem('gender') as HTMLSelectElement;
+          nameInput.value = '';
+          ageInput.value = '';
+          genderSelect.value = '';
+          setSelectedName('');
+          
+          try {
+            const phoneInput = formRef.current.elements.namedItem('phone') as HTMLInputElement;
+            const fmRes = await fetch(`/api/patients/by-phone?phone=${encodeURIComponent(phoneInput.value)}`);
+            if (fmRes.ok) {
+              const data = await fmRes.json();
+              if (data && data.length > 0) setFamilyMembers(data);
+            }
+          } catch(e) {}
+        }
+        setFormError('Patient saved successfully. You can add another family member.');
+      }
     } catch (error: any) {
       console.error(error);
       setFormError(error.message || 'Error adding patient');
@@ -193,8 +217,21 @@ export default function AddPatientModal({ onClose, onAdded, doctors = [] }: { on
           
           <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
             <button type="button" onClick={onClose} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
-            <button type="submit" disabled={isSubmitting} style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#2563eb', color: 'white', fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.7 : 1 }}>
-              {isSubmitting ? 'Saving...' : 'Save Patient Data'}
+            <button 
+              type="submit" 
+              onClick={() => { submitActionRef.current = 'save-and-add'; }}
+              disabled={isSubmitting} 
+              style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #2563eb', background: 'white', color: '#2563eb', fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.7 : 1 }}
+            >
+              Save & Add Another
+            </button>
+            <button 
+              type="submit" 
+              onClick={() => { submitActionRef.current = 'save'; }}
+              disabled={isSubmitting} 
+              style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#2563eb', color: 'white', fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.7 : 1 }}
+            >
+              {isSubmitting && submitActionRef.current === 'save' ? 'Saving...' : 'Save Patient Data'}
             </button>
           </div>
         </form>
