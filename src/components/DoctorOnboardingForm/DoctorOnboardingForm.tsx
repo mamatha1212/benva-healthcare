@@ -218,9 +218,9 @@ export default function DoctorOnboardingForm() {
               { name: 'MBBS Degree Certificate', key: 'doc_mbbs', req: true },
               { name: 'PG Degree Certificate(s)', key: 'doc_pg', req: false },
               { name: 'Fellowship Certificate(s)', key: 'doc_fellowship', req: false },
-              { name: 'Government Photo ID', key: 'doc_gov_id', req: true },
-              { name: 'PAN Card', key: 'doc_pan', req: true },
-              { name: 'Cancelled Cheque / Bank Proof', key: 'doc_bank', req: true }
+              { name: 'Government Photo ID', key: 'doc_gov_id', req: false },
+              { name: 'PAN Card', key: 'doc_pan', req: false },
+              { name: 'Cancelled Cheque / Bank Proof', key: 'doc_bank', req: false }
             ].map((doc, idx) => (
               <div key={idx} className={styles.formGroup}>
                 <CustomFileInput name={doc.key} label={doc.name} accept=".pdf,image/*" required={doc.req} />
@@ -238,28 +238,28 @@ export default function DoctorOnboardingForm() {
           
           <div className={styles.grid}>
             <div className={styles.formGroup}>
-              <label>Account Holder Name {reqStar}</label>
-              <input type="text" name="accountName" required />
+              <label>Account Holder Name</label>
+              <input type="text" name="accountName" />
             </div>
             <div className={styles.formGroup}>
-              <label>Bank Name {reqStar}</label>
-              <input type="text" name="bankName" required />
+              <label>Bank Name</label>
+              <input type="text" name="bankName" />
             </div>
             <div className={styles.formGroup}>
-              <label>Account Number {reqStar}</label>
-              <input type="text" name="accountNumber" required />
+              <label>Account Number</label>
+              <input type="text" name="accountNumber" />
             </div>
             <div className={styles.formGroup}>
-              <label>IFSC Code {reqStar}</label>
-              <input type="text" name="ifscCode" required />
+              <label>IFSC Code</label>
+              <input type="text" name="ifscCode" />
             </div>
             <div className={styles.formGroup}>
-              <label>PAN Number {reqStar}</label>
-              <input type="text" name="panNumber" required />
+              <label>PAN Number</label>
+              <input type="text" name="panNumber" />
             </div>
             <div className={styles.formGroup}>
-              <label>Branch Name {reqStar}</label>
-              <input type="text" name="branchName" required />
+              <label>Branch Name</label>
+              <input type="text" name="branchName" />
             </div>
           </div>
         </section>
