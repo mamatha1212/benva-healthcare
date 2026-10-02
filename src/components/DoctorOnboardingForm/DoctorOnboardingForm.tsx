@@ -26,12 +26,18 @@ export default function DoctorOnboardingForm() {
       if (res.ok) {
         setIsSuccess(true);
       } else {
-        const result = await res.json();
-        setError(result.error || 'Something went wrong');
+        let errorMsg = `Server error ${res.status}`;
+        try {
+          const result = await res.json();
+          errorMsg = result.error || errorMsg;
+        } catch (e) {
+          errorMsg = await res.text();
+        }
+        setError(errorMsg.substring(0, 200));
       }
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      setError('Network error');
+      setError(`Network error: ${err?.message || 'Unknown'}`);
     } finally {
       setIsSubmitting(false);
     }
