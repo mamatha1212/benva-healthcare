@@ -88,20 +88,13 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
     (p.uhid && p.uhid.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const displayedPatients = Array.from(
-    filteredPatients.reduce((map, patient: any) => {
-      if (!map.has(patient.phone)) {
-        map.set(patient.phone, patient);
-      } else {
-        // Keep the oldest one as the primary person
-        const existing = map.get(patient.phone);
-        if (new Date(patient.createdAt) < new Date(existing.createdAt)) {
-          map.set(patient.phone, patient);
-        }
-      }
-      return map;
-    }, new Map()).values()
-  ).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const getPrimaryName = (phone: string, currentId: string) => {
+    const family = patients.filter((p: any) => p.phone === phone);
+    if (family.length <= 1) return null;
+    const primary = [...family].sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())[0];
+    if (primary.id === currentId) return null; // don't show for the primary themselves
+    return primary.name;
+  };
 
   return (
     <div>
@@ -239,19 +232,28 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
             </tr>
           </thead>
           <tbody>
-            {displayedPatients.map((patient: any, index: number) => (
-              <tr key={patient.id} className="patient-row">
-                <td style={{ textAlign: 'center', fontWeight: '600', color: '#94a3b8' }}>{index + 1}</td>
-                <td>
-                  <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '15px' }}>{patient.name}</div>
-                  {patient.uhid && <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', display: 'inline-block', background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontWeight: 500 }}>{patient.uhid}</div>}
-                </td>
-                <td>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
-                    {patient.phone}
-                  </div>
-                </td>
+            {filteredPatients.map((patient: any, index: number) => {
+              const primaryName = getPrimaryName(patient.phone, patient.id);
+              return (
+                <tr key={patient.id} className="patient-row">
+                  <td style={{ textAlign: 'center', fontWeight: '600', color: '#94a3b8' }}>{index + 1}</td>
+                  <td>
+                    <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '15px' }}>{patient.name}</div>
+                    {patient.uhid && <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', display: 'inline-block', background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontWeight: 500 }}>{patient.uhid}</div>}
+                  </td>
+                  <td>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                        {patient.phone}
+                      </div>
+                      {primaryName && (
+                        <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 500 }}>
+                          Primary: {primaryName}
+                        </div>
+                      )}
+                    </div>
+                  </td>
                 <td>
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '4px 10px', borderRadius: '20px', border: '1px solid #e2e8f0', fontSize: '13px' }}>
                     <span style={{ fontWeight: 600, color: '#334155' }}>{patient.age ? `${patient.age} Yrs` : '-'}</span>
@@ -275,7 +277,8 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
                   </div>
                 </td>
               </tr>
-            ))}
+              );
+            })}
             {filteredPatients.length === 0 && (
               <tr>
                 <td colSpan={6} style={{ padding: '64px 24px', textAlign: 'center' }}>

@@ -38,19 +38,13 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
     (p.uhid && p.uhid.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
-  const displayedPatients = Array.from(
-    filteredPatients.reduce((map, patient: any) => {
-      if (!map.has(patient.phone)) {
-        map.set(patient.phone, patient);
-      } else {
-        const existing = map.get(patient.phone);
-        if (new Date(patient.createdAt) < new Date(existing.createdAt)) {
-          map.set(patient.phone, patient);
-        }
-      }
-      return map;
-    }, new Map()).values()
-  ).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  const getPrimaryName = (phone: string, currentId: string) => {
+    const family = patients.filter((p: any) => p.phone === phone);
+    if (family.length <= 1) return null;
+    const primary = [...family].sort((a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime())[0];
+    if (primary.id === currentId) return null;
+    return primary.name;
+  };
 
   return (
     <div>
@@ -107,7 +101,9 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
                 </td>
               </tr>
             ) : (
-              displayedPatients.map((patient: any) => (
+              filteredPatients.map((patient: any) => {
+                const primaryName = getPrimaryName(patient.phone, patient.id);
+                return (
                 <tr key={patient.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
                   <td style={{ padding: '16px' }}>
                     <div style={{ fontWeight: 600, color: '#1e293b' }}>{patient.name}</div>
@@ -115,6 +111,11 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
                   </td>
                   <td style={{ padding: '16px', color: '#475569' }}>
                     <div>{patient.phone}</div>
+                    {primaryName && (
+                      <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', fontWeight: 500 }}>
+                        Primary: {primaryName}
+                      </div>
+                    )}
                     <div style={{ fontSize: '13px' }}>{patient.address}</div>
                   </td>
                   <td style={{ padding: '16px' }}>
@@ -177,7 +178,8 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
                     </button>
                   </td>
                 </tr>
-              ))
+                );
+              })
             )}
           </tbody>
         </table>
