@@ -94,7 +94,7 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
             </tr>
           </thead>
           <tbody>
-            {displayedPatients.length === 0 ? (
+            {filteredPatients.length === 0 ? (
               <tr>
                 <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
                   No patient records found.
