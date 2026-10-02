@@ -7,32 +7,6 @@ export default function AddPatientModal({ onClose, onAdded, doctors = [] }: { on
   const [formError, setFormError] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
 
-  const handlePhoneBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
-    const phone = e.target.value.trim();
-    if (phone.length >= 10 && formRef.current) {
-      try {
-        const res = await fetch(`/api/patients/by-phone?phone=${encodeURIComponent(phone)}`);
-        if (res.ok) {
-          const data = await res.json();
-          if (data && data.name) {
-            const form = formRef.current;
-            const nameInput = form.elements.namedItem('name') as HTMLInputElement;
-            const ageInput = form.elements.namedItem('age') as HTMLInputElement;
-            const genderSelect = form.elements.namedItem('gender') as HTMLSelectElement;
-            
-            if (nameInput && !nameInput.value) nameInput.value = data.name;
-            if (ageInput && !ageInput.value) ageInput.value = data.age;
-            if (genderSelect && !genderSelect.value) genderSelect.value = data.gender;
-            
-            setFormError(`Found existing patient with this number (UHID: ${data.uhid || 'Pending'}). Details auto-filled.`);
-          }
-        }
-      } catch (err) {
-        // Silently ignore API errors for autofill
-      }
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formRef.current) return;
@@ -78,7 +52,28 @@ export default function AddPatientModal({ onClose, onAdded, doctors = [] }: { on
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Phone Number *</label>
-              <input type="tel" name="phone" required onBlur={handlePhoneBlur} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+              <input type="tel" name="phone" required onChange={(e) => {
+                const newPhone = e.target.value.trim();
+                if (newPhone.length >= 10 && formRef.current) {
+                  fetch(`/api/patients/by-phone?phone=${encodeURIComponent(newPhone)}`)
+                    .then(res => res.ok ? res.json() : null)
+                    .then(data => {
+                      if (data && data.name && formRef.current) {
+                        const form = formRef.current;
+                        const nameInput = form.elements.namedItem('name') as HTMLInputElement;
+                        const ageInput = form.elements.namedItem('age') as HTMLInputElement;
+                        const genderSelect = form.elements.namedItem('gender') as HTMLSelectElement;
+                        
+                        if (nameInput && !nameInput.value) nameInput.value = data.name;
+                        if (ageInput && !ageInput.value) ageInput.value = data.age;
+                        if (genderSelect && !genderSelect.value) genderSelect.value = data.gender;
+                        
+                        setFormError(`Found existing patient with this number (UHID: ${data.uhid || 'Pending'}). Details auto-filled.`);
+                      }
+                    })
+                    .catch(() => {});
+                }
+              }} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
             </div>
             <div>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Name *</label>
