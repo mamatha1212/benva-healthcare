@@ -27,7 +27,6 @@ export async function POST(request: Request) {
         doc_mbbs: 'mbbsUrl',
         doc_pg: 'pgUrl',
         doc_med_reg: 'medRegUrl',
-        doc_pan: 'panUrl',
         doc_bank: 'bankDetailsUrl',
       };
 
