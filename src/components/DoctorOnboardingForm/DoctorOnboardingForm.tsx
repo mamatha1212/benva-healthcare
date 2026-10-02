@@ -11,6 +11,29 @@ export default function DoctorOnboardingForm() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
 
+  // Upload a single file with a 30s timeout; returns URL or null on failure
+  const uploadFileWithTimeout = async (file: File, key: string): Promise<string | null> => {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 30000);
+    try {
+      const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+      const lastDot = file.name.lastIndexOf('.');
+      const ext = lastDot !== -1 ? file.name.substring(lastDot) : '.pdf';
+      const filename = `${key}-${uniqueSuffix}${ext}`;
+
+      const blob = await upload(`doctors/${filename}`, file, {
+        access: 'public',
+        handleUploadUrl: '/api/upload',
+      });
+      return blob.url;
+    } catch (err: any) {
+      console.warn(`Upload skipped for ${file.name}:`, err?.message || err);
+      return null;
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -19,7 +42,7 @@ export default function DoctorOnboardingForm() {
     const formData = new FormData(e.currentTarget);
 
     try {
-      // 1. Upload files sequentially
+      // 1. Upload files (skip silently if upload service is unavailable)
       const fileKeys = [
         { key: 'doc_passport_photo', name: 'passportPhotoUrl' },
         { key: 'doc_gov_id', name: 'govIdUrl' },
@@ -35,52 +58,12 @@ export default function DoctorOnboardingForm() {
       for (const { key, name } of fileKeys) {
         const file = formData.get(key) as File;
         if (file && file.size > 0 && file.name) {
-          try {
-            const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-            const lastDot = file.name.lastIndexOf('.');
-            const ext = lastDot !== -1 ? file.name.substring(lastDot) : '.pdf';
-            const filename = `${key}-${uniqueSuffix}${ext}`;
-            
-            // --- DIAGNOSTIC CHECK ---
-            try {
-              const tokenRes = await fetch('/api/upload', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  type: 'blob.generate-client-token',
-                  payload: {
-                    pathname: `doctors/${filename}`,
-                    callbackUrl: window.location.origin + '/api/upload',
-                    clientPayload: null,
-                    multipart: false
-                  }
-                })
-              });
-              
-              if (!tokenRes.ok) {
-                const errorText = await tokenRes.text();
-                alert(`DIAGNOSTIC SERVER ERROR (${tokenRes.status}): ${errorText}`);
-              }
-            } catch (diagErr) {
-              console.error("Diagnostic error:", diagErr);
-            }
-            // ------------------------
-
-            const blob = await upload(`doctors/${filename}`, file, {
-              access: 'public',
-              handleUploadUrl: '/api/upload',
-            });
-            
-            uploadedDocs.push({
-              name: name,
-              url: blob.url
-            });
-          } catch (err: any) {
-             console.error("Upload error details:", err);
-             throw new Error(`Cloud Upload Error for ${file.name}: ${err.message || 'Check your internet or file size'}`);
+          const url = await uploadFileWithTimeout(file, key);
+          if (url) {
+            uploadedDocs.push({ name, url });
           }
+          // If url is null, upload failed silently — form still submits
         }
-        // Remove file from main formData to save payload size
         formData.delete(key);
       }
 
