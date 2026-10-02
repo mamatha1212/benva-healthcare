@@ -6,6 +6,7 @@ import styles from '@/app/(main)/doctor-onboarding/page.module.css';
 
 export default function DoctorOnboardingForm() {
   const reqStar = <span className={styles.asterisk}>*</span>;
+  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
@@ -293,8 +294,15 @@ export default function DoctorOnboardingForm() {
               <input type="text" name="signatureName" required placeholder="Type your full name" />
             </div>
             <div className={styles.formGroup}>
-              <label>Date {reqStar}</label>
-              <input type="date" name="signatureDate" required />
+              <label>Date</label>
+              <input
+                type="date"
+                name="signatureDate"
+                defaultValue={today}
+                readOnly
+                suppressHydrationWarning
+                style={{ background: '#f1f5f9', cursor: 'not-allowed', color: '#475569' }}
+              />
             </div>
           </div>
         </section>
