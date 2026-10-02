@@ -244,10 +244,19 @@ export default function PrescriptionPage() {
   const isViewMode = isGenerating || isViewOnly;
 
   useEffect(() => {
-    fetchProfile();
-    if (patientId) {
-      fetchPatient(patientId, fileId);
-    }
+    if (!patientId) return;
+
+    const init = async () => {
+      try {
+        await Promise.all([
+          fetchProfile(),
+          fetchPatient(patientId, fileId)
+        ]);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    init();
   }, [patientId, fileId]);
 
   const fetchPatient = async (id: string, fId: string | null) => {
@@ -295,14 +304,15 @@ export default function PrescriptionPage() {
     }
   };
 
-  const handleSaveToRecord = async () => {
-    if (!patientId) return;
+  const saveDraft = async (): Promise<string | null> => {
+    if (!patientId) return null;
     setIsSaving(true);
     try {
       const data = { ...formData, medicines };
       const method = fileId ? 'PUT' : 'POST';
-      const url = fileId ? `/api/doctor/patients/${patientId}/files/${fileId}` : `/api/doctor/patients/${patientId}/files`;
-      
+      const url = fileId
+        ? `/api/doctor/patients/${patientId}/files/${fileId}`
+        : `/api/doctor/patients/${patientId}/files`;
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
@@ -313,14 +323,35 @@ export default function PrescriptionPage() {
         })
       });
       if (!res.ok) throw new Error('Failed');
-      alert('Prescription saved as draft successfully!');
-      router.refresh();
-      router.push(`/doctor/patients/${patientId}`);
+      const saved = await res.json();
+      return saved.id || fileId || null;
     } catch (e) {
       alert('Failed to save prescription.');
+      return null;
     } finally {
       setIsSaving(false);
     }
+  };
+
+  const handleSaveToRecord = async () => {
+    const id = await saveDraft();
+    if (id) {
+      router.push(`/doctor/patients/${patientId}`);
+    }
+  };
+
+  const handleSaveAndView = async () => {
+    const id = await saveDraft();
+    if (!id) return;
+    // Save succeeded — now generate and view PDF
+    await handleViewPDF();
+  };
+
+  const handleSaveAndDownload = async () => {
+    const id = await saveDraft();
+    if (!id) return;
+    // Save succeeded — now generate and download PDF
+    await generatePDF();
   };
 
   const handleSubmitToAdmin = async () => {
@@ -361,8 +392,6 @@ export default function PrescriptionPage() {
       setDoctorProfile(data);
     } catch (err: any) {
       console.error(err);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -512,102 +541,141 @@ export default function PrescriptionPage() {
   };
 
   return (
-    <div style={{ padding: '16px', width: '100%', margin: '0 auto', display: 'flex', flexDirection: 'column' }}>
-      <div style={{ width: '100%', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '16px' }}>
-        <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#0f172a', margin: 0 }}>Create Prescription</h1>
-        <div style={{ display: 'flex', gap: '12px' }}>
+    <>
+    <style>{`
+      .rx-page { padding: 16px; width: 100%; margin: 0 auto; display: flex; flex-direction: column; }
+      .rx-header { width: 100%; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; flex-wrap: wrap; gap: 12px; }
+      .rx-title { font-size: 24px; font-weight: bold; color: #0f172a; margin: 0; }
+      .rx-btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
+      .rx-btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; white-space: nowrap; font-size: 14px; display: flex; align-items: center; gap: 6px; }
+      .rx-form-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 24px; }
+      .rx-form-inner { min-width: 100%; width: 100%; display: flex; justify-content: center; }
+      .rx-form-card { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; }
+      .rx-pdf { width: 100%; padding: 0 20px 40px 20px; background: white; font-family: "Times New Roman", Times, serif; color: black; font-size: 18px; }
+      .rx-doc-table { width: 100%; border-collapse: collapse; table-layout: fixed; word-wrap: break-word; }
+      .rx-label-cell { width: 38%; white-space: normal; word-break: break-word; }
+      .rx-med-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .rx-med-table { min-width: 560px; width: 100%; border-collapse: collapse; text-align: center; margin-top: 8px; }
+      .rx-footer-row { display: flex; justify-content: space-between; border-top: 2px solid #0f3162; padding-top: 10px; font-size: 12px; color: #64748b; margin-top: 40px; flex-wrap: wrap; gap: 4px; }
+      .rx-mode-group { display: flex; gap: 12px; flex-wrap: wrap; }
+      @media (max-width: 640px) {
+        .rx-header { flex-direction: column; align-items: flex-start; }
+        .rx-title { font-size: 20px; }
+        .rx-btn-group { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .rx-btn { padding: 10px 8px; font-size: 13px; text-align: center; justify-content: center; }
+        .rx-btn-full { grid-column: 1 / -1; }
+        .rx-form-card { padding: 8px 6px; border-radius: 6px; }
+        .rx-pdf { font-size: 12px; padding: 0 2px 16px 2px; }
+        .rx-label-cell { width: 42%; font-size: 11px; padding: 6px 4px !important; }
+        .rx-val-cell { font-size: 12px; padding: 6px 4px !important; }
+        .rx-section-header { font-size: 12px !important; padding: 6px 8px !important; }
+        .rx-footer-row { flex-direction: column; gap: 2px; font-size: 11px; }
+        .rx-mode-group { display: grid; grid-template-columns: repeat(3, auto); gap: 6px; align-items: center; }
+        .rx-logo { width: 200px !important; }
+        .rx-heading { font-size: 14px !important; }
+      }
+    `}</style>
+    <div className="rx-page">
+      <div className="rx-header">
+        <h1 className="rx-title">Create Prescription</h1>
+        <div className="rx-btn-group">
           {patientId && (
             <>
-              <button onClick={() => router.back()} style={{ padding: '10px 20px', backgroundColor: '#f1f5f9', color: '#475569', borderRadius: '8px', fontWeight: 600, border: '1px solid #cbd5e1', cursor: 'pointer' }}>
+              <button onClick={() => router.back()} className="rx-btn" style={{ backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1' }}>
                 Cancel
               </button>
-              <button onClick={handleSaveToRecord} disabled={isSaving} style={{ padding: '10px 20px', backgroundColor: '#e0f2fe', color: '#0284c7', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.7 : 1 }}>
-                {isSaving ? 'Saving...' : 'Save as Draft'}
+              <button
+                onClick={handleSaveAndView}
+                disabled={isSaving || isGenerating}
+                className="rx-btn"
+                style={{ backgroundColor: '#e0f2fe', color: '#0284c7', opacity: (isSaving || isGenerating) ? 0.7 : 1, cursor: (isSaving || isGenerating) ? 'not-allowed' : 'pointer' }}
+              >
+                {isSaving ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : isGenerating ? <><Loader2 size={14} className="animate-spin" /> Opening...</> : <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  Save &amp; View
+                </>}
               </button>
-              <button onClick={handleSubmitToAdmin} disabled={isSaving} style={{ padding: '10px 20px', backgroundColor: '#10b981', color: 'white', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.7 : 1 }}>
+              <button
+                onClick={handleSaveAndDownload}
+                disabled={isSaving || isGenerating}
+                className="rx-btn"
+                style={{ backgroundColor: '#dbeafe', color: '#1d4ed8', opacity: (isSaving || isGenerating) ? 0.7 : 1, cursor: (isSaving || isGenerating) ? 'not-allowed' : 'pointer' }}
+              >
+                {isSaving ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : isGenerating ? <><Loader2 size={14} className="animate-spin" /> Generating...</> : <>
+                  <Download size={14} />
+                  Save &amp; Download
+                </>}
+              </button>
+              <button onClick={handleSubmitToAdmin} disabled={isSaving} className="rx-btn rx-btn-full" style={{ backgroundColor: '#10b981', color: 'white', opacity: isSaving ? 0.7 : 1, cursor: isSaving ? 'not-allowed' : 'pointer' }}>
                 Submit to Admin
-              </button>
-            </>
-          )}
-          {fileId && (
-            <>
-              <button onClick={handleViewPDF} disabled={isGenerating} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', backgroundColor: '#e2e8f0', color: '#0f172a', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: isGenerating ? 'not-allowed' : 'pointer', opacity: isGenerating ? 0.7 : 1 }}>
-                {isGenerating ? <Loader2 size={18} className="animate-spin" /> : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>}
-                {isGenerating ? 'Wait...' : 'View PDF'}
-              </button>
-              <button onClick={generatePDF} disabled={isGenerating} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', backgroundColor: '#38bdf8', color: '#0f172a', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: isGenerating ? 'not-allowed' : 'pointer', opacity: isGenerating ? 0.7 : 1 }}>
-                {isGenerating ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
-                {isGenerating ? 'Generating...' : 'Download PDF'}
               </button>
             </>
           )}
         </div>
       </div>
 
-      <div style={{ width: '100%', overflowX: isGenerating ? 'visible' : 'auto', paddingBottom: '24px' }}>
-        <div style={{ minWidth: '100%', width: '100%', display: 'flex', justifyContent: 'center' }}>
-          <div style={{ backgroundColor: 'white', padding: '40px', borderRadius: '8px', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', width: '100%', overflowX: isGenerating ? 'visible' : 'auto' }}>
+      <div className="rx-form-wrap">
+        <div className="rx-form-inner">
+          <div className="rx-form-card">
             
-            <div ref={pdfRef} id="pdf-content" style={{ width: '100%', padding: '0 20px 40px 20px', backgroundColor: 'white', fontFamily: '"Times New Roman", Times, serif', color: colors.textColor, fontSize: '18px' }}>
+            <div ref={pdfRef} id="pdf-content" className="rx-pdf" style={{ fontFamily: '"Times New Roman", Times, serif', color: colors.textColor }}>
               <style dangerouslySetInnerHTML={{ __html: `
                 #pdf-content, #pdf-content * {
                   box-sizing: border-box !important;
                 }
               ` }} />
           
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: `2px solid ${colors.headerBg}`, paddingBottom: '24px', marginBottom: '24px', paddingTop: '0' }}>
-            <div style={{ height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-              <img src="/images/Benva%20NEW.png" alt="Benva Healthcare" style={{ width: '380px', height: 'auto', objectFit: 'contain' }} />
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: `2px solid ${colors.headerBg}`, padding: '0', margin: '0' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', lineHeight: 0 }}>
+              <img src="/images/benva-logo-new.png" alt="Benva Healthcare" className="rx-logo" style={{ width: '280px', height: 'auto', objectFit: 'contain', display: 'block' }} />
             </div>
           </div>
-
-          <h2 style={{ textAlign: 'center', color: colors.headerBg, fontSize: '20px', marginBottom: '20px', fontFamily: 'Arial, sans-serif' }}>TELEMEDICINE PRESCRIPTION</h2>
-
+          <h2 className="rx-heading" style={{ textAlign: 'center', color: colors.headerBg, fontSize: '20px', margin: '8px 0', fontFamily: 'Arial, sans-serif' }}>TELEMEDICINE PRESCRIPTION</h2>
           <div style={{ marginBottom: '20px' }}>
-            <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>DOCTOR DETAILS <span style={{ fontSize: '12px', fontWeight: 'normal', fontStyle: 'italic' }}>(AUTO)</span></div>
-            <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed', wordWrap: 'break-word' }}>
+            <div className="rx-section-header" style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>DOCTOR DETAILS <span style={{ fontSize: '12px', fontWeight: 'normal', fontStyle: 'italic' }}>(AUTO)</span></div>
+            <table className="rx-doc-table">
               <tbody>
                 <tr>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '30%', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Doctor Name</td>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{doctorProfile?.name || ''}</td>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Doctor Name</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{doctorProfile?.name || ''}</td>
                 </tr>
                 <tr>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Qualification</td>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{doctorProfile?.qualification || ''}</td>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Qualification</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{doctorProfile?.qualification || ''}</td>
                 </tr>
                 <tr>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Speciality</td>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{doctorProfile?.speciality || ''}</td>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Speciality</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{doctorProfile?.speciality || ''}</td>
                 </tr>
                 <tr>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Medical Council Reg. No.</td>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{doctorProfile?.medicalCouncilReg || ''}</td>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Medical Council Reg. No.</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{doctorProfile?.medicalCouncilReg || ''}</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
           <div style={{ marginBottom: '12px' }}>
-            <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>CONSULTATION DETAILS</div>
-            <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed', wordWrap: 'break-word' }}>
+            <div className="rx-section-header" style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>CONSULTATION DETAILS</div>
+            <table className="rx-doc-table">
               <tbody>
                 <tr>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '30%', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>UHID Number</td>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', fontWeight: 'bold' }}>{formData.patientUhid}</td>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>UHID Number</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', fontWeight: 'bold' }}>{formData.patientUhid}</td>
                 </tr>
                 <tr>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Consultation Date</td>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Consultation Date</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>
                     {isViewMode ? (formData.consultationDate ? formData.consultationDate.split('-').reverse().join('-') : '') : <input type="date" name="consultationDate" value={formData.consultationDate} onChange={handleInputChange} style={inputStyle} />}
                   </td>
                 </tr>
                 <tr>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Consultation Mode</td>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Consultation Mode</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>
                     {isViewMode ? formData.consultationMode || 'None' : (
-                      <div style={{ display: 'flex', gap: '16px' }}>
+                      <div className="rx-mode-group">
                         {['Video', 'Audio', 'Chat'].map((mode) => (
-                          <label key={mode} style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer' }}>
+                          <label key={mode} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', whiteSpace: 'nowrap' }}>
                             <input
                               type="checkbox"
                               checked={formData.consultationMode.includes(mode)}
@@ -631,8 +699,8 @@ export default function PrescriptionPage() {
                   </td>
                 </tr>
                 <tr>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Full Name</td>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Full Name</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>
                     {isViewMode ? formData.patientName : <input name="patientName" placeholder="Enter patient name" value={formData.patientName} onChange={handleInputChange} style={inputStyle} />}
                   </td>
                 </tr>
@@ -682,14 +750,15 @@ export default function PrescriptionPage() {
           )}
 
           <div style={{ marginBottom: '12px' }}>
-            <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>PRESCRIBED MEDICINES</div>
+            <div className="rx-section-header" style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>PRESCRIBED MEDICINES</div>
             
             {isGenerating && medicines.filter(med => med.name.trim() || med.dosage.trim() || med.instructions.trim()).length === 0 ? (
               <div style={{ border: `1px solid ${colors.borderColor}`, padding: '12px', backgroundColor: colors.leftColBg, marginTop: '8px', textAlign: 'center', fontStyle: 'italic', color: '#64748b' }}>
                 No prescribed medicines
               </div>
             ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', marginTop: '8px', tableLayout: 'fixed', wordWrap: 'break-word' }}>
+            <div className="rx-med-wrap">
+            <table className="rx-med-table" style={{ tableLayout: 'fixed', wordWrap: 'break-word' }}>
               <thead>
                 <tr style={{ backgroundColor: colors.headerBg, color: 'white', fontSize: '15px' }}>
                   <th style={{ border: `1px solid ${colors.borderColor}`, padding: '6px', width: '5%', whiteSpace: 'nowrap' }}>S.No</th>
@@ -748,6 +817,7 @@ export default function PrescriptionPage() {
                 })}
               </tbody>
             </table>
+            </div>
             )}
             
             {!isGenerating && (
@@ -765,7 +835,7 @@ export default function PrescriptionPage() {
 
           {(!isGenerating || formData.investigations?.trim()) && (
             <div style={{ marginBottom: '12px', pageBreakInside: 'avoid', breakInside: 'avoid', paddingTop: '1px' }}>
-              <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>INVESTIGATIONS</div>
+              <div className="rx-section-header" style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>INVESTIGATIONS</div>
               <div style={{ border: `1px solid ${colors.borderColor}`, padding: '12px', minHeight: '60px', backgroundColor: colors.leftColBg }}>
                 {isViewMode ? (
                   <div style={{ whiteSpace: 'pre-wrap' }}>{formData.investigations}</div>
@@ -778,7 +848,7 @@ export default function PrescriptionPage() {
 
           {(!isGenerating || formData.advice?.trim()) && (
             <div style={{ marginBottom: '12px', pageBreakInside: 'avoid', breakInside: 'avoid', paddingTop: '1px' }}>
-              <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>ADVICE</div>
+              <div className="rx-section-header" style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>ADVICE</div>
               <div style={{ border: `1px solid ${colors.borderColor}`, padding: '12px', minHeight: '60px', backgroundColor: colors.leftColBg }}>
                 {isViewMode ? (
                   <div style={{ whiteSpace: 'pre-wrap' }}>{formData.advice}</div>
@@ -790,7 +860,7 @@ export default function PrescriptionPage() {
           )}
 
           <div style={{ marginBottom: '12px', pageBreakInside: 'avoid', breakInside: 'avoid', paddingTop: '1px' }}>
-            <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>IMPORTANT DISCLAIMER</div>
+            <div className="rx-section-header" style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>IMPORTANT DISCLAIMER</div>
             <ul style={{ fontSize: '12px', paddingLeft: '20px', marginTop: '8px' }}>
               <li style={{ marginBottom: '4px' }}>This prescription has been generated following a telemedicine consultation.</li>
               <li style={{ marginBottom: '4px' }}>The prescription is based on information provided by the patient during the consultation.</li>
@@ -802,26 +872,26 @@ export default function PrescriptionPage() {
           </div>
 
           <div style={{ marginBottom: '12px', pageBreakInside: 'avoid', breakInside: 'avoid', paddingTop: '1px' }}>
-            <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>DOCTOR DIGITAL SIGNATURE</div>
-            <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed', wordWrap: 'break-word' }}>
+            <div className="rx-section-header" style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>DOCTOR DIGITAL SIGNATURE</div>
+            <table className="rx-doc-table">
               <tbody>
                 <tr>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '30%', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg, height: '60px' }}>Doctor Signature</td>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', verticalAlign: 'bottom', fontStyle: 'italic', color: colors.headerBg }}>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg, height: '60px' }}>Doctor Signature</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', verticalAlign: 'bottom', fontStyle: 'italic', color: colors.headerBg }}>
                     {doctorProfile?.signature || ''}
                   </td>
                 </tr>
                 <tr>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Doctor Name</td>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{doctorProfile?.name || ''}</td>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Doctor Name</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{doctorProfile?.name || ''}</td>
                 </tr>
                 <tr>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Qualification</td>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{doctorProfile?.qualification || ''}</td>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Qualification</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{doctorProfile?.qualification || ''}</td>
                 </tr>
                 <tr>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Registration Number</td>
-                  <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{doctorProfile?.medicalCouncilReg || ''}</td>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Registration Number</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{doctorProfile?.medicalCouncilReg || ''}</td>
                 </tr>
               </tbody>
             </table>
@@ -830,7 +900,7 @@ export default function PrescriptionPage() {
             </div>
           </div>
 
-          <div style={{ display: 'flex', justifyContent: 'space-between', borderTop: `2px solid ${colors.headerBg}`, paddingTop: '10px', fontSize: '12px', color: '#64748b', marginTop: '40px' }}>
+          <div className="rx-footer-row">
             <span><strong>Website:</strong> www.benvahealthcare.in</span>
             <span><strong>Contact:</strong> +91 91111 45556</span>
             <span><strong>Emergency Helpline:</strong> +91 91111 45556</span>
@@ -841,29 +911,36 @@ export default function PrescriptionPage() {
       </div>
       
       <div style={{ width: '100%', maxWidth: '980px', margin: '0 auto', display: 'flex', justifyContent: 'flex-end', alignItems: 'center', marginTop: '16px', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
-        <div style={{ display: 'flex', gap: '12px' }}>
+        <div className="rx-btn-group">
           {patientId && !isViewOnly && (
             <>
-              <button onClick={() => router.back()} style={{ padding: '10px 20px', backgroundColor: '#f1f5f9', color: '#475569', borderRadius: '8px', fontWeight: 600, border: '1px solid #cbd5e1', cursor: 'pointer' }}>
+              <button onClick={() => router.back()} className="rx-btn" style={{ backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1' }}>
                 Cancel
               </button>
-              <button onClick={handleSaveToRecord} disabled={isSaving} style={{ padding: '10px 20px', backgroundColor: '#e0f2fe', color: '#0284c7', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.7 : 1 }}>
-                {isSaving ? 'Saving...' : 'Save as Draft'}
+              <button
+                onClick={handleSaveAndView}
+                disabled={isSaving || isGenerating}
+                className="rx-btn"
+                style={{ backgroundColor: '#e0f2fe', color: '#0284c7', opacity: (isSaving || isGenerating) ? 0.7 : 1, cursor: (isSaving || isGenerating) ? 'not-allowed' : 'pointer' }}
+              >
+                {isSaving ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : isGenerating ? <><Loader2 size={14} className="animate-spin" /> Opening...</> : <>
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  Save &amp; View
+                </>}
               </button>
-              <button onClick={handleSubmitToAdmin} disabled={isSaving} style={{ padding: '10px 20px', backgroundColor: '#10b981', color: 'white', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: isSaving ? 'not-allowed' : 'pointer', opacity: isSaving ? 0.7 : 1 }}>
+              <button
+                onClick={handleSaveAndDownload}
+                disabled={isSaving || isGenerating}
+                className="rx-btn"
+                style={{ backgroundColor: '#dbeafe', color: '#1d4ed8', opacity: (isSaving || isGenerating) ? 0.7 : 1, cursor: (isSaving || isGenerating) ? 'not-allowed' : 'pointer' }}
+              >
+                {isSaving ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : isGenerating ? <><Loader2 size={14} className="animate-spin" /> Generating...</> : <>
+                  <Download size={14} />
+                  Save &amp; Download
+                </>}
+              </button>
+              <button onClick={handleSubmitToAdmin} disabled={isSaving} className="rx-btn rx-btn-full" style={{ backgroundColor: '#10b981', color: 'white', opacity: isSaving ? 0.7 : 1, cursor: isSaving ? 'not-allowed' : 'pointer' }}>
                 Submit to Admin
-              </button>
-            </>
-          )}
-          {fileId && (
-            <>
-              <button onClick={handleViewPDF} disabled={isGenerating} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', backgroundColor: '#e2e8f0', color: '#0f172a', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: isGenerating ? 'not-allowed' : 'pointer', opacity: isGenerating ? 0.7 : 1 }}>
-                {isGenerating ? <Loader2 size={18} className="animate-spin" /> : <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M2 12s3-7 10-7 10 7 10 7-3 7-10 7-10-7-10-7Z"></path><circle cx="12" cy="12" r="3"></circle></svg>}
-                {isGenerating ? 'Wait...' : 'View PDF'}
-              </button>
-              <button onClick={generatePDF} disabled={isGenerating} style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 20px', backgroundColor: '#38bdf8', color: '#0f172a', borderRadius: '8px', fontWeight: 600, border: 'none', cursor: isGenerating ? 'not-allowed' : 'pointer', opacity: isGenerating ? 0.7 : 1 }}>
-                {isGenerating ? <Loader2 size={18} className="animate-spin" /> : <Download size={18} />}
-                {isGenerating ? 'Generating...' : 'Download PDF'}
               </button>
             </>
           )}
@@ -871,5 +948,6 @@ export default function PrescriptionPage() {
       </div>
 
     </div>
+    </>
   );
 }

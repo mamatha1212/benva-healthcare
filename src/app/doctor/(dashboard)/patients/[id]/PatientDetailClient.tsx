@@ -360,8 +360,34 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
   };
 
   return (
+    <>
+    <style>{`
+      .pd-header { display: flex; align-items: flex-start; flex-wrap: wrap; gap: 16px; margin-bottom: 32px; }
+      .pd-write-btn-wrap { margin-left: auto; display: flex; flex-wrap: wrap; }
+      .pd-write-btn { background: #3b82f6; color: white; border: none; padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; white-space: nowrap; }
+      .pd-file-card { display: flex; align-items: center; flex-wrap: wrap; gap: 12px; justify-content: space-between; padding: 16px; background: #f8fafc; border-radius: 8px; border: 1px solid #e2e8f0; }
+      .pd-file-info { display: flex; align-items: center; gap: 16px; min-width: 0; }
+      .pd-file-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+      .pd-file-actions button { white-space: nowrap; }
+      .pd-modal-inner { background: white; padding: 32px; border-radius: 12px; width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto; }
+      .pd-view-modal-inner { background: white; padding: 32px; border-radius: 12px; width: 100%; max-width: 650px; max-height: 90vh; overflow-y: auto; box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1), 0 10px 10px -5px rgba(0,0,0,0.04); }
+      .pd-med-table-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .pd-med-table { width: 100%; border-collapse: collapse; font-size: 14px; min-width: 480px; }
+      @media (max-width: 600px) {
+        .pd-header { flex-direction: column; gap: 12px; margin-bottom: 20px; }
+        .pd-write-btn-wrap { margin-left: 0; width: 100%; }
+        .pd-write-btn { width: 100%; justify-content: center; }
+        .pd-file-card { flex-direction: column; align-items: flex-start; }
+        .pd-file-info { width: 100%; }
+        .pd-file-actions { width: 100%; display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+        .pd-file-actions .pd-btn-full { grid-column: 1 / -1; }
+        .pd-file-actions button { padding: 10px 8px; font-size: 13px; border-radius: 8px; font-weight: 600; text-align: center; white-space: normal; }
+        .pd-modal-inner { padding: 16px; border-radius: 8px; max-height: 95vh; }
+        .pd-view-modal-inner { padding: 16px; border-radius: 8px; max-height: 95vh; }
+      }
+    `}</style>
     <div>
-      <div style={{ display: 'flex', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '32px' }}>
+      <div className="pd-header">
         <Link href="/doctor/patients" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: '40px', height: '40px', borderRadius: '50%', background: 'white', border: '1px solid #e2e8f0', color: '#64748b', textDecoration: 'none' }}>
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
         </Link>
@@ -376,10 +402,10 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
           </div>
         </div>
         
-        <div style={{ marginLeft: 'auto', display: 'flex', flexWrap: 'wrap' }}>
+        <div className="pd-write-btn-wrap">
           <button 
             onClick={() => router.push(`/doctor/patients/${patient.id}/prescription`)}
-            style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+            className="pd-write-btn"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
             Write Prescription
@@ -399,8 +425,8 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
           {patient.files && patient.files.length > 0 ? (
             <div style={{ display: 'grid', gap: '12px' }}>
               {patient.files.map((file: any) => (
-                <div key={file.id} style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '12px', justifyContent: 'space-between', padding: '16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                <div key={file.id} className="pd-file-card">
+                  <div className="pd-file-info">
                     <div style={{ width: '40px', height: '40px', background: '#e0f2fe', color: '#0284c7', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                     </div>
@@ -413,10 +439,10 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
                           <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>Draft</span>
                         )}
                       </div>
-                      <div suppressHydrationWarning style={{ color: '#64748b', fontSize: '13px', marginTop: '2px' }}>{new Date(file.createdAt).toLocaleString()}</div>
+                      <div suppressHydrationWarning style={{ color: '#64748b', fontSize: '13px', marginTop: '2px' }}>{(() => { const d = new Date(file.createdAt); const dd = String(d.getDate()).padStart(2, '0'); const mm = String(d.getMonth() + 1).padStart(2, '0'); const yyyy = d.getFullYear(); const time = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }); return `${dd} ${mm} ${yyyy}, ${time}`; })()}</div>
                     </div>
                   </div>
-                  <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+                  <div className="pd-file-actions">
                     {file.status !== 'SUBMITTED' && (
                       <>
                         <button 
@@ -424,12 +450,6 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
                           style={{ background: '#eff6ff', border: '1px solid #bfdbfe', color: '#2563eb', padding: '8px 16px', borderRadius: '6px', fontWeight: 500, cursor: 'pointer', fontSize: '13px' }}
                         >
                           Edit Note
-                        </button>
-                        <button 
-                          onClick={() => handleSubmitPrescription(file.id)}
-                          style={{ background: '#10b981', border: 'none', color: 'white', padding: '8px 16px', borderRadius: '6px', fontWeight: 500, cursor: 'pointer', fontSize: '13px' }}
-                        >
-                          Submit to Admin
                         </button>
                       </>
                     )}
@@ -439,6 +459,15 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
                     >
                       View Note
                     </button>
+                    {file.status !== 'SUBMITTED' && (
+                      <button 
+                        onClick={() => handleSubmitPrescription(file.id)}
+                        className="pd-btn-full"
+                        style={{ background: '#10b981', border: 'none', color: 'white', padding: '8px 16px', borderRadius: '6px', fontWeight: 500, cursor: 'pointer', fontSize: '13px' }}
+                      >
+                        Submit to Admin
+                      </button>
+                    )}
                   </div>
                 </div>
               ))}
@@ -457,7 +486,7 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
 
       {isPrescriptionModalOpen && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '24px' }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '12px', width: '100%', maxWidth: '800px', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div className="pd-modal-inner">
             <h2 style={{ margin: '0 0 8px 0', fontSize: '24px', color: '#1e293b' }}>{editingFileId ? 'Edit Telemedicine Prescription' : 'New Telemedicine Prescription'}</h2>
             <p style={{ color: '#64748b', margin: '0 0 24px 0', fontSize: '14px' }}>
               Fill in the standardized consultation details for {patient.name}.
@@ -631,7 +660,7 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
       )}
       {viewingFileText && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '24px' }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '12px', width: '100%', maxWidth: '650px', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)' }}>
+          <div className="pd-view-modal-inner">
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '24px', paddingBottom: '16px', borderBottom: '1px solid #e2e8f0' }}>
               <div>
                 <h2 style={{ margin: '0 0 8px 0', fontSize: '20px', fontWeight: 'bold', color: '#0f172a' }}>Prescription Details</h2>
@@ -668,7 +697,8 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
                       {parsed.medicines && parsed.medicines.length > 0 && parsed.medicines.some((m:any) => m.name) && (
                         <div>
                           <span style={{ color: '#64748b', fontSize: '13px', textTransform: 'uppercase', fontWeight: 600, display: 'block', marginBottom: '8px' }}>Prescribed Medicines</span>
-                          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '14px' }}>
+                          <div className="pd-med-table-wrap">
+                          <table className="pd-med-table">
                             <thead>
                               <tr style={{ background: '#f1f5f9', color: '#475569', textAlign: 'left' }}>
                                 <th style={{ padding: '8px 12px', fontWeight: 600, border: '1px solid #e2e8f0' }}>Medicine Name</th>
@@ -690,6 +720,7 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
                               ))}
                             </tbody>
                           </table>
+                          </div>
                         </div>
                       )}
 
@@ -730,5 +761,6 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
         </div>
       )}
     </div>
+    </>
   );
 }

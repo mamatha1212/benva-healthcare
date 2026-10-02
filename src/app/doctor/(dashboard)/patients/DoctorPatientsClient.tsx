@@ -55,7 +55,6 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
       }
       
       setIsModalOpen(false);
-      router.refresh();
     } catch (error: any) {
       console.error(error);
       alert(error.message || 'Error saving patient');

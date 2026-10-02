@@ -1,16 +1,9 @@
 import { prisma } from './prisma';
 
 export async function generateNextUhid(): Promise<string> {
-  const lastPatient = await prisma.patientRecord.findFirst({
-    where: { uhid: { not: null } },
-    orderBy: { uhid: 'desc' }
+  const count = await prisma.patientRecord.count({
+    where: { uhid: { not: null } }
   });
-  
-  if (!lastPatient || !lastPatient.uhid) {
-    return 'BENVA-UHID-000000001';
-  }
-  
-  const lastNumberStr = lastPatient.uhid.replace('BENVA-UHID-', '');
-  const nextNumber = parseInt(lastNumberStr, 10) + 1;
+  const nextNumber = count + 1;
   return `BENVA-UHID-${nextNumber.toString().padStart(9, '0')}`;
 }

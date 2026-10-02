@@ -228,12 +228,11 @@
   }
   
   .section {
-    /* Top: 24px, Right: 56px (creates safe zone for floating buttons), Bottom: 24px, Left: 16px */
-    padding: 24px 56px 24px 16px;
+    padding: 20px 16px;
   }
   
   .header {
-    padding: 40px 0 30px;
+    padding: 40px 0 60px;
   }
   
   .header h1 {
@@ -248,7 +247,7 @@
   .formActions {
     justify-content: center;
     margin-top: 24px;
-    padding-right: 56px; /* Protects submit button from FABs */
+    padding-bottom: 32px; /* Protects submit button from FABs */
   }
 
   .submitButton {

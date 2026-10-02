@@ -23,33 +23,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Name and phone are required' }, { status: 400 });
     }
 
-    let patient = await prisma.patientRecord.findFirst({
-      where: { name, phone }
-    });
+    const [existingPatient, nextUhid] = await Promise.all([
+      prisma.patientRecord.findFirst({ where: { name, phone } }),
+      generateNextUhid()
+    ]);
 
-    if (patient) {
-      if (!patient.uhid) {
-        const nextUhid = await generateNextUhid();
-        patient = await prisma.patientRecord.update({
-          where: { id: patient.id },
-          data: { uhid: nextUhid, age: age || patient.age, gender: gender || patient.gender, consultant: consultant || patient.consultant }
+    if (existingPatient) {
+      if (!existingPatient.uhid) {
+        const updated = await prisma.patientRecord.update({
+          where: { id: existingPatient.id },
+          data: { uhid: nextUhid, age: age || existingPatient.age, gender: gender || existingPatient.gender, consultant: consultant || existingPatient.consultant }
         });
+        return NextResponse.json(updated);
       }
-    } else {
-      const nextUhid = await generateNextUhid();
-      patient = await prisma.patientRecord.create({
-        data: {
-          name,
-          phone,
-          age,
-          gender,
-          consultant,
-          uhid: nextUhid
-        }
-      });
+      return NextResponse.json(existingPatient);
     }
 
-    return NextResponse.json(patient);
+    const created = await prisma.patientRecord.create({
+      data: { name, phone, age, gender, consultant, uhid: nextUhid }
+    });
+
+    return NextResponse.json(created);
+
   } catch (error: any) {
     console.error('Error creating patient:', error);
     return NextResponse.json({ error: error.message || 'Failed to create patient' }, { status: 500 });
