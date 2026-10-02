@@ -115,7 +115,7 @@ export default function DoctorOnboardingForm() {
               <input type="text" name="state" placeholder="State" required />
             </div>
             <div className={styles.formGroupFull}>
-              <CustomFileInput name="doc_passport_photo" label="Passport Size Photograph" accept="image/*" />
+              <CustomFileInput name="doc_passport_photo" label="Passport Size Photograph" accept="image/*" required={true} />
             </div>
           </div>
         </section>
@@ -226,11 +226,11 @@ export default function DoctorOnboardingForm() {
           
           <div className={styles.grid}>
             {[
-              { name: 'Medical Registration Certificate', key: 'doc_med_reg', req: false },
-              { name: 'MBBS Degree Certificate', key: 'doc_mbbs', req: false },
+              { name: 'Medical Registration Certificate', key: 'doc_med_reg', req: true },
+              { name: 'MBBS Degree Certificate', key: 'doc_mbbs', req: true },
               { name: 'PG Degree Certificate(s)', key: 'doc_pg', req: false },
               { name: 'Fellowship Certificate(s)', key: 'doc_fellowship', req: false },
-              { name: 'Government Photo ID (Aadhar or PAN)', key: 'doc_gov_id', req: false },
+              { name: 'Government Photo ID (Aadhar or PAN)', key: 'doc_gov_id', req: true },
               { name: 'PAN Card', key: 'doc_pan', req: false },
               { name: 'Cancelled Cheque / Bank Proof', key: 'doc_bank', req: false }
             ].map((doc, idx) => (
