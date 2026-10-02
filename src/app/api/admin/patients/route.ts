@@ -31,7 +31,6 @@ export async function POST(req: NextRequest) {
     
     let patient = await prisma.patientRecord.findFirst({
       where: { 
-        name: { equals: name, mode: 'insensitive' }, 
         phone 
       },
       orderBy: { createdAt: 'desc' }

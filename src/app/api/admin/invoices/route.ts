@@ -73,7 +73,6 @@ export async function POST(req: NextRequest) {
       if (patientName && patientPhone) {
         existingPatient = await prisma.patientRecord.findFirst({
           where: { 
-            name: { equals: patientName.trim(), mode: 'insensitive' },
             phone: patientPhone.trim() 
           },
           orderBy: { createdAt: 'desc' }

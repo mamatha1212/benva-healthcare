@@ -28,7 +28,6 @@ export async function POST(req: NextRequest) {
     const [existingPatient, nextUhid] = await Promise.all([
       prisma.patientRecord.findFirst({ 
         where: { 
-          name: { equals: name, mode: 'insensitive' }, 
           phone 
         },
         orderBy: { createdAt: 'desc' }

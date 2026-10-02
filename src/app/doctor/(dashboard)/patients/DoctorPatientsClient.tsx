@@ -71,57 +71,170 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '24px' }}>
+      <style>{`
+        .patient-table {
+          width: 100%;
+          border-collapse: collapse;
+          text-align: left;
+        }
+        .patient-table th {
+          padding: 16px 24px;
+          background: #02559d;
+          color: white;
+          font-size: 13px;
+          font-weight: 600;
+          text-transform: uppercase;
+          letter-spacing: 0.05em;
+          border-bottom: 2px solid #013b6e;
+        }
+        .patient-table th:first-child {
+          border-top-left-radius: 12px;
+        }
+        .patient-table th:last-child {
+          border-top-right-radius: 12px;
+        }
+        .patient-row {
+          border-bottom: 1px solid #e2e8f0;
+          transition: all 0.2s ease;
+        }
+        .patient-row:hover {
+          background-color: #f0f7ff;
+        }
+        .patient-row td {
+          padding: 16px 24px;
+          color: #475569;
+          font-size: 14px;
+        }
+        .action-btn {
+          background: #f1f5f9;
+          border: none;
+          padding: 6px 12px;
+          border-radius: 6px;
+          font-size: 13px;
+          font-weight: 500;
+          color: #475569;
+          cursor: pointer;
+          transition: all 0.2s ease;
+        }
+        .action-btn:hover {
+          background: #e2e8f0;
+          color: #0f172a;
+        }
+        .action-btn.edit {
+          color: #02559d;
+          background: #e6f0fa;
+        }
+        .action-btn.edit:hover {
+          background: #cce0f5;
+        }
+        .action-btn.prescribe {
+          background: #02559d;
+          color: white;
+          display: flex;
+          align-items: center;
+          gap: 4px;
+          box-shadow: 0 2px 4px rgba(2, 85, 157, 0.2);
+        }
+        .action-btn.prescribe:hover {
+          background: #013b6e;
+          transform: translateY(-1px);
+          box-shadow: 0 4px 6px rgba(2, 85, 157, 0.3);
+        }
+        .add-patient-btn {
+          background: linear-gradient(135deg, #02559d 0%, #013b6e 100%);
+          color: white;
+          border: none;
+          padding: 10px 20px;
+          border-radius: 8px;
+          font-weight: 600;
+          cursor: pointer;
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          box-shadow: 0 4px 12px rgba(2, 85, 157, 0.25);
+          transition: all 0.2s ease;
+        }
+        .add-patient-btn:hover {
+          transform: translateY(-2px);
+          box-shadow: 0 6px 16px rgba(2, 85, 157, 0.35);
+        }
+        .search-input:focus {
+          outline: none;
+          border-color: #02559d !important;
+          box-shadow: 0 0 0 3px rgba(2, 85, 157, 0.1);
+        }
+      `}</style>
+      
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '32px' }}>
         <div>
-          <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#0f172a', margin: '0 0 8px 0' }}>My Patients</h1>
-          <p style={{ color: '#64748b', margin: 0 }}>View and manage your assigned patients and consultation history.</p>
+          <h1 style={{ fontSize: '28px', fontWeight: '800', color: '#0f172a', margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>My Patients</h1>
+          <p style={{ color: '#64748b', margin: 0, fontSize: '15px' }}>View and manage your assigned patients and consultation history.</p>
         </div>
         
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', width: '100%' }}>
-          <div style={{ position: 'relative', flex: '1 1 min(100%, 250px)' }}>
+        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', width: '100%' }}>
+          <div style={{ position: 'relative', flex: '1 1 min(100%, 300px)' }}>
             <input 
               type="text" 
-              placeholder="Search patients..." 
+              className="search-input"
+              placeholder="Search patients by name, phone, or UHID..." 
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ padding: '10px 16px 10px 40px', borderRadius: '8px', border: '1px solid #cbd5e1', width: '100%' }}
+              style={{ padding: '12px 16px 12px 42px', borderRadius: '8px', border: '1px solid #cbd5e1', width: '100%', fontSize: '14px', transition: 'all 0.2s' }}
             />
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#94a3b8' }}>
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', width: '18px', height: '18px', color: '#94a3b8' }}>
               <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
             </svg>
           </div>
-          <button onClick={() => handleOpenModal()} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '10px 16px', borderRadius: '8px', fontWeight: 500, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '16px', height: '16px' }}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+          <button onClick={() => handleOpenModal()} className="add-patient-btn">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '18px', height: '18px' }}><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
             Add New Patient
           </button>
         </div>
       </div>
 
-      <div style={{ backgroundColor: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflowX: 'auto' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+      <div style={{ backgroundColor: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflowX: 'auto', boxShadow: '0 4px 16px rgba(0,0,0,0.04)' }}>
+        <table className="patient-table">
           <thead>
-            <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-              <th style={{ padding: '16px 24px', color: '#64748b', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Patient Name</th>
-              <th style={{ padding: '16px 24px', color: '#64748b', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Contact Details</th>
-              <th style={{ padding: '16px 24px', color: '#64748b', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Demographics</th>
-              <th style={{ padding: '16px 24px', color: '#64748b', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Added On</th>
-              <th style={{ padding: '16px 24px', color: '#64748b', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</th>
+            <tr>
+              <th style={{ width: '60px', textAlign: 'center' }}>S.No</th>
+              <th>Patient Details</th>
+              <th>Contact</th>
+              <th>Demographics</th>
+              <th>Added On</th>
+              <th style={{ textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
-            {filteredPatients.map(patient => (
-              <tr key={patient.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
-                <td style={{ padding: '16px 24px', fontWeight: 500, color: '#0f172a' }}>{patient.name}</td>
-                <td style={{ padding: '16px 24px', color: '#475569' }}>{patient.phone}</td>
-                <td style={{ padding: '16px 24px', color: '#475569' }}>
-                  {patient.age ? `${patient.age} Yrs` : '-'} {patient.gender ? `/ ${patient.gender}` : ''}
+            {filteredPatients.map((patient, index) => (
+              <tr key={patient.id} className="patient-row">
+                <td style={{ textAlign: 'center', fontWeight: '600', color: '#94a3b8' }}>{index + 1}</td>
+                <td>
+                  <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '15px' }}>{patient.name}</div>
+                  {patient.uhid && <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', display: 'inline-block', background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontWeight: 500 }}>{patient.uhid}</div>}
                 </td>
-                <td suppressHydrationWarning style={{ padding: '16px 24px', color: '#475569' }}>{new Date(patient.createdAt).toLocaleDateString()}</td>
-                <td style={{ padding: '16px 24px', textAlign: 'right' }}>
+                <td>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                    {patient.phone}
+                  </div>
+                </td>
+                <td>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '4px 10px', borderRadius: '20px', border: '1px solid #e2e8f0', fontSize: '13px' }}>
+                    <span style={{ fontWeight: 600, color: '#334155' }}>{patient.age ? `${patient.age} Yrs` : '-'}</span>
+                    <span style={{ color: '#cbd5e1' }}>|</span>
+                    <span style={{ color: '#475569' }}>{patient.gender || '-'}</span>
+                  </div>
+                </td>
+                <td suppressHydrationWarning>
+                  <div style={{ fontSize: '13px', color: '#64748b' }}>
+                    {new Date(patient.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                  </div>
+                </td>
+                <td style={{ textAlign: 'right' }}>
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                    <button onClick={() => router.push(`/doctor/patients/${patient.id}`)} style={{ background: '#f1f5f9', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 500, color: '#475569', cursor: 'pointer', transition: 'all 0.2s' }}>View</button>
-                    <button onClick={() => handleOpenModal(patient)} style={{ background: '#f1f5f9', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 500, color: '#3b82f6', cursor: 'pointer', transition: 'all 0.2s' }}>Edit</button>
-                    <button onClick={() => router.push(`/doctor/patients/${patient.id}`)} style={{ background: '#dbeafe', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, color: '#2563eb', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', transition: 'all 0.2s' }}>
+                    <button onClick={() => router.push(`/doctor/patients/${patient.id}`)} className="action-btn">View</button>
+                    <button onClick={() => handleOpenModal(patient)} className="action-btn edit">Edit</button>
+                    <button onClick={() => router.push(`/doctor/patients/${patient.id}`)} className="action-btn prescribe">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
                       Prescriptions
                     </button>
@@ -131,13 +244,13 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
             ))}
             {filteredPatients.length === 0 && (
               <tr>
-                <td colSpan={5} style={{ padding: '64px 24px', textAlign: 'center' }}>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '64px', height: '64px', borderRadius: '50%', background: '#f1f5f9', color: '#94a3b8', marginBottom: '16px' }}>
-                    <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+                <td colSpan={6} style={{ padding: '64px 24px', textAlign: 'center' }}>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '80px', height: '80px', borderRadius: '50%', background: '#f0f7ff', color: '#02559d', marginBottom: '16px' }}>
+                    <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
                   </div>
-                  <h3 style={{ color: '#0f172a', fontSize: '16px', fontWeight: 600, margin: '0 0 8px 0' }}>No Patients Found</h3>
-                  <p style={{ color: '#64748b', margin: 0, maxWidth: '300px', marginLeft: 'auto', marginRight: 'auto' }}>
-                    {searchTerm ? 'No patients match your search criteria.' : 'You currently have no patients assigned to you. Click "Add New Patient" to get started.'}
+                  <h3 style={{ color: '#0f172a', fontSize: '18px', fontWeight: 600, margin: '0 0 8px 0' }}>No Patients Found</h3>
+                  <p style={{ color: '#64748b', margin: 0, maxWidth: '350px', marginLeft: 'auto', marginRight: 'auto', lineHeight: '1.5' }}>
+                    {searchTerm ? 'No patients match your search criteria. Try a different term or clear the search.' : 'You currently have no patients assigned to you. Click "Add New Patient" to get started.'}
                   </p>
                 </td>
               </tr>
