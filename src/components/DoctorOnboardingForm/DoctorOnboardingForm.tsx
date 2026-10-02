@@ -186,7 +186,7 @@ export default function DoctorOnboardingForm() {
               <input type="text" name="state" placeholder="State" required />
             </div>
             <div className={styles.formGroupFull}>
-              <CustomFileInput name="doc_passport_photo" label="Passport Size Photograph" accept="image/*" required />
+              <CustomFileInput name="doc_passport_photo" label="Passport Size Photograph" accept="image/*" />
             </div>
           </div>
         </section>
