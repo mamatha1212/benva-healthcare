@@ -10,21 +10,23 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'Phone is required' }, { status: 400 });
     }
 
-    const patient = await prisma.patientRecord.findFirst({
+    const patients = await prisma.patientRecord.findMany({
       where: { phone },
-      orderBy: { createdAt: 'desc' }
+      orderBy: { createdAt: 'asc' }
     });
 
-    if (!patient) {
-      return NextResponse.json(null);
+    if (!patients || patients.length === 0) {
+      return NextResponse.json([]);
     }
 
-    return NextResponse.json({
-      name: patient.name,
-      age: patient.age || '',
-      gender: patient.gender || '',
-      uhid: patient.uhid || ''
-    });
+    const result = patients.map(p => ({
+      name: p.name,
+      age: p.age || '',
+      gender: p.gender || '',
+      uhid: p.uhid || ''
+    }));
+
+    return NextResponse.json(result);
 
   } catch (error) {
     console.error('Error fetching patient by phone:', error);

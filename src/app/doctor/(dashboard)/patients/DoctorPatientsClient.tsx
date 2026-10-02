@@ -11,6 +11,7 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
   const [formData, setFormData] = useState({ name: '', phone: '', age: '', gender: '' });
   const [searchTerm, setSearchTerm] = useState('');
   const [formError, setFormError] = useState('');
+  const [familyMembers, setFamilyMembers] = useState<any[]>([]);
   
   const router = useRouter();
 
@@ -23,6 +24,7 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
       setFormData({ name: '', phone: '', age: '', gender: '' });
     }
     setFormError('');
+    setFamilyMembers([]);
     setIsModalOpen(true);
   };
 
@@ -289,25 +291,62 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
                     if (newPhone.trim().length >= 10 && !editingPatient) {
                       const phone = newPhone.trim();
                       fetch(`/api/patients/by-phone?phone=${encodeURIComponent(phone)}`)
-                        .then(res => res.ok ? res.json() : null)
-                        .then(data => {
-                          if (data && data.name) {
+                        .then(res => res.ok ? res.json() : [])
+                        .then((data: any[]) => {
+                          if (data && data.length > 0) {
+                            setFamilyMembers(data);
+                            const primary = data[0];
                             setFormData(prev => ({
                               ...prev,
-                              name: prev.name || data.name,
-                              age: prev.age || data.age,
-                              gender: prev.gender || data.gender
+                              name: prev.name || primary.name,
+                              age: prev.age || primary.age,
+                              gender: prev.gender || primary.gender
                             }));
-                            setFormError(`Found existing patient with this number (UHID: ${data.uhid || 'Pending'}). Details auto-filled.`);
+                            setFormError(`Found ${data.length} family member(s) with this number. Auto-filled primary member.`);
+                          } else {
+                            setFamilyMembers([]);
                           }
                         })
-                        .catch(() => {});
+                        .catch(() => { setFamilyMembers([]); });
+                    } else if (newPhone.trim().length < 10) {
+                      setFamilyMembers([]);
                     }
                   }}
                   required
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} 
                 />
               </div>
+
+              {familyMembers.length > 0 && (
+                <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Select Family Member or Add New:</label>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
+                    {familyMembers.map((member, idx) => (
+                      <button
+                        key={idx}
+                        type="button"
+                        onClick={() => {
+                          setFormData(prev => ({ ...prev, name: member.name, age: member.age, gender: member.gender }));
+                          setFormError(`Selected ${member.name} (UHID: ${member.uhid || 'Pending'}).`);
+                        }}
+                        style={{ padding: '6px 12px', borderRadius: '16px', border: '1px solid #cbd5e1', background: formData.name === member.name ? '#0ea5e9' : 'white', color: formData.name === member.name ? 'white' : '#0f172a', fontSize: '13px', cursor: 'pointer' }}
+                      >
+                        {member.name}
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setFormData(prev => ({ ...prev, name: '', age: '', gender: '' }));
+                        setFormError('');
+                      }}
+                      style={{ padding: '6px 12px', borderRadius: '16px', border: '1px dashed #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontSize: '13px', cursor: 'pointer', fontWeight: 500 }}
+                    >
+                      + Add New Member
+                    </button>
+                  </div>
+                </div>
+              )}
 
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Patient Name *</label>
