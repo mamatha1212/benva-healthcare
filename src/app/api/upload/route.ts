@@ -3,6 +3,9 @@ import { NextResponse } from 'next/server';
 
 export async function POST(request: Request): Promise<NextResponse> {
   try {
+    if (!process.env.BLOB_READ_WRITE_TOKEN) {
+       throw new Error("Vercel Blob Storage is NOT linked to this project! You must go to your Vercel Dashboard > Storage > Create Blob and link it to this project.");
+    }
     const body = (await request.json()) as HandleUploadBody;
     
     const jsonResponse = await handleUpload({
@@ -14,7 +17,8 @@ export async function POST(request: Request): Promise<NextResponse> {
           allowedContentTypes: [
             'image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/jpg', 'image/x-png',
             'application/pdf', 'application/msword', 
-            'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+            'application/octet-stream', 'text/plain', 'image/*', ''
           ],
           tokenPayload: JSON.stringify({}),
         };

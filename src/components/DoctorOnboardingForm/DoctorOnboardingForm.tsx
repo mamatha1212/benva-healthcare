@@ -40,6 +40,31 @@ export default function DoctorOnboardingForm() {
             const lastDot = file.name.lastIndexOf('.');
             const ext = lastDot !== -1 ? file.name.substring(lastDot) : '.pdf';
             const filename = `${key}-${uniqueSuffix}${ext}`;
+            
+            // --- DIAGNOSTIC CHECK ---
+            try {
+              const tokenRes = await fetch('/api/upload', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  type: 'blob.generate-client-token',
+                  payload: {
+                    pathname: `doctors/${filename}`,
+                    callbackUrl: window.location.origin + '/api/upload',
+                    clientPayload: null,
+                    multipart: false
+                  }
+                })
+              });
+              
+              if (!tokenRes.ok) {
+                const errorText = await tokenRes.text();
+                alert(`DIAGNOSTIC SERVER ERROR (${tokenRes.status}): ${errorText}`);
+              }
+            } catch (diagErr) {
+              console.error("Diagnostic error:", diagErr);
+            }
+            // ------------------------
 
             const blob = await upload(`doctors/${filename}`, file, {
               access: 'public',
