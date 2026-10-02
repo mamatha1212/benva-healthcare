@@ -69,16 +69,38 @@ export async function POST(req: NextRequest) {
         });
       }
     } else {
-      const nextUhid = await generateNextUhid();
-      const newP = await prisma.patientRecord.create({
-        data: {
-          name: patientName || 'Unknown',
-          phone: patientPhone || 'Unknown',
-          address, age, gender, consultant,
-          uhid: nextUhid
+      let existingPatient = null;
+      if (patientName && patientPhone) {
+        existingPatient = await prisma.patientRecord.findFirst({
+          where: { 
+            name: { equals: patientName.trim(), mode: 'insensitive' },
+            phone: patientPhone.trim() 
+          },
+          orderBy: { createdAt: 'desc' }
+        });
+      }
+
+      if (existingPatient) {
+        actualPatientId = existingPatient.id;
+        if (!existingPatient.uhid) {
+           const nextUhid = await generateNextUhid();
+           await prisma.patientRecord.update({
+             where: { id: existingPatient.id },
+             data: { uhid: nextUhid }
+           });
         }
-      });
-      actualPatientId = newP.id;
+      } else {
+        const nextUhid = await generateNextUhid();
+        const newP = await prisma.patientRecord.create({
+          data: {
+            name: patientName ? patientName.trim() : 'Unknown',
+            phone: patientPhone ? patientPhone.trim() : 'Unknown',
+            address, age, gender, consultant,
+            uhid: nextUhid
+          }
+        });
+        actualPatientId = newP.id;
+      }
     }
 
     // Generate Invoice No (simple approach for now)

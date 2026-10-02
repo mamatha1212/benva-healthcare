@@ -17,14 +17,22 @@ export async function POST(req: NextRequest) {
     await jwtVerify(token, secret);
 
     const body = await req.json();
-    const { name, phone, age, gender, consultant } = body;
+    let { name, phone, age, gender, consultant } = body;
+    name = name?.trim();
+    phone = phone?.trim();
 
     if (!name || !phone) {
       return NextResponse.json({ error: 'Name and phone are required' }, { status: 400 });
     }
 
     const [existingPatient, nextUhid] = await Promise.all([
-      prisma.patientRecord.findFirst({ where: { name, phone } }),
+      prisma.patientRecord.findFirst({ 
+        where: { 
+          name: { equals: name, mode: 'insensitive' }, 
+          phone 
+        },
+        orderBy: { createdAt: 'desc' }
+      }),
       generateNextUhid()
     ]);
 

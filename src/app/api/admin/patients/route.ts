@@ -22,15 +22,19 @@ export async function POST(req: NextRequest) {
   try {
     const formData = await req.formData();
     
-    const name = formData.get('name') as string;
-    const phone = formData.get('phone') as string;
+    const name = (formData.get('name') as string)?.trim();
+    const phone = (formData.get('phone') as string)?.trim();
     const age = formData.get('age') as string;
     const gender = formData.get('gender') as string;
     const address = formData.get('address') as string;
     const consultant = formData.get('consultant') as string;
     
     let patient = await prisma.patientRecord.findFirst({
-      where: { name, phone }
+      where: { 
+        name: { equals: name, mode: 'insensitive' }, 
+        phone 
+      },
+      orderBy: { createdAt: 'desc' }
     });
 
     if (patient) {
