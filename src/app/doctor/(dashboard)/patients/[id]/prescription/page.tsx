@@ -564,13 +564,13 @@ export default function PrescriptionPage() {
       .rx-title { font-size: 24px; font-weight: bold; color: #0f172a; margin: 0; }
       .rx-btn-group { display: flex; gap: 10px; flex-wrap: wrap; }
       .rx-btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; border: none; cursor: pointer; white-space: nowrap; font-size: 14px; display: flex; align-items: center; gap: 6px; }
-      .rx-form-wrap { width: 100%; overflow-x: auto; -webkit-overflow-scrolling: touch; padding-bottom: 24px; }
+      .rx-form-wrap { width: 100%; overflow: visible; padding-bottom: 24px; }
       .rx-form-inner { min-width: 100%; width: 100%; display: flex; justify-content: center; }
       .rx-form-card { background: white; padding: 40px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); width: 100%; }
       .rx-pdf { width: 100%; padding: 0 20px 40px 20px; background: white; font-family: "Times New Roman", Times, serif; color: black; font-size: 18px; }
       .rx-doc-table { width: 100%; border-collapse: collapse; table-layout: fixed; word-wrap: break-word; }
       .rx-label-cell { width: 38%; white-space: normal; word-break: break-word; }
-      .rx-med-wrap { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+      .rx-med-wrap { overflow: visible; }
       .rx-med-table { min-width: 560px; width: 100%; border-collapse: collapse; text-align: center; margin-top: 8px; }
       .rx-footer-row { display: flex; justify-content: space-between; border-top: 2px solid #0f3162; padding-top: 10px; font-size: 12px; color: #64748b; margin-top: 40px; flex-wrap: wrap; gap: 4px; }
       .rx-mode-group { display: flex; gap: 12px; flex-wrap: wrap; }
