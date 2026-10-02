@@ -26,6 +26,29 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
     setIsModalOpen(true);
   };
 
+  const handlePhoneBlur = async (e: React.FocusEvent<HTMLInputElement>) => {
+    const phone = e.target.value.trim();
+    if (phone.length >= 10 && !editingPatient) {
+      try {
+        const res = await fetch(`/api/patients/by-phone?phone=${encodeURIComponent(phone)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data && data.name) {
+            setFormData(prev => ({
+              ...prev,
+              name: prev.name || data.name,
+              age: prev.age || data.age,
+              gender: prev.gender || data.gender
+            }));
+            setFormError(`Found existing patient with this number (UHID: ${data.uhid || 'Pending'}). Details auto-filled.`);
+          }
+        }
+      } catch (err) {
+        // Silently ignore API errors for autofill
+      }
+    }
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
@@ -292,6 +315,7 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
                   type="tel" 
                   value={formData.phone}
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  onBlur={handlePhoneBlur}
                   required
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} 
                 />
