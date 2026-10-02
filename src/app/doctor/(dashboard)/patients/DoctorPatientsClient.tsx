@@ -299,17 +299,6 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
                 </div>
               )}
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Patient Name *</label>
-                <input 
-                  type="text" 
-                  value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  required 
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} 
-                />
-              </div>
-              
-              <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Phone Number *</label>
                 <input 
                   type="tel" 
@@ -317,6 +306,17 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
                   onChange={(e) => setFormData({...formData, phone: e.target.value})}
                   onBlur={handlePhoneBlur}
                   required
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} 
+                />
+              </div>
+
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Patient Name *</label>
+                <input 
+                  type="text" 
+                  value={formData.name}
+                  onChange={(e) => setFormData({...formData, name: e.target.value})}
+                  required 
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} 
                 />
               </div>
