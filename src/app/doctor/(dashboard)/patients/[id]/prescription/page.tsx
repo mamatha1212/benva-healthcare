@@ -304,8 +304,23 @@ export default function PrescriptionPage() {
     }
   };
 
+  const validateMedicines = (): boolean => {
+    for (let i = 0; i < medicines.length; i++) {
+      const med = medicines[i];
+      const hasAnyField = med.name.trim() || med.dosage.trim() || med.frequency.trim() || med.duration.trim() || med.instructions.trim();
+      if (hasAnyField) {
+        if (!med.name.trim() || !med.dosage.trim() || !med.frequency.trim() || !med.duration.trim() || !med.instructions.trim()) {
+          alert(`Please fill all fields for Medicine in row ${i + 1} (Name, Dosage, Frequency, Duration, Instructions) or remove the row.`);
+          return false;
+        }
+      }
+    }
+    return true;
+  };
+
   const saveDraft = async (): Promise<string | null> => {
     if (!patientId) return null;
+    if (!validateMedicines()) return null;
     setIsSaving(true);
     try {
       const data = { ...formData, medicines };
@@ -356,6 +371,7 @@ export default function PrescriptionPage() {
 
   const handleSubmitToAdmin = async () => {
     if (!patientId) return;
+    if (!validateMedicines()) return;
     if (!confirm('Are you sure you want to submit this prescription? It cannot be edited after submission.')) return;
     setIsSaving(true);
     try {
