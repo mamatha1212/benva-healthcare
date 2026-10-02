@@ -1,20 +1,11 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
-import fs from 'fs/promises';
-import path from 'path';
+import { put } from '@vercel/blob';
 
 export async function POST(request: Request) {
   try {
     const formData = await request.formData();
     const data = Object.fromEntries(formData.entries());
-
-    // Make sure upload directory exists
-    const uploadDir = path.join(process.cwd(), 'public/uploads/doctors');
-    try {
-      await fs.access(uploadDir);
-    } catch {
-      await fs.mkdir(uploadDir, { recursive: true });
-    }
 
     // Process files
     const fileKeys = [
@@ -30,18 +21,20 @@ export async function POST(request: Request) {
     const uploadPromises = fileKeys.map(async ({ key, name }: { key: string, name: string }) => {
       const file = formData.get(key) as File;
       if (file && file.size > 0 && file.name) {
-        const ext = path.extname(file.name) || '.pdf';
         const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
+        // Extract extension safely
+        const lastDot = file.name.lastIndexOf('.');
+        const ext = lastDot !== -1 ? file.name.substring(lastDot) : '.pdf';
         const filename = `${key}-${uniqueSuffix}${ext}`;
-        const filePath = path.join(uploadDir, filename);
-
-        const arrayBuffer = await file.arrayBuffer();
-        const buffer = Buffer.from(arrayBuffer);
-        await fs.writeFile(filePath, buffer);
+        
+        // Upload the file to Vercel Blob
+        const blob = await put(`doctors/${filename}`, file, {
+          access: 'public',
+        });
 
         return {
           name: name,
-          url: `/uploads/doctors/${filename}`
+          url: blob.url
         };
       }
       return null;
