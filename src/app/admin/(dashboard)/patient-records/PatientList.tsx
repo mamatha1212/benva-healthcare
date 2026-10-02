@@ -108,8 +108,42 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
         .search-container:focus-within svg {
           color: #2563eb !important;
         }
+        
+        .header-container {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+          gap: 16px;
+        }
+        
+        .table-responsive {
+          background: white;
+          border-radius: 12px;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.04);
+          border: 1px solid #e2e8f0;
+          width: 100%;
+          overflow-x: auto;
+        }
+
+        @media (max-width: 768px) {
+          .header-container {
+            flex-direction: column;
+            align-items: stretch;
+          }
+          .header-container button {
+            width: 100%;
+          }
+          .patient-table th, .patient-row td {
+            padding: 12px 16px;
+            font-size: 13px;
+          }
+          .patient-table th {
+            white-space: nowrap;
+          }
+        }
       `}</style>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+      <div className="header-container">
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: 800, color: '#1a202c', margin: '0 0 8px 0' }}>Patient Records</h1>
           <p style={{ color: '#64748b', margin: 0, fontSize: '15px' }}>
@@ -126,7 +160,8 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
             border: 'none',
             fontWeight: 600,
             cursor: 'pointer',
-            boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)'
+            boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)',
+            whiteSpace: 'nowrap'
           }}
         >
           + Add New Patient Data
@@ -148,7 +183,7 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
         </div>
       </div>
 
-      <div style={{ background: 'white', borderRadius: '12px', boxShadow: '0 4px 16px rgba(0,0,0,0.04)', overflow: 'hidden', border: '1px solid #e2e8f0' }}>
+      <div className="table-responsive">
         <table className="patient-table">
           <thead>
             <tr>
