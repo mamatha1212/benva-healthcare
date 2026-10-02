@@ -4,15 +4,44 @@ import React, { useState } from 'react';
 import CustomFileInput from '@/components/CustomFileInput/CustomFileInput';
 import styles from '@/app/(main)/doctor-onboarding/page.module.css';
 
+const MOBILE_REGEX = /^(\+91|91)?[6-9]\d{9}$/;
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]{2,}$/;
+
 export default function DoctorOnboardingForm() {
   const reqStar = <span className={styles.asterisk}>*</span>;
-  const today = new Date().toISOString().split('T')[0]; // YYYY-MM-DD format
+  const today = new Date().toISOString().split('T')[0];
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
+  const [mobileError, setMobileError] = useState('');
+  const [emailError, setEmailError] = useState('');
+
+  const validateMobile = (val: string) => {
+    if (!val) return 'Mobile number is required';
+    if (!MOBILE_REGEX.test(val.replace(/\s/g, '')))
+      return 'Enter a valid 10-digit Indian mobile number (e.g. 9876543210)';
+    return '';
+  };
+
+  const validateEmail = (val: string) => {
+    if (!val) return 'Email is required';
+    if (!EMAIL_REGEX.test(val)) return 'Enter a valid email address (e.g. doctor@example.com)';
+    return '';
+  };
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
+    // Run field-level validation before submit
+    const form = e.currentTarget;
+    const mobileVal = (form.elements.namedItem('mobile') as HTMLInputElement)?.value || '';
+    const emailVal = (form.elements.namedItem('email') as HTMLInputElement)?.value || '';
+    const mobileErr = validateMobile(mobileVal);
+    const emailErr = validateEmail(emailVal);
+    setMobileError(mobileErr);
+    setEmailError(emailErr);
+    if (mobileErr || emailErr) return;
+
     setIsSubmitting(true);
     setError('');
 
@@ -97,11 +126,38 @@ export default function DoctorOnboardingForm() {
             </div>
             <div className={styles.formGroup}>
               <label>Mobile Number {reqStar}</label>
-              <input type="tel" name="mobile" placeholder="+91" required />
+              <input
+                type="tel"
+                name="mobile"
+                placeholder="e.g. 9876543210 or +919876543210"
+                required
+                maxLength={13}
+                onBlur={(e) => setMobileError(validateMobile(e.target.value))}
+                onChange={(e) => { if (mobileError) setMobileError(validateMobile(e.target.value)); }}
+                style={mobileError ? { borderColor: '#ef4444', boxShadow: '0 0 0 3px rgba(239,68,68,0.1)' } : {}}
+              />
+              {mobileError && (
+                <span style={{ color: '#ef4444', fontSize: '12px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  ⚠ {mobileError}
+                </span>
+              )}
             </div>
             <div className={styles.formGroup}>
               <label>Email ID {reqStar}</label>
-              <input type="email" name="email" placeholder="doctor@example.com" required />
+              <input
+                type="email"
+                name="email"
+                placeholder="doctor@example.com"
+                required
+                onBlur={(e) => setEmailError(validateEmail(e.target.value))}
+                onChange={(e) => { if (emailError) setEmailError(validateEmail(e.target.value)); }}
+                style={emailError ? { borderColor: '#ef4444', boxShadow: '0 0 0 3px rgba(239,68,68,0.1)' } : {}}
+              />
+              {emailError && (
+                <span style={{ color: '#ef4444', fontSize: '12px', fontWeight: 500, display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  ⚠ {emailError}
+                </span>
+              )}
             </div>
             <div className={styles.formGroupFull}>
               <label>Current Practice Address {reqStar}</label>
