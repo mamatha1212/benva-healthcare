@@ -60,18 +60,18 @@ export default function AdminLogin() {
         <h1 className={styles.title}>Welcome Back</h1>
         <p className={styles.subtitle}>Please login to access your dashboard.</p>
 
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', background: '#f1f5f9', padding: '4px', borderRadius: '8px' }}>
+        <div style={{ display: 'flex', gap: '12px', marginBottom: '24px' }}>
           <button 
             type="button"
             onClick={() => { setRole('admin'); setError(''); }}
-            style={{ flex: 1, padding: '8px', borderRadius: '6px', border: 'none', background: role === 'admin' ? '#02559d' : 'transparent', color: role === 'admin' ? 'white' : '#64748b', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', boxShadow: role === 'admin' ? '0 2px 4px rgba(2,85,157,0.3)' : 'none' }}
+            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: role === 'admin' ? '1px solid #02559d' : '1px solid #cbd5e1', background: role === 'admin' ? '#02559d' : 'transparent', color: role === 'admin' ? 'white' : '#64748b', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', boxShadow: role === 'admin' ? '0 2px 4px rgba(2,85,157,0.3)' : 'none' }}
           >
             Admin
           </button>
           <button 
             type="button"
             onClick={() => { setRole('doctor'); setError(''); }}
-            style={{ flex: 1, padding: '8px', borderRadius: '6px', border: 'none', background: role === 'doctor' ? '#02559d' : 'transparent', color: role === 'doctor' ? 'white' : '#64748b', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', boxShadow: role === 'doctor' ? '0 2px 4px rgba(2,85,157,0.3)' : 'none' }}
+            style={{ flex: 1, padding: '10px', borderRadius: '8px', border: role === 'doctor' ? '1px solid #02559d' : '1px solid #cbd5e1', background: role === 'doctor' ? '#02559d' : 'transparent', color: role === 'doctor' ? 'white' : '#64748b', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', boxShadow: role === 'doctor' ? '0 2px 4px rgba(2,85,157,0.3)' : 'none' }}
           >
             Doctor
           </button>
