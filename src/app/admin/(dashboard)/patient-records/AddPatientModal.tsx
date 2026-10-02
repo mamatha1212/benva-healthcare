@@ -4,6 +4,7 @@ import React, { useState, useRef } from 'react';
 
 export default function AddPatientModal({ onClose, onAdded, doctors = [] }: { onClose: () => void, onAdded: (patient: any) => void, doctors?: any[] }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [formError, setFormError] = useState('');
   const formRef = useRef<HTMLFormElement>(null);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -11,6 +12,7 @@ export default function AddPatientModal({ onClose, onAdded, doctors = [] }: { on
     if (!formRef.current) return;
     
     setIsSubmitting(true);
+    setFormError('');
     try {
       const formData = new FormData(formRef.current);
       const res = await fetch('/api/admin/patients', {
@@ -27,7 +29,7 @@ export default function AddPatientModal({ onClose, onAdded, doctors = [] }: { on
       onAdded(newPatient);
     } catch (error: any) {
       console.error(error);
-      alert(error.message || 'Error adding patient');
+      setFormError(error.message || 'Error adding patient');
     } finally {
       setIsSubmitting(false);
     }
@@ -42,6 +44,11 @@ export default function AddPatientModal({ onClose, onAdded, doctors = [] }: { on
         </div>
         
         <form ref={formRef} onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+          {formError && (
+            <div style={{ backgroundColor: '#fee2e2', color: '#ef4444', padding: '12px', borderRadius: '8px', fontSize: '14px', fontWeight: 500 }}>
+              {formError}
+            </div>
+          )}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
             <div>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Name *</label>

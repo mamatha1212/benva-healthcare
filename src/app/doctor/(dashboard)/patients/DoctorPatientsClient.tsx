@@ -10,6 +10,7 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formData, setFormData] = useState({ name: '', phone: '', age: '', gender: '' });
   const [searchTerm, setSearchTerm] = useState('');
+  const [formError, setFormError] = useState('');
   
   const router = useRouter();
 
@@ -21,12 +22,14 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
       setEditingPatient(null);
       setFormData({ name: '', phone: '', age: '', gender: '' });
     }
+    setFormError('');
     setIsModalOpen(true);
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
+    setFormError('');
     
     try {
       const url = editingPatient ? `/api/doctor/patients/${editingPatient.id}` : '/api/doctor/patients';
@@ -57,7 +60,7 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
       setIsModalOpen(false);
     } catch (error: any) {
       console.error(error);
-      alert(error.message || 'Error saving patient');
+      setFormError(error.message || 'Error saving patient');
     } finally {
       setIsSubmitting(false);
     }
@@ -267,6 +270,11 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
             </h2>
             
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {formError && (
+                <div style={{ backgroundColor: '#fee2e2', color: '#ef4444', padding: '12px', borderRadius: '8px', fontSize: '14px', fontWeight: 500 }}>
+                  {formError}
+                </div>
+              )}
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Patient Name *</label>
                 <input 

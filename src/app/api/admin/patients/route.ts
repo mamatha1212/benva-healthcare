@@ -31,13 +31,16 @@ export async function POST(req: NextRequest) {
     
     let patient = await prisma.patientRecord.findFirst({
       where: { 
-        phone 
+        phone,
+        name: { equals: name, mode: 'insensitive' }
       },
       orderBy: { createdAt: 'desc' }
     });
 
     if (patient) {
-      if (!patient.uhid) {
+      if (patient.uhid) {
+        return NextResponse.json({ error: `User already exists with UHID number: ${patient.uhid}` }, { status: 400 });
+      } else {
         const nextUhid = await generateNextUhid();
         patient = await prisma.patientRecord.update({
           where: { id: patient.id },

@@ -25,26 +25,28 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Name and phone are required' }, { status: 400 });
     }
 
-    const [existingPatient, nextUhid] = await Promise.all([
-      prisma.patientRecord.findFirst({ 
-        where: { 
-          phone 
-        },
-        orderBy: { createdAt: 'desc' }
-      }),
-      generateNextUhid()
-    ]);
+    const existingPatient = await prisma.patientRecord.findFirst({ 
+      where: { 
+        phone,
+        name: { equals: name, mode: 'insensitive' }
+      },
+      orderBy: { createdAt: 'desc' }
+    });
 
     if (existingPatient) {
-      if (!existingPatient.uhid) {
+      if (existingPatient.uhid) {
+        return NextResponse.json({ error: `User already exists with UHID number: ${existingPatient.uhid}` }, { status: 400 });
+      } else {
+        const nextUhid = await generateNextUhid();
         const updated = await prisma.patientRecord.update({
           where: { id: existingPatient.id },
           data: { uhid: nextUhid, age: age || existingPatient.age, gender: gender || existingPatient.gender, consultant: consultant || existingPatient.consultant }
         });
-        return NextResponse.json(updated);
+        return NextResponse.json({ error: `User already exists. Assigned new UHID: ${nextUhid}` }, { status: 400 });
       }
-      return NextResponse.json(existingPatient);
     }
+
+    const nextUhid = await generateNextUhid();
 
     const created = await prisma.patientRecord.create({
       data: { name, phone, age, gender, consultant, uhid: nextUhid }
