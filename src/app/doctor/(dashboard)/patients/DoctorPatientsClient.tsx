@@ -88,6 +88,21 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
     (p.uhid && p.uhid.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  const displayedPatients = Array.from(
+    filteredPatients.reduce((map, patient: any) => {
+      if (!map.has(patient.phone)) {
+        map.set(patient.phone, patient);
+      } else {
+        // Keep the oldest one as the primary person
+        const existing = map.get(patient.phone);
+        if (new Date(patient.createdAt) < new Date(existing.createdAt)) {
+          map.set(patient.phone, patient);
+        }
+      }
+      return map;
+    }, new Map()).values()
+  ).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
   return (
     <div>
       <style>{`
@@ -224,7 +239,7 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
             </tr>
           </thead>
           <tbody>
-            {filteredPatients.map((patient, index) => (
+            {displayedPatients.map((patient: any, index: number) => (
               <tr key={patient.id} className="patient-row">
                 <td style={{ textAlign: 'center', fontWeight: '600', color: '#94a3b8' }}>{index + 1}</td>
                 <td>

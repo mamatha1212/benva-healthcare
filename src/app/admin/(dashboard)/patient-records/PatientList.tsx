@@ -38,6 +38,20 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
     (p.uhid && p.uhid.toLowerCase().includes(searchTerm.toLowerCase()))
   );
 
+  const displayedPatients = Array.from(
+    filteredPatients.reduce((map, patient: any) => {
+      if (!map.has(patient.phone)) {
+        map.set(patient.phone, patient);
+      } else {
+        const existing = map.get(patient.phone);
+        if (new Date(patient.createdAt) < new Date(existing.createdAt)) {
+          map.set(patient.phone, patient);
+        }
+      }
+      return map;
+    }, new Map()).values()
+  ).sort((a: any, b: any) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
@@ -86,14 +100,14 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
             </tr>
           </thead>
           <tbody>
-            {filteredPatients.length === 0 ? (
+            {displayedPatients.length === 0 ? (
               <tr>
                 <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
                   No patient records found.
                 </td>
               </tr>
             ) : (
-              filteredPatients.map((patient: any) => (
+              displayedPatients.map((patient: any) => (
                 <tr key={patient.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
                   <td style={{ padding: '16px' }}>
                     <div style={{ fontWeight: 600, color: '#1e293b' }}>{patient.name}</div>
