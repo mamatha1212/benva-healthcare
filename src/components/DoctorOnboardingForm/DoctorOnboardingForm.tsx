@@ -3,7 +3,6 @@
 import React, { useState } from 'react';
 import CustomFileInput from '@/components/CustomFileInput/CustomFileInput';
 import styles from '@/app/(main)/doctor-onboarding/page.module.css';
-import { upload } from '@vercel/blob/client';
 
 export default function DoctorOnboardingForm() {
   const reqStar = <span className={styles.asterisk}>*</span>;
@@ -11,73 +10,20 @@ export default function DoctorOnboardingForm() {
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
 
-  // Upload a single file with a 30s timeout; returns URL or null on failure
-  const uploadFileWithTimeout = async (file: File, key: string): Promise<string | null> => {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 30000);
-    try {
-      const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-      const lastDot = file.name.lastIndexOf('.');
-      const ext = lastDot !== -1 ? file.name.substring(lastDot) : '.pdf';
-      const filename = `${key}-${uniqueSuffix}${ext}`;
-
-      const blob = await upload(`doctors/${filename}`, file, {
-        access: 'public',
-        handleUploadUrl: '/api/upload',
-      });
-      return blob.url;
-    } catch (err: any) {
-      console.warn(`Upload skipped for ${file.name}:`, err?.message || err);
-      return null;
-    } finally {
-      clearTimeout(timeoutId);
-    }
-  };
-
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setIsSubmitting(true);
     setError('');
 
-    const formData = new FormData(e.currentTarget);
-
     try {
-      // 1. Upload files (skip silently if upload service is unavailable)
-      const fileKeys = [
-        { key: 'doc_passport_photo', name: 'passportPhotoUrl' },
-        { key: 'doc_gov_id', name: 'govIdUrl' },
-        { key: 'doc_mbbs', name: 'mbbsUrl' },
-        { key: 'doc_pg', name: 'pgUrl' },
-        { key: 'doc_med_reg', name: 'medRegUrl' },
-        { key: 'doc_pan', name: 'panUrl' },
-        { key: 'doc_bank', name: 'bankDetailsUrl' }
-      ];
-
-      const uploadedDocs: any[] = [];
-      
-      for (const { key, name } of fileKeys) {
-        const file = formData.get(key) as File;
-        if (file && file.size > 0 && file.name) {
-          const url = await uploadFileWithTimeout(file, key);
-          if (url) {
-            uploadedDocs.push({ name, url });
-          }
-          // If url is null, upload failed silently — form still submits
-        }
-        formData.delete(key);
-      }
-
-      // 2. Submit application data as JSON
-      const applicationData = Object.fromEntries(formData.entries());
-      const payload = {
-        ...applicationData,
-        documents: uploadedDocs
-      };
+      // Send the entire form (including files) as multipart FormData.
+      // Files are uploaded to Vercel Blob server-side — no CORS issues.
+      const formData = new FormData(e.currentTarget);
 
       const res = await fetch('/api/doctor-applications', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: formData,
+        // Do NOT set Content-Type — browser sets it with the correct boundary
       });
 
       if (res.ok) {
@@ -89,11 +35,11 @@ export default function DoctorOnboardingForm() {
           try {
             const result = JSON.parse(text);
             errorMsg = result.error || errorMsg;
-          } catch (e) {
-            errorMsg = text; // Not JSON, probably Vercel HTML error (413 Payload Too Large)
+          } catch {
+            errorMsg = text.substring(0, 500);
           }
-        } catch (e) {}
-        setError(errorMsg.substring(0, 500));
+        } catch { /* ignore */ }
+        setError(errorMsg);
       }
     } catch (err: any) {
       console.error(err);
@@ -132,7 +78,7 @@ export default function DoctorOnboardingForm() {
               <input type="text" name="fullName" placeholder="Dr. John Doe" required />
             </div>
             <div className={styles.formGroup}>
-              <label>Title with Degrees & Fellowships {reqStar}</label>
+              <label>Title with Degrees &amp; Fellowships {reqStar}</label>
               <input type="text" name="title" placeholder="e.g. MD, FACC" required />
             </div>
             <div className={styles.formGroup}>
@@ -334,7 +280,7 @@ export default function DoctorOnboardingForm() {
         <section className={styles.section}>
           <div className={styles.sectionHeader}>
             <span className={styles.stepNumber}>7</span>
-            <h2>Declaration & Signature</h2>
+            <h2>Declaration &amp; Signature</h2>
           </div>
           
           <p className={styles.declarationText}>
