@@ -66,13 +66,10 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
         // Keep phone, clear others
         setFormData(prev => ({ ...prev, name: '', age: '', gender: '' }));
         // Also refresh family members list
-        try {
-          const fmRes = await fetch(`/api/patients/by-phone?phone=${encodeURIComponent(formData.phone)}`);
-          if (fmRes.ok) {
-            const data = await fmRes.json();
-            if (data && data.length > 0) setFamilyMembers(data);
-          }
-        } catch(e) {}
+        fetch(`/api/patients/by-phone?phone=${encodeURIComponent(formData.phone)}`)
+          .then(res => res.ok ? res.json() : [])
+          .then(data => { if(data && data.length > 0) setFamilyMembers(data); })
+          .catch(() => {});
         setFormError('Patient saved. You can add another family member.');
       } else {
         setIsModalOpen(false);
@@ -410,7 +407,7 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
                     disabled={isSubmitting} 
                     style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #3b82f6', background: 'white', color: '#3b82f6', fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.7 : 1 }}
                   >
-                    Save & Add Another
+                    {isSubmitting && submitActionRef.current === 'save-and-add' ? 'Saving...' : 'Save & Add Another'}
                   </button>
                 )}
 

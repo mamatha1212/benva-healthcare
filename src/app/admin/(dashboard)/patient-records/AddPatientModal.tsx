@@ -43,14 +43,11 @@ export default function AddPatientModal({ onClose, onAdded, doctors = [] }: { on
           genderSelect.value = '';
           setSelectedName('');
           
-          try {
-            const phoneInput = formRef.current.elements.namedItem('phone') as HTMLInputElement;
-            const fmRes = await fetch(`/api/patients/by-phone?phone=${encodeURIComponent(phoneInput.value)}`);
-            if (fmRes.ok) {
-              const data = await fmRes.json();
-              if (data && data.length > 0) setFamilyMembers(data);
-            }
-          } catch(e) {}
+          const phoneInput = formRef.current.elements.namedItem('phone') as HTMLInputElement;
+          fetch(`/api/patients/by-phone?phone=${encodeURIComponent(phoneInput.value)}`)
+            .then(res => res.ok ? res.json() : [])
+            .then(data => { if(data && data.length > 0) setFamilyMembers(data); })
+            .catch(() => {});
         }
         setFormError('Patient saved successfully. You can add another family member.');
       }
@@ -223,7 +220,7 @@ export default function AddPatientModal({ onClose, onAdded, doctors = [] }: { on
               disabled={isSubmitting} 
               style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #2563eb', background: 'white', color: '#2563eb', fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.7 : 1 }}
             >
-              Save & Add Another
+              {isSubmitting && submitActionRef.current === 'save-and-add' ? 'Saving...' : 'Save & Add Another'}
             </button>
             <button 
               type="submit" 
