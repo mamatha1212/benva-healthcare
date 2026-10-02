@@ -4,44 +4,8 @@ import { put } from '@vercel/blob';
 
 export async function POST(request: Request) {
   try {
-    const formData = await request.formData();
-    const data = Object.fromEntries(formData.entries());
-
-    // Process files
-    const fileKeys = [
-      { key: 'doc_passport_photo', name: 'passportPhotoUrl' },
-      { key: 'doc_gov_id', name: 'govIdUrl' },
-      { key: 'doc_mbbs', name: 'mbbsUrl' },
-      { key: 'doc_pg', name: 'pgUrl' },
-      { key: 'doc_med_reg', name: 'medRegUrl' },
-      { key: 'doc_pan', name: 'panUrl' },
-      { key: 'doc_bank', name: 'bankDetailsUrl' }
-    ];
-    
-    const uploadPromises = fileKeys.map(async ({ key, name }: { key: string, name: string }) => {
-      const file = formData.get(key) as File;
-      if (file && file.size > 0 && file.name) {
-        const uniqueSuffix = `${Date.now()}-${Math.round(Math.random() * 1e9)}`;
-        // Extract extension safely
-        const lastDot = file.name.lastIndexOf('.');
-        const ext = lastDot !== -1 ? file.name.substring(lastDot) : '.pdf';
-        const filename = `${key}-${uniqueSuffix}${ext}`;
-        
-        // Upload the file to Vercel Blob
-        const blob = await put(`doctors/${filename}`, file, {
-          access: 'public',
-        });
-
-        return {
-          name: name,
-          url: blob.url
-        };
-      }
-      return null;
-    });
-
-    const uploadedDocs = await Promise.all(uploadPromises);
-    const documents = uploadedDocs.filter((doc: any) => doc !== null) as { name: string; url: string }[];
+    const data = await request.json();
+    const documents = data.documents || [];
     
     const application = await prisma.doctorApplication.create({
       data: {
@@ -66,7 +30,7 @@ export async function POST(request: Request) {
         clinicalFocus: (data.clinicalFocus as string) || null,
         experience: (data.experience as string) || "",
         languages: (data.languages as string) || "",
-        telemedicine: data.telemedicine === 'on',
+        telemedicine: data.telemedicine === 'on' || data.telemedicine === true,
         accountName: (data.accountName as string) || "",
         bankName: (data.bankName as string) || "",
         accountNumber: (data.accountNumber as string) || "",

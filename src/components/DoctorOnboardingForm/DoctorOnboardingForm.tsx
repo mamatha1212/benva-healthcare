@@ -18,9 +18,56 @@ export default function DoctorOnboardingForm() {
     const formData = new FormData(e.currentTarget);
 
     try {
+      // 1. Upload files sequentially
+      const fileKeys = [
+        { key: 'doc_passport_photo', name: 'passportPhotoUrl' },
+        { key: 'doc_gov_id', name: 'govIdUrl' },
+        { key: 'doc_mbbs', name: 'mbbsUrl' },
+        { key: 'doc_pg', name: 'pgUrl' },
+        { key: 'doc_med_reg', name: 'medRegUrl' },
+        { key: 'doc_pan', name: 'panUrl' },
+        { key: 'doc_bank', name: 'bankDetailsUrl' }
+      ];
+
+      const uploadedDocs: any[] = [];
+      
+      for (const { key, name } of fileKeys) {
+        const file = formData.get(key) as File;
+        if (file && file.size > 0 && file.name) {
+          const fileData = new FormData();
+          fileData.append('file', file);
+          fileData.append('folder', 'doctors');
+          
+          const uploadRes = await fetch('/api/upload', {
+            method: 'POST',
+            body: fileData
+          });
+          
+          if (!uploadRes.ok) {
+            throw new Error(`Failed to upload ${file.name}`);
+          }
+          
+          const data = await uploadRes.json();
+          uploadedDocs.push({
+            name: name,
+            url: data.url
+          });
+        }
+        // Remove file from main formData to save payload size
+        formData.delete(key);
+      }
+
+      // 2. Submit application data as JSON
+      const applicationData = Object.fromEntries(formData.entries());
+      const payload = {
+        ...applicationData,
+        documents: uploadedDocs
+      };
+
       const res = await fetch('/api/doctor-applications', {
         method: 'POST',
-        body: formData, // Send FormData directly to handle files
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
