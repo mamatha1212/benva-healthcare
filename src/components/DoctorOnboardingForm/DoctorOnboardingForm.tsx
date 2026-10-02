@@ -28,12 +28,15 @@ export default function DoctorOnboardingForm() {
       } else {
         let errorMsg = `Server error ${res.status}`;
         try {
-          const result = await res.json();
-          errorMsg = result.error || errorMsg;
-        } catch (e) {
-          errorMsg = await res.text();
-        }
-        setError(errorMsg.substring(0, 200));
+          const text = await res.text();
+          try {
+            const result = JSON.parse(text);
+            errorMsg = result.error || errorMsg;
+          } catch (e) {
+            errorMsg = text; // Not JSON, probably Vercel HTML error (413 Payload Too Large)
+          }
+        } catch (e) {}
+        setError(errorMsg.substring(0, 500));
       }
     } catch (err: any) {
       console.error(err);
