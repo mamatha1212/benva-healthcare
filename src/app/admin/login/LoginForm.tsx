@@ -47,10 +47,14 @@ export default function AdminLogin() {
     <div className={styles.container}>
       <div className={styles.loginCard}>
         <div className={styles.logoWrapper}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ width: '48px', height: '48px', color: 'var(--color-primary)' }}>
-            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
-            <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
-          </svg>
+          <Image 
+            src="/images/benva-logo-new.png" 
+            alt="Benva Logo" 
+            width={160} 
+            height={50} 
+            className={styles.logo} 
+            priority
+          />
         </div>
         
         <h1 className={styles.title}>Welcome Back</h1>
@@ -60,14 +64,14 @@ export default function AdminLogin() {
           <button 
             type="button"
             onClick={() => { setRole('admin'); setError(''); }}
-            style={{ flex: 1, padding: '8px', borderRadius: '6px', border: 'none', background: role === 'admin' ? 'white' : 'transparent', color: role === 'admin' ? '#0f172a' : '#64748b', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', boxShadow: role === 'admin' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}
+            style={{ flex: 1, padding: '8px', borderRadius: '6px', border: 'none', background: role === 'admin' ? '#02559d' : 'transparent', color: role === 'admin' ? 'white' : '#64748b', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', boxShadow: role === 'admin' ? '0 2px 4px rgba(2,85,157,0.3)' : 'none' }}
           >
             Admin
           </button>
           <button 
             type="button"
             onClick={() => { setRole('doctor'); setError(''); }}
-            style={{ flex: 1, padding: '8px', borderRadius: '6px', border: 'none', background: role === 'doctor' ? 'white' : 'transparent', color: role === 'doctor' ? '#0f172a' : '#64748b', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', boxShadow: role === 'doctor' ? '0 1px 3px rgba(0,0,0,0.1)' : 'none' }}
+            style={{ flex: 1, padding: '8px', borderRadius: '6px', border: 'none', background: role === 'doctor' ? '#02559d' : 'transparent', color: role === 'doctor' ? 'white' : '#64748b', fontWeight: 600, cursor: 'pointer', transition: 'all 0.2s', boxShadow: role === 'doctor' ? '0 2px 4px rgba(2,85,157,0.3)' : 'none' }}
           >
             Doctor
           </button>

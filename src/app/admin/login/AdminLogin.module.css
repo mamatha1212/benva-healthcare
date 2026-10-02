@@ -63,8 +63,9 @@
 
 .input:focus {
   outline: none;
-  border-color: var(--color-primary);
+  border-color: #02559d;
   background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(2, 85, 157, 0.1);
 }
 
 .error {
@@ -79,19 +80,20 @@
 .submitBtn {
   width: 100%;
   padding: 16px;
-  background: var(--color-primary);
+  background: linear-gradient(135deg, #02559d, #0891B2);
   color: #ffffff;
   border: none;
   border-radius: 12px;
   font-size: 16px;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(2, 85, 157, 0.2);
 }
 
 .submitBtn:hover:not(:disabled) {
-  background: #d43b14;
   transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(2, 85, 157, 0.3);
 }
 
 .submitBtn:disabled {
