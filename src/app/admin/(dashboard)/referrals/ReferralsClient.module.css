@@ -60,72 +60,36 @@
 
 @media (max-width: 768px) {
   .container {
-    padding: 16px 12px;
+    padding: 16px;
   }
   
   .header {
     flex-direction: column;
-    align-items: stretch;
+    align-items: flex-start;
+    gap: 16px;
+  }
+
+  .title {
+    font-size: 20px;
   }
 
   .buttonGroup {
-    flex-direction: column;
     width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
   }
 
   .buttonGroup button {
     width: 100%;
+    padding: 8px 4px;
+    font-size: 12px;
     justify-content: center;
   }
 
-  .table, .thead, .tbody, .th, .td, .tr {
-    display: block;
-  }
-
-  .thead tr {
-    position: absolute;
-    top: -9999px;
-    left: -9999px;
-  }
-
-  .tr {
-    border-bottom: 2px solid #e2e8f0;
-    margin-bottom: 16px;
-    background: #fff;
-    border-radius: 8px;
-    padding: 12px;
-  }
-
-  .td {
-    border: none;
-    position: relative;
-    padding-left: 50%;
-    margin-bottom: 8px;
-    padding-top: 8px;
-    padding-bottom: 8px;
-  }
-
-  .td:before {
-    position: absolute;
-    top: 8px;
-    left: 0;
-    width: 45%;
-    padding-right: 10px;
-    white-space: nowrap;
-    font-weight: 600;
-    color: #64748b;
-    font-size: 13px;
-  }
-
-  .td:nth-of-type(1):before { content: "Name"; }
-  .td:nth-of-type(2):before { content: "Category"; }
-  .td:nth-of-type(3):before { content: "Contact"; }
-  .td:nth-of-type(4):before { content: "Credentials"; }
-  .td:nth-of-type(5):before { content: "Total Referrals"; }
-  .td:nth-of-type(6):before { content: "Total Earnings"; }
-  .td:nth-of-type(7):before { content: "Actions"; }
-  
-  .td:nth-of-type(7) {
-    text-align: left !important;
+  /* We keep the table as horizontally scrollable on mobile for admin dashboards */
+  .tableWrapper {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
   }
 }
