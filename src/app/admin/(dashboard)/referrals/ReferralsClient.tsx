@@ -5,6 +5,7 @@ import React, { useState, useEffect } from 'react';
 export default function ReferralsClient() {
   const [categories, setCategories] = useState<any[]>([]);
   const [referrers, setReferrers] = useState<any[]>([]);
+  const [services, setServices] = useState<any[]>([]);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
   const [showCategoriesList, setShowCategoriesList] = useState(false);
   const [showReferrerModal, setShowReferrerModal] = useState(false);
@@ -31,9 +32,20 @@ export default function ReferralsClient() {
     }
   };
 
+  const fetchServices = async () => {
+    try {
+      const res = await fetch('/api/admin/referrals/services');
+      const data = await res.json();
+      if (Array.isArray(data)) setServices(data);
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   useEffect(() => {
     fetchCategories();
     fetchReferrers();
+    fetchServices();
   }, []);
 
   const handleCopyLink = () => {
@@ -142,7 +154,7 @@ export default function ReferralsClient() {
       )}
       
       {showTransactionModal && (
-        <TransactionModal referrer={showTransactionModal} onClose={() => setShowTransactionModal(null)} onSaved={fetchReferrers} />
+        <TransactionModal referrer={showTransactionModal} services={services} onClose={() => setShowTransactionModal(null)} onSaved={fetchReferrers} />
       )}
     </div>
   );
@@ -365,7 +377,7 @@ function ReferrerModal({ categories, onClose, onSaved }: { categories: any[], on
   );
 }
 
-function TransactionModal({ referrer, onClose, onSaved }: { referrer: any, onClose: () => void, onSaved: () => void }) {
+function TransactionModal({ referrer, services, onClose, onSaved }: { referrer: any, services: any[], onClose: () => void, onSaved: () => void }) {
   const [formData, setFormData] = useState({ serviceName: '', amount: '', referralDate: new Date().toISOString().split('T')[0] });
   const [submitting, setSubmitting] = useState(false);
 
@@ -399,7 +411,12 @@ function TransactionModal({ referrer, onClose, onSaved }: { referrer: any, onClo
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Service / Package Name</label>
-            <input type="text" value={formData.serviceName} onChange={e => setFormData({...formData, serviceName: e.target.value})} required placeholder="e.g. Master Health Checkup" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+            <select value={formData.serviceName} onChange={e => setFormData({...formData, serviceName: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white' }}>
+              <option value="">Select a Service / Package...</option>
+              {services.map(s => (
+                <option key={s.id} value={s.name}>{s.type}: {s.name}</option>
+              ))}
+            </select>
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Referral Amount (₹)</label>
