@@ -203,7 +203,7 @@ export default function InvoiceGeneratorModal({ patient, onClose, onGenerated }:
                     <select value={consultant} onChange={e => setConsultant(e.target.value)} className="input-field" style={{ background: '#ffffff', cursor: 'pointer' }}>
                       <option value="">Self (No Consultant)</option>
                       {doctors.map(doc => (
-                        <option key={doc.id} value={doc.name}>{doc.name} {doc.type ? `(${doc.type})` : ''}</option>
+                        <option key={doc.id} value={doc.name}>{doc.name}</option>
                       ))}
                     </select>
                   </div>
