@@ -8,6 +8,7 @@ export default function DoctorList({ initialDoctors }: { initialDoctors: any[] }
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingDoctor, setEditingDoctor] = useState<any>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [copiedId, setCopiedId] = useState<string | null>(null);
   
   const [formData, setFormData] = useState({ name: '', type: '', phone: '', email: '', password: '', qualification: '', speciality: '', medicalCouncilReg: '', signature: '' });
   const router = useRouter();
@@ -134,15 +135,21 @@ export default function DoctorList({ initialDoctors }: { initialDoctors: any[] }
                         onClick={() => {
                           const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
                           const text = `Doctor Portal Login\nURL: ${baseUrl}/admin/login\nUsername: ${doctor.email}\nPassword: ${doctor.password || 'Not Set'}`;
-                          navigator.clipboard.writeText(text); 
-                          alert('Login details copied!');
+                          navigator.clipboard.writeText(text).then(() => {
+                            setCopiedId(doctor.id);
+                            setTimeout(() => setCopiedId(null), 2000);
+                          });
                         }} 
-                        style={{ background: '#eff6ff', border: '1px solid #bfdbfe', cursor: 'pointer', color: '#2563eb', padding: '8px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', flexShrink: 0 }} 
+                        style={{ background: copiedId === doctor.id ? '#dcfce3' : '#eff6ff', border: `1px solid ${copiedId === doctor.id ? '#bbf7d0' : '#bfdbfe'}`, cursor: 'pointer', color: copiedId === doctor.id ? '#166534' : '#2563eb', padding: '8px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.2s', flexShrink: 0 }} 
                         title="Copy All Login Details"
-                        onMouseOver={(e) => e.currentTarget.style.background = '#dbeafe'}
-                        onMouseOut={(e) => e.currentTarget.style.background = '#eff6ff'}
+                        onMouseOver={(e) => { if (copiedId !== doctor.id) e.currentTarget.style.background = '#dbeafe' }}
+                        onMouseOut={(e) => { if (copiedId !== doctor.id) e.currentTarget.style.background = '#eff6ff' }}
                       >
-                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        {copiedId === doctor.id ? (
+                          <span style={{ fontSize: '11px', fontWeight: 'bold', padding: '0 4px' }}>Copied!</span>
+                        ) : (
+                          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></svg>
+                        )}
                       </button>
                     </div>
                   ) : (
