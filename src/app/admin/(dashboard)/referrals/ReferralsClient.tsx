@@ -13,6 +13,8 @@ export default function ReferralsClient() {
   const [showTransactionModal, setShowTransactionModal] = useState<any>(null);
   const [copiedLink, setCopiedLink] = useState(false);
 
+  const [showHistoryModal, setShowHistoryModal] = useState<any>(null);
+
   const fetchCategories = async () => {
     try {
       const res = await fetch('/api/admin/referrals/categories');
@@ -99,7 +101,7 @@ export default function ReferralsClient() {
             </thead>
             <tbody className={styles.tbody}>
               {referrers.length > 0 ? referrers.map((referrer: any) => {
-                const totalAmount = referrer.transactions?.reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0) || 0;
+                const totalAmount = referrer.transactions?.filter((tx:any) => tx.status === 'COMPLETED').reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0) || 0;
                 return (
                   <tr key={referrer.id} className={styles.tr}>
                     <td className={styles.td}>
@@ -125,9 +127,14 @@ export default function ReferralsClient() {
                     <td className={styles.td} style={{ fontWeight: 600, color: '#0f172a' }}>{referrer.transactions?.length || 0}</td>
                     <td className={styles.td} style={{ fontWeight: 600, color: '#059669' }}>₹{totalAmount.toFixed(2)}</td>
                     <td className={styles.td} style={{ textAlign: 'right' }}>
-                      <button onClick={() => setShowTransactionModal(referrer)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
-                        + Add Referral
-                      </button>
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexDirection: 'column' }}>
+                        <button onClick={() => setShowHistoryModal(referrer)} style={{ background: '#f8fafc', color: '#0f172a', border: '1px solid #cbd5e1', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+                          View History
+                        </button>
+                        <button onClick={() => setShowTransactionModal(referrer)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+                          + Add Referral
+                        </button>
+                      </div>
                     </td>
                   </tr>
                 );
@@ -157,6 +164,10 @@ export default function ReferralsClient() {
       
       {showTransactionModal && (
         <TransactionModal referrer={showTransactionModal} services={services} onClose={() => setShowTransactionModal(null)} onSaved={fetchReferrers} />
+      )}
+
+      {showHistoryModal && (
+        <HistoryModal referrer={showHistoryModal} onClose={() => setShowHistoryModal(null)} onRefresh={fetchReferrers} />
       )}
     </div>
   );
@@ -444,6 +455,96 @@ function TransactionModal({ referrer, services, onClose, onSaved }: { referrer: 
             </button>
           </div>
         </form>
+      </div>
+    </div>
+  );
+}
+
+function HistoryModal({ referrer, onClose, onRefresh }: { referrer: any, onClose: () => void, onRefresh: () => void }) {
+  const [updating, setUpdating] = useState<string | null>(null);
+
+  const handleStatusChange = async (txId: string, newStatus: string) => {
+    setUpdating(txId);
+    try {
+      const res = await fetch(`/api/admin/referrals/transactions/${txId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: newStatus })
+      });
+      if (res.ok) {
+        onRefresh();
+      } else {
+        alert('Failed to update status');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    setUpdating(null);
+  };
+
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
+      <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '800px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', color: '#0f172a' }}>
+        <h2 style={{ margin: '0 0 16px 0', fontSize: '18px' }}>Referral History: {referrer.name}</h2>
+        
+        <div style={{ overflowY: 'auto', flex: 1, border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead style={{ background: '#f8fafc' }}>
+              <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                <th style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>Date</th>
+                <th style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>Patient</th>
+                <th style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>Service</th>
+                <th style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>Amount</th>
+                <th style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              {referrer.transactions && referrer.transactions.length > 0 ? referrer.transactions.map((tx: any) => (
+                <tr key={tx.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '12px', fontSize: '14px', color: '#334155' }}>
+                    {new Date(tx.createdAt).toLocaleDateString()}
+                  </td>
+                  <td style={{ padding: '12px', fontSize: '14px', color: '#0f172a', fontWeight: 500 }}>
+                    <div>{tx.patientName || 'N/A'}</div>
+                    {tx.patientPhone && <div style={{ fontSize: '12px', color: '#64748b' }}>{tx.patientPhone}</div>}
+                  </td>
+                  <td style={{ padding: '12px', fontSize: '14px', color: '#334155' }}>{tx.serviceName}</td>
+                  <td style={{ padding: '12px', fontSize: '14px', color: '#059669', fontWeight: 600 }}>₹{tx.amount?.toFixed(2) || '0.00'}</td>
+                  <td style={{ padding: '12px' }}>
+                    <select 
+                      value={tx.status || 'PENDING'} 
+                      onChange={(e) => handleStatusChange(tx.id, e.target.value)}
+                      disabled={updating === tx.id}
+                      style={{ 
+                        padding: '6px', 
+                        borderRadius: '6px', 
+                        border: '1px solid #cbd5e1', 
+                        fontSize: '13px',
+                        background: tx.status === 'COMPLETED' ? '#dcfce7' : tx.status === 'CANCELLED' ? '#fee2e2' : '#fef9c3',
+                        color: tx.status === 'COMPLETED' ? '#166534' : tx.status === 'CANCELLED' ? '#991b1b' : '#854d0e',
+                        fontWeight: 600
+                      }}
+                    >
+                      <option value="PENDING">Pending</option>
+                      <option value="COMPLETED">Completed</option>
+                      <option value="CANCELLED">Cancelled</option>
+                    </select>
+                  </td>
+                </tr>
+              )) : (
+                <tr>
+                  <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
+                    No transactions found for this referrer.
+                  </td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+          <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer', fontWeight: 600 }}>Close</button>
+        </div>
       </div>
     </div>
   );

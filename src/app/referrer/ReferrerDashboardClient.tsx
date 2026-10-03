@@ -36,7 +36,7 @@ export default function ReferrerDashboardClient() {
   if (loading) return <div style={{ padding: '48px', textAlign: 'center' }}>Loading dashboard...</div>;
   if (!data) return <div style={{ padding: '48px', textAlign: 'center' }}>Failed to load dashboard.</div>;
 
-  const totalEarnings = data.transactions?.reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0) || 0;
+  const totalEarnings = data.transactions?.filter((tx:any) => tx.status === 'COMPLETED').reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0) || 0;
 
   return (
     <div>
@@ -90,8 +90,15 @@ export default function ReferrerDashboardClient() {
                       +₹{tx.amount?.toFixed(2) || '0.00'}
                     </td>
                     <td style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0' }}>
-                      <span style={{ background: '#dcfce7', color: '#166534', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 600 }}>
-                        Completed
+                      <span style={{ 
+                        background: tx.status === 'COMPLETED' ? '#dcfce7' : tx.status === 'CANCELLED' ? '#fee2e2' : '#fef9c3', 
+                        color: tx.status === 'COMPLETED' ? '#166534' : tx.status === 'CANCELLED' ? '#991b1b' : '#854d0e', 
+                        padding: '4px 10px', 
+                        borderRadius: '12px', 
+                        fontSize: '12px', 
+                        fontWeight: 600 
+                      }}>
+                        {tx.status ? tx.status.charAt(0) + tx.status.slice(1).toLowerCase() : 'Pending'}
                       </span>
                     </td>
                   </tr>

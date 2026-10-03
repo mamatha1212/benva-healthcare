@@ -343,5 +343,6 @@ model ReferralTransaction {
   referralDate DateTime @default(now())
   patientName  String?
   patientPhone String?
+  status       String   @default("PENDING")
   createdAt    DateTime @default(now())
 }
