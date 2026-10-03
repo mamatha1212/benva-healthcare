@@ -58,9 +58,9 @@ export default function ReferralsClient() {
 
   const handleCopyCredentials = (referrer: any) => {
     const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
-    const text = `Referral Portal Login\nURL: ${baseUrl}/referral-login\nUsername: ${referrer.username}\nPassword: ${referrer.password}`;
+    const text = `Referral Portal Login\nURL: ${baseUrl}/referral-login\nReferral Code: ${referrer.referralCode || 'N/A'}\nUsername: ${referrer.username}\nPassword: ${referrer.password}`;
     navigator.clipboard.writeText(text);
-    alert('Credentials copied to clipboard!');
+    alert('Credentials & Referral Code copied to clipboard!');
   };
 
   return (
@@ -116,6 +116,7 @@ export default function ReferralsClient() {
                       <div style={{ color: '#64748b' }}>{referrer.email}</div>
                     </td>
                     <td className={styles.td}>
+                      <div style={{ fontSize: '13px', color: '#16a34a', fontWeight: 700, marginBottom: '4px' }}>Code: {referrer.referralCode || 'N/A'}</div>
                       <div style={{ fontSize: '13px', color: '#334155', marginBottom: '8px' }}><span style={{ color: '#94a3b8' }}>U:</span> {referrer.username}</div>
                       <button onClick={() => handleCopyCredentials(referrer)} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#2563eb', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '6px 10px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                         Copy Login Details

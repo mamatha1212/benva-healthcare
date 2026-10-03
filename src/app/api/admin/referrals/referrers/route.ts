@@ -34,9 +34,9 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Username already exists' }, { status: 400 });
     }
 
-    // Generate referral code like BENV-R-1001
+    // Generate referral code like BENVA-HC-1
     const totalCount = await prisma.referrer.count();
-    const referralCode = `BENV-R-${1001 + totalCount}`;
+    const referralCode = `BENVA-HC-${1 + totalCount}`;
 
     const newReferrer = await prisma.referrer.create({
       data: { name, email, phone, username, password, categoryId, referralCode }
