@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import styles from './ReferralsClient.module.css';
 
 export default function ReferralsClient() {
   const [categories, setCategories] = useState<any[]>([]);
@@ -63,10 +64,10 @@ export default function ReferralsClient() {
   };
 
   return (
-    <div style={{ padding: '24px' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
-        <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 700, color: '#1e293b' }}>Manage Referrals</h1>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+    <div className={styles.container}>
+      <div className={styles.header}>
+        <h1 className={styles.title}>Manage Referrals</h1>
+        <div className={styles.buttonGroup}>
           <button onClick={handleCopyLink} style={{ background: '#f8fafc', color: '#334155', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
             {copiedLink ? 'Copied!' : 'Copy Referral Login Link'}
           </button>
@@ -82,47 +83,47 @@ export default function ReferralsClient() {
         </div>
       </div>
 
-      <div style={{ background: 'white', borderRadius: '12px', overflow: 'hidden', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.05)' }}>
-        <div style={{ overflowX: 'auto' }}>
-          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '800px' }}>
-            <thead>
-              <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
-                <th style={{ padding: '16px', fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Name</th>
-                <th style={{ padding: '16px', fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Category</th>
-                <th style={{ padding: '16px', fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Contact</th>
-                <th style={{ padding: '16px', fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Credentials</th>
-                <th style={{ padding: '16px', fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Total Referrals</th>
-                <th style={{ padding: '16px', fontSize: '13px', fontWeight: 600, color: '#64748b' }}>Total Earnings</th>
-                <th style={{ padding: '16px', fontSize: '13px', fontWeight: 600, color: '#64748b', textAlign: 'right' }}>Actions</th>
+      <div className={styles.tableContainer}>
+        <div className={styles.tableWrapper}>
+          <table className={styles.table}>
+            <thead className={styles.thead}>
+              <tr className={styles.tr}>
+                <th className={styles.th}>Name</th>
+                <th className={styles.th}>Category</th>
+                <th className={styles.th}>Contact</th>
+                <th className={styles.th}>Credentials</th>
+                <th className={styles.th}>Total Referrals</th>
+                <th className={styles.th}>Total Earnings</th>
+                <th className={styles.th} style={{ textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className={styles.tbody}>
               {referrers.length > 0 ? referrers.map((referrer: any) => {
                 const totalAmount = referrer.transactions?.reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0) || 0;
                 return (
-                  <tr key={referrer.id} style={{ borderBottom: '1px solid #e2e8f0', background: 'white' }}>
-                    <td style={{ padding: '16px' }}>
+                  <tr key={referrer.id} className={styles.tr}>
+                    <td className={styles.td}>
                       <div style={{ fontWeight: 600, color: '#0f172a' }}>{referrer.name}</div>
                       <div style={{ fontSize: '12px', color: '#64748b' }}>Added: {new Date(referrer.createdAt).toLocaleDateString()}</div>
                     </td>
-                    <td style={{ padding: '16px' }}>
+                    <td className={styles.td}>
                       <span style={{ background: '#e0e7ff', color: '#4338ca', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 600 }}>
                         {referrer.category?.name || 'N/A'}
                       </span>
                     </td>
-                    <td style={{ padding: '16px', fontSize: '13px', color: '#334155' }}>
+                    <td className={styles.td} style={{ fontSize: '13px', color: '#334155' }}>
                       <div>{referrer.phone}</div>
                       <div style={{ color: '#64748b' }}>{referrer.email}</div>
                     </td>
-                    <td style={{ padding: '16px' }}>
+                    <td className={styles.td}>
                       <div style={{ fontSize: '13px', color: '#334155' }}><span style={{ color: '#94a3b8' }}>U:</span> {referrer.username}</div>
                       <button onClick={() => handleCopyCredentials(referrer)} style={{ background: 'transparent', border: 'none', color: '#2563eb', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '4px 0', marginTop: '4px' }}>
                         Copy Details
                       </button>
                     </td>
-                    <td style={{ padding: '16px', fontWeight: 600, color: '#0f172a' }}>{referrer.transactions?.length || 0}</td>
-                    <td style={{ padding: '16px', fontWeight: 600, color: '#059669' }}>₹{totalAmount.toFixed(2)}</td>
-                    <td style={{ padding: '16px', textAlign: 'right' }}>
+                    <td className={styles.td} style={{ fontWeight: 600, color: '#0f172a' }}>{referrer.transactions?.length || 0}</td>
+                    <td className={styles.td} style={{ fontWeight: 600, color: '#059669' }}>₹{totalAmount.toFixed(2)}</td>
+                    <td className={styles.td} style={{ textAlign: 'right' }}>
                       <button onClick={() => setShowTransactionModal(referrer)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
                         + Add Referral
                       </button>
@@ -130,8 +131,8 @@ export default function ReferralsClient() {
                   </tr>
                 );
               }) : (
-                <tr>
-                  <td colSpan={7} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
+                <tr className={styles.tr}>
+                  <td colSpan={7} className={styles.td} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
                     No referrers found. Create one to get started.
                   </td>
                 </tr>

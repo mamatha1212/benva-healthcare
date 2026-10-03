@@ -1,0 +1,131 @@
+.container {
+  padding: 24px;
+}
+
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.title {
+  margin: 0;
+  font-size: 24px;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.buttonGroup {
+  display: flex;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.tableContainer {
+  background: white;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+}
+
+.tableWrapper {
+  overflow-x: auto;
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+}
+
+.th {
+  padding: 16px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #64748b;
+  background: #f8fafc;
+  border-bottom: 1px solid #e2e8f0;
+  white-space: nowrap;
+}
+
+.td {
+  padding: 16px;
+  border-bottom: 1px solid #e2e8f0;
+  background: white;
+}
+
+@media (max-width: 768px) {
+  .container {
+    padding: 16px 12px;
+  }
+  
+  .header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .buttonGroup {
+    flex-direction: column;
+    width: 100%;
+  }
+
+  .buttonGroup button {
+    width: 100%;
+    justify-content: center;
+  }
+
+  .table, .thead, .tbody, .th, .td, .tr {
+    display: block;
+  }
+
+  .thead tr {
+    position: absolute;
+    top: -9999px;
+    left: -9999px;
+  }
+
+  .tr {
+    border-bottom: 2px solid #e2e8f0;
+    margin-bottom: 16px;
+    background: #fff;
+    border-radius: 8px;
+    padding: 12px;
+  }
+
+  .td {
+    border: none;
+    position: relative;
+    padding-left: 50%;
+    margin-bottom: 8px;
+    padding-top: 8px;
+    padding-bottom: 8px;
+  }
+
+  .td:before {
+    position: absolute;
+    top: 8px;
+    left: 0;
+    width: 45%;
+    padding-right: 10px;
+    white-space: nowrap;
+    font-weight: 600;
+    color: #64748b;
+    font-size: 13px;
+  }
+
+  .td:nth-of-type(1):before { content: "Name"; }
+  .td:nth-of-type(2):before { content: "Category"; }
+  .td:nth-of-type(3):before { content: "Contact"; }
+  .td:nth-of-type(4):before { content: "Credentials"; }
+  .td:nth-of-type(5):before { content: "Total Referrals"; }
+  .td:nth-of-type(6):before { content: "Total Earnings"; }
+  .td:nth-of-type(7):before { content: "Actions"; }
+  
+  .td:nth-of-type(7) {
+    text-align: left !important;
+  }
+}
