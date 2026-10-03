@@ -68,6 +68,7 @@ export default function ReferrerDashboardClient() {
               <thead>
                 <tr>
                   <th style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0', fontSize: '13px', color: '#64748b', fontWeight: 600 }}>Date</th>
+                  <th style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0', fontSize: '13px', color: '#64748b', fontWeight: 600 }}>Patient</th>
                   <th style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0', fontSize: '13px', color: '#64748b', fontWeight: 600 }}>Service</th>
                   <th style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0', fontSize: '13px', color: '#64748b', fontWeight: 600 }}>Amount Earned</th>
                   <th style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0', fontSize: '13px', color: '#64748b', fontWeight: 600 }}>Status</th>
@@ -80,6 +81,9 @@ export default function ReferrerDashboardClient() {
                       {new Date(tx.createdAt).toLocaleDateString()}
                     </td>
                     <td style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0', color: '#0f172a', fontWeight: 500, fontSize: '14px' }}>
+                      {tx.patientName || 'N/A'}
+                    </td>
+                    <td style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0', color: '#334155', fontSize: '14px' }}>
                       {tx.serviceName || 'Unknown Service'}
                     </td>
                     <td style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0', color: '#059669', fontWeight: 600, fontSize: '14px' }}>
@@ -93,7 +97,7 @@ export default function ReferrerDashboardClient() {
                   </tr>
                 )) : (
                   <tr>
-                    <td colSpan={4} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
+                    <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
                       No referrals logged yet.
                     </td>
                   </tr>

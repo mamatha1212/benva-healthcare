@@ -321,6 +321,7 @@ model ReferralCategory {
 
 model Referrer {
   id           String                @id @default(cuid())
+  referralCode String?               @unique
   name         String
   email        String?               @unique
   phone        String
@@ -340,5 +341,7 @@ model ReferralTransaction {
   serviceName  String
   amount       Float    @default(0)
   referralDate DateTime @default(now())
+  patientName  String?
+  patientPhone String?
   createdAt    DateTime @default(now())
 }

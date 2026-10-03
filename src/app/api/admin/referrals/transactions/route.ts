@@ -4,7 +4,7 @@ import { prisma } from '@/lib/prisma';
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { referrerId, serviceName, amount, referralDate } = body;
+    const { referrerId, serviceName, amount, referralDate, patientName, patientPhone } = body;
     
     if (!referrerId || !serviceName || amount === undefined) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -15,7 +15,9 @@ export async function POST(req: NextRequest) {
         referrerId, 
         serviceName, 
         amount: Number(amount), 
-        referralDate: referralDate ? new Date(referralDate) : new Date() 
+        referralDate: referralDate ? new Date(referralDate) : new Date(),
+        patientName: patientName || null,
+        patientPhone: patientPhone || null
       }
     });
     return NextResponse.json(newTransaction, { status: 201 });
