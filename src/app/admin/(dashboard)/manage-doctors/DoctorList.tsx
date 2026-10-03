@@ -124,7 +124,7 @@ export default function DoctorList({ initialDoctors }: { initialDoctors: any[] }
                           <span style={{ color: '#0f172a', fontSize: '13px', fontWeight: 500 }}>{doctor.password || <span style={{ color: '#ef4444', fontStyle: 'italic', fontSize: '12px' }}>Not Set</span>}</span>
                         </div>
                         <div style={{ marginTop: '2px' }}>
-                          <a href="/doctor/login" target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', fontSize: '11px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                          <a href="/admin/login" target="_blank" rel="noopener noreferrer" style={{ color: '#3b82f6', fontSize: '11px', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '4px' }}>
                             Open Login Portal
                             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></svg>
                           </a>
@@ -133,7 +133,7 @@ export default function DoctorList({ initialDoctors }: { initialDoctors: any[] }
                       <button 
                         onClick={() => {
                           const baseUrl = typeof window !== 'undefined' ? window.location.origin : 'http://localhost:3000';
-                          const text = `Doctor Portal Login\nURL: ${baseUrl}/doctor/login\nUsername: ${doctor.email}\nPassword: ${doctor.password || 'Not Set'}`;
+                          const text = `Doctor Portal Login\nURL: ${baseUrl}/admin/login\nUsername: ${doctor.email}\nPassword: ${doctor.password || 'Not Set'}`;
                           navigator.clipboard.writeText(text); 
                           alert('Login details copied!');
                         }} 
