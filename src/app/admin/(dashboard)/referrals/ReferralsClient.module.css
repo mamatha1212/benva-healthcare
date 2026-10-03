@@ -57,6 +57,7 @@
   padding: 16px;
   border-bottom: 1px solid #e2e8f0;
   background: white;
+  white-space: nowrap;
 }
 
 @media (max-width: 768px) {
