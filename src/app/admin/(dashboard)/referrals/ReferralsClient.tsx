@@ -27,7 +27,7 @@ export default function ReferralsClient() {
 
   const fetchReferrers = async () => {
     try {
-      const res = await fetch('/api/admin/referrals/referrers');
+      const res = await fetch('/api/admin/referrals/referrers', { cache: 'no-store' });
       const data = await res.json();
       if (Array.isArray(data)) setReferrers(data);
     } catch (err) {
