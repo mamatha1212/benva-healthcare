@@ -773,8 +773,8 @@ export default function PrescriptionPage() {
                 No prescribed medicines
               </div>
             ) : (
-            <div className="rx-med-wrap">
-            <table className="rx-med-table" style={{ tableLayout: 'fixed', wordWrap: 'break-word' }}>
+            <div className="rx-med-wrap" style={{ overflowX: 'auto', width: '100%' }}>
+            <table className="rx-med-table" style={{ tableLayout: 'fixed', wordWrap: 'break-word', minWidth: '800px' }}>
               <thead>
                 <tr style={{ backgroundColor: colors.headerBg, color: 'white', fontSize: '15px' }}>
                   <th style={{ border: `1px solid ${colors.borderColor}`, padding: '6px', width: '5%', whiteSpace: 'nowrap' }}>S.No</th>

@@ -2,7 +2,7 @@
 
 import React, { useState, useRef } from 'react';
 
-export default function AddPatientModal({ onClose, onAdded, doctors = [] }: { onClose: () => void, onAdded: (patient: any) => void, doctors?: any[] }) {
+export default function AddPatientModal({ onClose, onAdded, doctors = [] }: { onClose: () => void, onAdded: (patient: any, action?: "save" | "save-and-add") => void, doctors?: any[] }) {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [formError, setFormError] = useState('');
   const [familyMembers, setFamilyMembers] = useState<any[]>([]);
