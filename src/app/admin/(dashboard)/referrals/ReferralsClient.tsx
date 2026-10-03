@@ -6,6 +6,7 @@ export default function ReferralsClient() {
   const [categories, setCategories] = useState<any[]>([]);
   const [referrers, setReferrers] = useState<any[]>([]);
   const [showCategoryModal, setShowCategoryModal] = useState(false);
+  const [showCategoriesList, setShowCategoriesList] = useState(false);
   const [showReferrerModal, setShowReferrerModal] = useState(false);
   const [showTransactionModal, setShowTransactionModal] = useState<any>(null);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -56,6 +57,9 @@ export default function ReferralsClient() {
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
           <button onClick={handleCopyLink} style={{ background: '#f8fafc', color: '#334155', border: '1px solid #cbd5e1', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '8px' }}>
             {copiedLink ? 'Copied!' : 'Copy Referral Login Link'}
+          </button>
+          <button onClick={() => setShowCategoriesList(true)} style={{ background: '#e2e8f0', color: '#0f172a', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
+            View Categories
           </button>
           <button onClick={() => setShowCategoryModal(true)} style={{ background: '#1e293b', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
             + Add Category
@@ -125,6 +129,10 @@ export default function ReferralsClient() {
         </div>
       </div>
 
+      {showCategoriesList && (
+        <CategoriesListModal categories={categories} onClose={() => setShowCategoriesList(false)} />
+      )}
+
       {showCategoryModal && (
         <CategoryModal onClose={() => setShowCategoryModal(false)} onSaved={fetchCategories} />
       )}
@@ -136,6 +144,43 @@ export default function ReferralsClient() {
       {showTransactionModal && (
         <TransactionModal referrer={showTransactionModal} onClose={() => setShowTransactionModal(null)} onSaved={fetchReferrers} />
       )}
+    </div>
+  );
+}
+
+function CategoriesListModal({ categories, onClose }: { categories: any[], onClose: () => void }) {
+  return (
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
+      <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '500px', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
+        <h2 style={{ margin: '0 0 16px 0', fontSize: '18px' }}>Referral Categories</h2>
+        
+        <div style={{ overflowY: 'auto', flex: 1 }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
+                <th style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>Category Name</th>
+                <th style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>Created At</th>
+              </tr>
+            </thead>
+            <tbody>
+              {categories.length > 0 ? categories.map(cat => (
+                <tr key={cat.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                  <td style={{ padding: '12px', fontWeight: 600, color: '#334155' }}>{cat.name}</td>
+                  <td style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>{new Date(cat.createdAt).toLocaleDateString()}</td>
+                </tr>
+              )) : (
+                <tr>
+                  <td colSpan={2} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No categories found.</td>
+                </tr>
+              )}
+            </tbody>
+          </table>
+        </div>
+
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '16px' }}>
+          <button onClick={onClose} style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer', fontWeight: 600 }}>Close</button>
+        </div>
+      </div>
     </div>
   );
 }
