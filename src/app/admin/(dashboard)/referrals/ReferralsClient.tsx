@@ -391,7 +391,7 @@ function ReferrerModal({ categories, onClose, onSaved }: { categories: any[], on
 }
 
 function TransactionModal({ referrer, services, onClose, onSaved }: { referrer: any, services: any[], onClose: () => void, onSaved: () => void }) {
-  const [formData, setFormData] = useState({ serviceName: '', amount: '', referralDate: new Date().toISOString().split('T')[0] });
+  const [formData, setFormData] = useState({ serviceName: '', amount: '', referralDate: new Date().toISOString().split('T')[0], patientName: '', patientPhone: '' });
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -424,11 +424,11 @@ function TransactionModal({ referrer, services, onClose, onSaved }: { referrer: 
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Patient Name (Optional)</label>
-            <input type="text" value={(formData as any).patientName || ''} onChange={e => setFormData({...formData, patientName: e.target.value})} placeholder="e.g. Ramesh Kumar" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+            <input type="text" value={formData.patientName || ''} onChange={e => setFormData({...formData, patientName: e.target.value})} placeholder="e.g. Ramesh Kumar" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Patient Phone (Optional)</label>
-            <input type="text" value={(formData as any).patientPhone || ''} onChange={e => setFormData({...formData, patientPhone: e.target.value})} placeholder="e.g. 9876543210" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+            <input type="text" value={formData.patientPhone || ''} onChange={e => setFormData({...formData, patientPhone: e.target.value})} placeholder="e.g. 9876543210" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Service / Package Name</label>

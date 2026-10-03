@@ -38,12 +38,15 @@ export async function POST(req: NextRequest) {
     const totalCount = await prisma.referrer.count();
     const referralCode = `BENVA-HC-${1 + totalCount}`;
 
+    // Convert empty email to null to prevent @unique constraint errors
+    const finalEmail = email && email.trim() !== '' ? email.trim() : null;
+
     const newReferrer = await prisma.referrer.create({
-      data: { name, email, phone, username, password, categoryId, referralCode }
+      data: { name, email: finalEmail, phone, username, password, categoryId, referralCode }
     });
     return NextResponse.json(newReferrer, { status: 201 });
   } catch (error) {
     console.error('Error creating referrer:', error);
-    return NextResponse.json({ error: 'Failed to create referrer' }, { status: 500 });
+    return NextResponse.json({ error: error instanceof Error ? error.message : 'Failed to create referrer' }, { status: 500 });
   }
 }
