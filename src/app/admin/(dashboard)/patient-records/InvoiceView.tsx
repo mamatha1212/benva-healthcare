@@ -286,4 +286,8 @@ export default function InvoiceView({ invoice, patient, onClose }: { invoice: an
             </div>
           </div>
 
-        </div>\n      </div>\n    </div>\n  );\n}\n
+        </div>
+      </div>
+    </div>
+  );
+}
