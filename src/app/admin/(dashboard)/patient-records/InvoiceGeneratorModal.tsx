@@ -7,10 +7,10 @@ export default function InvoiceGeneratorModal({ patient, onClose, onGenerated }:
   const [items, setItems] = useState([{ itemName: '', price: '' as string | number, discount: '' as string | number }]);
   const [payMode, setPayMode] = useState('UPI');
   const [mounted, setMounted] = useState(false);
-  const [address, setAddress] = useState('');
-  const [age, setAge] = useState('');
-  const [gender, setGender] = useState('');
-  const [consultant, setConsultant] = useState('');
+  const [address, setAddress] = useState(patient?.address || '');
+  const [age, setAge] = useState(patient?.age ? String(patient.age) : '');
+  const [gender, setGender] = useState(patient?.gender || '');
+  const [consultant, setConsultant] = useState(patient?.assignedDoctor || patient?.consultant || '');
   const [doctors, setDoctors] = useState<any[]>([]);
 
   useEffect(() => {
