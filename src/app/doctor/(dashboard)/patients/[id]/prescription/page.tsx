@@ -42,8 +42,8 @@ const DurationSelector = ({ value, onChange }: { value: string, onChange: (v: st
       />
 
       {isOpen && (
-        <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', marginTop: '4px', zIndex: 50, background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '16px', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', width: 'max-content', color: '#0f172a' }}>
-          <div style={{ fontWeight: 600, marginBottom: '12px', color: '#475569', fontSize: '18px', textAlign: 'left' }}>Duration</div>
+        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999, background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', width: 'max-content', color: '#0f172a' }}>
+          <div style={{ fontWeight: 600, marginBottom: '16px', color: '#475569', fontSize: '18px', textAlign: 'left' }}>Duration</div>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ display: 'flex', alignItems: 'center', background: '#f0f9ff', borderRadius: '8px', padding: '4px 8px', minWidth: '90px', justifyContent: 'space-between' }}>
               <button type="button" onClick={() => handleNumChange(-1)} style={{ background: 'none', border: 'none', fontSize: '24px', fontWeight: 'bold', cursor: 'pointer', color: '#334155', padding: '0 8px' }}>-</button>
@@ -89,7 +89,7 @@ const DurationSelector = ({ value, onChange }: { value: string, onChange: (v: st
           </div>
         </div>
       )}
-      {isOpen && <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setIsOpen(false)} />}
+      {isOpen && <div style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.3)' }} onClick={() => setIsOpen(false)} />}
     </div>
   );
 };
@@ -110,8 +110,8 @@ const FrequencySelector = ({ value, onChange }: { value: string, onChange: (v: s
       />
       
       {isOpen && (
-        <div style={{ position: 'absolute', top: '100%', left: 0, marginTop: '4px', zIndex: 50, background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '20px', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', width: '380px', maxWidth: '85vw', color: '#0f172a' }}>
-          <div style={{ fontWeight: 500, marginBottom: '16px', color: '#475569', fontSize: '18px', textAlign: 'left' }}>Frequency</div>
+        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999, background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', width: '380px', maxWidth: '90vw', color: '#0f172a' }}>
+          <div style={{ fontWeight: 600, marginBottom: '16px', color: '#475569', fontSize: '18px', textAlign: 'left' }}>Frequency</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(80px, 1fr))', gap: '12px' }}>
             {options.map(opt => (
               <button
@@ -141,7 +141,7 @@ const FrequencySelector = ({ value, onChange }: { value: string, onChange: (v: s
           </div>
         </div>
       )}
-      {isOpen && <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setIsOpen(false)} />}
+      {isOpen && <div style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.3)' }} onClick={() => setIsOpen(false)} />}
     </div>
   );
 };
@@ -175,8 +175,8 @@ const InstructionsSelector = ({ value, onChange }: { value: string, onChange: (v
       />
       
       {isOpen && (
-        <div style={{ position: 'absolute', top: '100%', right: 0, marginTop: '4px', zIndex: 50, background: 'white', border: '1px solid #e2e8f0', borderRadius: '8px', padding: '20px', boxShadow: '0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.1)', width: '480px', maxWidth: '85vw', color: '#0f172a' }}>
-          <div style={{ fontWeight: 500, marginBottom: '16px', color: '#475569', fontSize: '18px', textAlign: 'left' }}>Timing</div>
+        <div style={{ position: 'fixed', top: '50%', left: '50%', transform: 'translate(-50%, -50%)', zIndex: 9999, background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)', width: '480px', maxWidth: '90vw', color: '#0f172a' }}>
+          <div style={{ fontWeight: 600, marginBottom: '16px', color: '#475569', fontSize: '18px', textAlign: 'left' }}>Timing</div>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(100px, 1fr))', gap: '12px' }}>
             {options.map(opt => {
               const isSelected = selectedOptions.includes(opt);
@@ -206,7 +206,7 @@ const InstructionsSelector = ({ value, onChange }: { value: string, onChange: (v
           </div>
         </div>
       )}
-      {isOpen && <div style={{ position: 'fixed', inset: 0, zIndex: 40 }} onClick={() => setIsOpen(false)} />}
+      {isOpen && <div style={{ position: 'fixed', inset: 0, zIndex: 9998, background: 'rgba(0,0,0,0.3)' }} onClick={() => setIsOpen(false)} />}
     </div>
   );
 };
