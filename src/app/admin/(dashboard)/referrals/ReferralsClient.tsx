@@ -191,7 +191,7 @@ function CategoriesListModal({ categories, onClose, onRefresh }: { categories: a
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
-      <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '500px', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
+      <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '500px', maxHeight: '80vh', display: 'flex', flexDirection: 'column', color: '#0f172a' }}>
         <h2 style={{ margin: '0 0 16px 0', fontSize: '18px' }}>Referral Categories</h2>
         
         <div style={{ overflowY: 'auto', flex: 1 }}>
@@ -270,7 +270,7 @@ function CategoryModal({ onClose, onSaved }: { onClose: () => void, onSaved: () 
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
-      <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '400px' }}>
+      <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '400px', color: '#0f172a' }}>
         <h2 style={{ margin: '0 0 16px 0', fontSize: '18px' }}>Add Referral Category</h2>
         <form onSubmit={handleSubmit}>
           <div style={{ marginBottom: '16px' }}>
@@ -317,7 +317,7 @@ function ReferrerModal({ categories, onClose, onSaved }: { categories: any[], on
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
-      <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '500px' }}>
+      <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '500px', color: '#0f172a' }}>
         <h2 style={{ margin: '0 0 16px 0', fontSize: '18px' }}>Add New Referrer</h2>
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
@@ -392,7 +392,7 @@ function TransactionModal({ referrer, onClose, onSaved }: { referrer: any, onClo
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
-      <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '400px' }}>
+      <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '400px', color: '#0f172a' }}>
         <h2 style={{ margin: '0 0 4px 0', fontSize: '18px' }}>Add Referral for {referrer.name}</h2>
         <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#64748b' }}>Log a new patient referral and add the amount to their total.</p>
         
