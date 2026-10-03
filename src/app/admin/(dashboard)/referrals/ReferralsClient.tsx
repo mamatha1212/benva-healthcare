@@ -130,7 +130,7 @@ export default function ReferralsClient() {
       </div>
 
       {showCategoriesList && (
-        <CategoriesListModal categories={categories} onClose={() => setShowCategoriesList(false)} />
+        <CategoriesListModal categories={categories} onClose={() => setShowCategoriesList(false)} onRefresh={fetchCategories} />
       )}
 
       {showCategoryModal && (
@@ -148,7 +148,47 @@ export default function ReferralsClient() {
   );
 }
 
-function CategoriesListModal({ categories, onClose }: { categories: any[], onClose: () => void }) {
+function CategoriesListModal({ categories, onClose, onRefresh }: { categories: any[], onClose: () => void, onRefresh: () => void }) {
+  const [editingId, setEditingId] = useState<string | null>(null);
+  const [editName, setEditName] = useState('');
+
+  const handleEdit = (cat: any) => {
+    setEditingId(cat.id);
+    setEditName(cat.name);
+  };
+
+  const handleSaveEdit = async (id: string) => {
+    try {
+      const res = await fetch(`/api/admin/referrals/categories/${id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: editName })
+      });
+      if (res.ok) {
+        setEditingId(null);
+        onRefresh();
+      } else {
+        alert('Failed to update category');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this category? Referrers in this category might be affected.')) return;
+    try {
+      const res = await fetch(`/api/admin/referrals/categories/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        onRefresh();
+      } else {
+        alert('Failed to delete category');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
       <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '500px', maxHeight: '80vh', display: 'flex', flexDirection: 'column' }}>
@@ -160,17 +200,35 @@ function CategoriesListModal({ categories, onClose }: { categories: any[], onClo
               <tr style={{ borderBottom: '1px solid #e2e8f0' }}>
                 <th style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>Category Name</th>
                 <th style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>Created At</th>
+                <th style={{ padding: '12px', fontSize: '13px', color: '#64748b', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
               {categories.length > 0 ? categories.map(cat => (
                 <tr key={cat.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                  <td style={{ padding: '12px', fontWeight: 600, color: '#334155' }}>{cat.name}</td>
+                  <td style={{ padding: '12px', fontWeight: 600, color: '#334155' }}>
+                    {editingId === cat.id ? (
+                      <input type="text" value={editName} onChange={e => setEditName(e.target.value)} style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1' }} />
+                    ) : cat.name}
+                  </td>
                   <td style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>{new Date(cat.createdAt).toLocaleDateString()}</td>
+                  <td style={{ padding: '12px', textAlign: 'right' }}>
+                    {editingId === cat.id ? (
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                        <button onClick={() => handleSaveEdit(cat.id)} style={{ padding: '4px 8px', background: '#10b981', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Save</button>
+                        <button onClick={() => setEditingId(null)} style={{ padding: '4px 8px', background: '#e2e8f0', color: '#334155', border: 'none', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Cancel</button>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                        <button onClick={() => handleEdit(cat)} style={{ padding: '4px 8px', background: '#f8fafc', color: '#2563eb', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Edit</button>
+                        <button onClick={() => handleDelete(cat.id)} style={{ padding: '4px 8px', background: '#fee2e2', color: '#ef4444', border: '1px solid #fecaca', borderRadius: '4px', cursor: 'pointer', fontSize: '12px' }}>Delete</button>
+                      </div>
+                    )}
+                  </td>
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={2} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No categories found.</td>
+                  <td colSpan={3} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No categories found.</td>
                 </tr>
               )}
             </tbody>
