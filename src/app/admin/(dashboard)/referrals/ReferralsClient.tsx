@@ -116,9 +116,9 @@ export default function ReferralsClient() {
                       <div style={{ color: '#64748b' }}>{referrer.email}</div>
                     </td>
                     <td className={styles.td}>
-                      <div style={{ fontSize: '13px', color: '#334155' }}><span style={{ color: '#94a3b8' }}>U:</span> {referrer.username}</div>
-                      <button onClick={() => handleCopyCredentials(referrer)} style={{ background: 'transparent', border: 'none', color: '#2563eb', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '4px 0', marginTop: '4px' }}>
-                        Copy Details
+                      <div style={{ fontSize: '13px', color: '#334155', marginBottom: '8px' }}><span style={{ color: '#94a3b8' }}>U:</span> {referrer.username}</div>
+                      <button onClick={() => handleCopyCredentials(referrer)} style={{ background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#2563eb', fontSize: '12px', fontWeight: 600, cursor: 'pointer', padding: '6px 10px', borderRadius: '6px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                        Copy Login Details
                       </button>
                     </td>
                     <td className={styles.td} style={{ fontWeight: 600, color: '#0f172a' }}>{referrer.transactions?.length || 0}</td>
