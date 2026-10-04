@@ -1,7 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { getLocationsHierarchy } from '@/components/DoorstepSection/actions';
 
 export default function BookFreeConsultationPage() {
   const [type, setType] = useState<'NONE' | 'GENERAL' | 'CORPORATE'>('NONE');
@@ -12,6 +13,16 @@ export default function BookFreeConsultationPage() {
   const [employeeData, setEmployeeData] = useState<any>(null);
   const [verifyError, setVerifyError] = useState('');
   const [corporateConfirmed, setCorporateConfirmed] = useState(false);
+
+  // Locations State
+  const [locations, setLocations] = useState<any[]>([]);
+  const [availableDistricts, setAvailableDistricts] = useState<any[]>([]);
+
+  useEffect(() => {
+    getLocationsHierarchy().then(data => {
+      setLocations(data);
+    });
+  }, []);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -25,6 +36,14 @@ export default function BookFreeConsultationPage() {
     previousMedication: '',
     reportUrl: ''
   });
+
+  // Handle state change
+  const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedStateName = e.target.value;
+    const selectedState = locations.find(s => s.name === selectedStateName);
+    setAvailableDistricts(selectedState ? selectedState.districts : []);
+    setFormData({ ...formData, state: selectedStateName, district: '' });
+  };
   
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -209,11 +228,32 @@ export default function BookFreeConsultationPage() {
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
                 <div>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>State *</label>
-                  <input type="text" value={formData.state} onChange={e => setFormData({...formData, state: e.target.value})} required style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
+                  <select 
+                    value={formData.state} 
+                    onChange={handleStateChange} 
+                    required 
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', background: 'white', appearance: 'auto' }}
+                  >
+                    <option value="">Select State</option>
+                    {locations.map(state => (
+                      <option key={state.id} value={state.name}>{state.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>District *</label>
-                  <input type="text" value={formData.district} onChange={e => setFormData({...formData, district: e.target.value})} required style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
+                  <select 
+                    value={formData.district} 
+                    onChange={e => setFormData({...formData, district: e.target.value})} 
+                    required 
+                    disabled={!formData.state}
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', background: !formData.state ? '#f1f5f9' : 'white', appearance: 'auto' }}
+                  >
+                    <option value="">Select District</option>
+                    {availableDistricts.map(district => (
+                      <option key={district.id} value={district.name}>{district.name}</option>
+                    ))}
+                  </select>
                 </div>
                 <div>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Pincode *</label>
