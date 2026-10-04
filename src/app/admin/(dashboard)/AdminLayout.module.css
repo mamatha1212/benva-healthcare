@@ -182,6 +182,9 @@
 .content {
   padding: 32px;
   flex-grow: 1;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
 }
 
 /* Hide mobile-specific elements on desktop */
