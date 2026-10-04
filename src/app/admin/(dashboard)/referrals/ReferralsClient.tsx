@@ -417,7 +417,7 @@ function ReferrerModal({ categories, states, onClose, onSaved }: { categories: a
 }
 
 function TransactionModal({ referrer, services, onClose, onSaved }: { referrer: any, services: any[], onClose: () => void, onSaved: () => void }) {
-  const [formData, setFormData] = useState({ serviceName: '', customServiceName: '', amount: '', referralDate: new Date().toISOString().split('T')[0], patientName: '', patientPhone: '' });
+  const [formData, setFormData] = useState({ serviceName: '', customServiceName: '', customServicePrice: '', amount: '', referralDate: new Date().toISOString().split('T')[0], patientName: '', patientPhone: '' });
   const [submitting, setSubmitting] = useState(false);
 
   const selectedService = services.find(s => s.name === formData.serviceName);
@@ -448,7 +448,7 @@ function TransactionModal({ referrer, services, onClose, onSaved }: { referrer: 
 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
-      <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '400px', color: '#0f172a' }}>
+      <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '400px', color: '#0f172a', maxHeight: '90vh', overflowY: 'auto' }}>
         <h2 style={{ margin: '0 0 4px 0', fontSize: '18px' }}>Add Referral for {referrer.name}</h2>
         <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#64748b' }}>Log a new patient referral and add the amount to their total.</p>
         
@@ -472,10 +472,16 @@ function TransactionModal({ referrer, services, onClose, onSaved }: { referrer: 
           </div>
           
           {formData.serviceName === 'Others' && (
-            <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Custom Test / Service Name</label>
-              <input type="text" value={formData.customServiceName} onChange={e => setFormData({...formData, customServiceName: e.target.value})} required placeholder="e.g. Blood Test" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-            </div>
+            <>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Custom Test / Service Name</label>
+                <input type="text" value={formData.customServiceName} onChange={e => setFormData({...formData, customServiceName: e.target.value})} required placeholder="e.g. Blood Test" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Custom Test Price (₹)</label>
+                <input type="number" min="0" value={formData.customServicePrice} onChange={e => setFormData({...formData, customServicePrice: e.target.value})} required placeholder="e.g. 1000" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+              </div>
+            </>
           )}
 
           {selectedService && formData.serviceName !== 'Others' && (
@@ -488,7 +494,7 @@ function TransactionModal({ referrer, services, onClose, onSaved }: { referrer: 
               </div>
               {selectedService.discount && (
                 <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', color: '#10b981' }}>
-                  <span style={{ fontWeight: 600 }}>Discount:</span> <span>{selectedService.discount}</span>
+                  <span style={{ fontWeight: 600 }}>Patient Discount:</span> <span>{selectedService.discount}</span>
                 </div>
               )}
               <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, color: '#0f172a', borderTop: '1px solid #e2e8f0', paddingTop: '4px', marginTop: '4px' }}>
@@ -497,7 +503,7 @@ function TransactionModal({ referrer, services, onClose, onSaved }: { referrer: 
             </div>
           )}
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Referral Amount (₹)</label>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Amount to give to Referrer (₹)</label>
             <input type="number" min="0" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} required placeholder="e.g. 500" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
           </div>
           <div>

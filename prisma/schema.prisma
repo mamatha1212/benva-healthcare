@@ -343,6 +343,7 @@ model ReferralTransaction {
   referrerId   String
   serviceName  String
   amount       Float    @default(0)
+  servicePrice Float?
   referralDate DateTime @default(now())
   patientName  String?
   patientPhone String?
