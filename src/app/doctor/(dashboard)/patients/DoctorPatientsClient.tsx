@@ -354,8 +354,7 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
                         key={idx}
                         type="button"
                         onClick={() => {
-                          setFormData(prev => ({ ...prev, name: member.name, age: member.age, gender: member.gender }));
-                          setFormError(`Selected ${member.name} (UHID: ${member.uhid || 'Pending'}).`);
+                          router.push(`/doctor/patients/${member.id}`);
                         }}
                         style={{ padding: '6px 12px', borderRadius: '16px', border: '1px solid #cbd5e1', background: formData.name === member.name ? '#0ea5e9' : 'white', color: formData.name === member.name ? 'white' : '#0f172a', fontSize: '13px', cursor: 'pointer' }}
                       >
