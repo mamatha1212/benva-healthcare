@@ -15,6 +15,7 @@ export default function ReferralsClient({ initialStates = [] }: { initialStates?
 
   const [showHistoryModal, setShowHistoryModal] = useState<any>(null);
   const [editingTransaction, setEditingTransaction] = useState<any | null>(null);
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchCategories = async () => {
     try {
@@ -86,6 +87,18 @@ export default function ReferralsClient({ initialStates = [] }: { initialStates?
         </div>
       </div>
 
+      <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'center' }}>
+        <input 
+          type="text" 
+          placeholder="Filter by Pincode, Area, or Name..." 
+          value={searchTerm} 
+          onChange={e => setSearchTerm(e.target.value)}
+          style={{ padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', width: '100%', maxWidth: '400px', fontSize: '14px', outline: 'none', background: 'white', color: '#0f172a', transition: 'border-color 0.2s' }}
+          onFocus={e => e.target.style.borderColor = '#3b82f6'}
+          onBlur={e => e.target.style.borderColor = '#cbd5e1'}
+        />
+      </div>
+
       <div className={styles.tableContainer}>
         <div className={styles.tableWrapper}>
           <table className={styles.table}>
@@ -101,13 +114,20 @@ export default function ReferralsClient({ initialStates = [] }: { initialStates?
               </tr>
             </thead>
             <tbody className={styles.tbody}>
-              {referrers.length > 0 ? referrers.map((referrer: any) => {
+              {referrers
+                .filter(r => 
+                  (r.name && r.name.toLowerCase().includes(searchTerm.toLowerCase())) || 
+                  (r.pincode && r.pincode.includes(searchTerm)) || 
+                  (r.area && r.area.toLowerCase().includes(searchTerm.toLowerCase()))
+                )
+                .map((referrer: any) => {
                 const totalAmount = referrer.transactions?.filter((tx:any) => tx.status === 'COMPLETED').reduce((sum: number, tx: any) => sum + (tx.amount || 0), 0) || 0;
                 return (
                   <tr key={referrer.id} className={styles.tr}>
                     <td className={styles.td}>
                       <div style={{ fontWeight: 600, color: '#0f172a' }}>{referrer.name}</div>
                       <div style={{ fontSize: '12px', color: '#64748b' }}>Added: {new Date(referrer.createdAt).toLocaleDateString()}</div>
+                      {referrer.area && <div style={{ fontSize: '11px', color: '#059669', fontWeight: 600, marginTop: '4px', textTransform: 'uppercase' }}>📍 {referrer.area}</div>}
                     </td>
                     <td className={styles.td}>
                       <span style={{ background: '#e0e7ff', color: '#4338ca', padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 600 }}>
@@ -139,10 +159,11 @@ export default function ReferralsClient({ initialStates = [] }: { initialStates?
                     </td>
                   </tr>
                 );
-              }) : (
+              })}
+              {referrers.filter(r => (r.name && r.name.toLowerCase().includes(searchTerm.toLowerCase())) || (r.pincode && r.pincode.includes(searchTerm)) || (r.area && r.area.toLowerCase().includes(searchTerm.toLowerCase()))).length === 0 && (
                 <tr className={styles.tr}>
                   <td colSpan={7} className={styles.td} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
-                    No referrers found. Create one to get started.
+                    No referrers found. Try adjusting your search.
                   </td>
                 </tr>
               )}
