@@ -330,6 +330,7 @@ model Referrer {
   state        String?
   district     String?
   pincode      String?
+  area         String?
   category     ReferralCategory      @relation(fields: [categoryId], references: [id])
   categoryId   String
   createdAt    DateTime              @default(now())

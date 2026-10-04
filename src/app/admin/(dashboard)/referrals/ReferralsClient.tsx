@@ -316,8 +316,45 @@ function CategoryModal({ onClose, onSaved }: { onClose: () => void, onSaved: () 
 }
 
 function ReferrerModal({ categories, states, onClose, onSaved }: { categories: any[], states: any[], onClose: () => void, onSaved: () => void }) {
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', username: '', password: '', categoryId: '', state: '', district: '', pincode: '' });
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', username: '', password: '', categoryId: '', state: '', district: '', pincode: '', area: '' });
+  const [isCheckingArea, setIsCheckingArea] = useState(false);
+  const [availableAreas, setAvailableAreas] = useState<any[]>([]);
+  const [showAreaSelect, setShowAreaSelect] = useState(false);
+  const [checkAreaMessage, setCheckAreaMessage] = useState('');
   const [submitting, setSubmitting] = useState(false);
+
+  const handleCheckPincode = async () => {
+    if (!formData.pincode || formData.pincode.length < 6) {
+      setCheckAreaMessage('Please enter a valid 6-digit pincode');
+      return;
+    }
+    
+    setIsCheckingArea(true);
+    setCheckAreaMessage('');
+    setAvailableAreas([]);
+    setShowAreaSelect(false);
+
+    try {
+      const res = await fetch(`/api/admin/service-locations/check?pincode=${formData.pincode}`);
+      const data = await res.json();
+      
+      if (res.ok && data.locations && data.locations.length > 0) {
+        setAvailableAreas(data.locations);
+        setShowAreaSelect(true);
+      } else {
+        setCheckAreaMessage('No service areas found for this pincode.');
+      }
+    } catch (e) {
+      setCheckAreaMessage('Failed to check availability.');
+    } finally {
+      setIsCheckingArea(false);
+    }
+  };
+
+  const selectArea = (loc: any) => {
+    setFormData(prev => ({ ...prev, area: loc.officeName || '' }));
+    setShowAreaSelect(false);
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -393,7 +430,19 @@ function ReferrerModal({ categories, states, onClose, onSaved }: { categories: a
           <div style={{ display: 'flex', gap: '16px' }}>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Pincode</label>
-              <input type="text" value={formData.pincode} onChange={e => setFormData({...formData, pincode: e.target.value})} placeholder="e.g. 500081" required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input type="text" value={formData.pincode} onChange={e => {
+                  setFormData({...formData, pincode: e.target.value, area: ''});
+                  setCheckAreaMessage('');
+                  setShowAreaSelect(false);
+                }} placeholder="e.g. 500081" required maxLength={6} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                <button type="button" onClick={handleCheckPincode} disabled={isCheckingArea || formData.pincode.length !== 6} style={{ padding: '0 16px', borderRadius: '6px', border: 'none', background: '#3b82f6', color: 'white', fontWeight: 600, cursor: (isCheckingArea || formData.pincode.length !== 6) ? 'not-allowed' : 'pointer', opacity: (isCheckingArea || formData.pincode.length !== 6) ? 0.6 : 1 }}>
+                  {isCheckingArea ? '...' : 'Check'}
+                </button>
+              </div>
+              {checkAreaMessage && !formData.area && (
+                <div style={{ fontSize: '12px', color: checkAreaMessage.includes('valid') || checkAreaMessage.includes('No') ? '#ef4444' : '#10b981', marginTop: '6px' }}>{checkAreaMessage}</div>
+              )}
             </div>
             <div style={{ flex: 1 }}>
               <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Category</label>
@@ -405,6 +454,33 @@ function ReferrerModal({ categories, states, onClose, onSaved }: { categories: a
               </select>
             </div>
           </div>
+
+          {showAreaSelect && availableAreas.length > 0 && (
+            <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <div style={{ fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '12px' }}>Select an Area for this Pincode</div>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto' }}>
+                {availableAreas.map((loc) => (
+                  <div key={loc.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: '14px', color: '#0f172a' }}>{loc.officeName}</div>
+                      <div style={{ fontSize: '12px', color: '#64748b' }}>{loc.type}</div>
+                    </div>
+                    <button type="button" onClick={() => selectArea(loc)} style={{ padding: '6px 12px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>Select</button>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {formData.area && (
+            <div style={{ padding: '10px 14px', background: '#ecfdf5', border: '1px solid #10b981', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <div style={{ flex: 1 }}>
+                <div style={{ fontSize: '11px', color: '#065f46', fontWeight: 600, textTransform: 'uppercase' }}>Selected Area</div>
+                <div style={{ fontSize: '14px', color: '#047857', fontWeight: 700 }}>{formData.area}</div>
+              </div>
+              <button type="button" onClick={() => setFormData({...formData, area: ''})} style={{ background: 'transparent', border: 'none', color: '#10b981', cursor: 'pointer', fontSize: '12px', fontWeight: 600, textDecoration: 'underline' }}>Change</button>
+            </div>
+          )}
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
             <button type="button" onClick={onClose} style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer' }}>Cancel</button>
             <button type="submit" disabled={submitting} style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', background: '#2563eb', color: 'white', cursor: 'pointer', fontWeight: 600 }}>

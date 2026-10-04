@@ -22,7 +22,7 @@ export async function GET() {
 export async function POST(req: NextRequest) {
   try {
     const body = await req.json();
-    const { name, email, phone, username, password, categoryId, state, district, pincode } = body;
+    const { name, email, phone, username, password, categoryId, state, district, pincode, area } = body;
     
     if (!name || !phone || !username || !password || !categoryId) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
@@ -42,7 +42,7 @@ export async function POST(req: NextRequest) {
     const finalEmail = email && email.trim() !== '' ? email.trim() : null;
 
     const newReferrer = await prisma.referrer.create({
-      data: { name, email: finalEmail, phone, username, password, categoryId, referralCode, state, district, pincode }
+      data: { name, email: finalEmail, phone, username, password, categoryId, referralCode, state, district, pincode, area }
     });
     return NextResponse.json(newReferrer, { status: 201 });
   } catch (error) {
