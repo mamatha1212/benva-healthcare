@@ -643,6 +643,7 @@ function HistoryModal({ referrer, onClose, onRefresh, onEdit }: { referrer: any,
                 <th style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>Service</th>
                 <th style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>Amount</th>
                 <th style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>Status</th>
+                <th style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>Comments</th>
                 <th style={{ padding: '12px', fontSize: '13px', color: '#64748b', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
@@ -670,7 +671,8 @@ function HistoryModal({ referrer, onClose, onRefresh, onEdit }: { referrer: any,
                         fontSize: '13px',
                         background: tx.status === 'COMPLETED' ? '#dcfce7' : tx.status === 'CANCELLED' ? '#fee2e2' : '#fef9c3',
                         color: tx.status === 'COMPLETED' ? '#166534' : tx.status === 'CANCELLED' ? '#991b1b' : '#854d0e',
-                        fontWeight: 600
+                        fontWeight: 600,
+                        cursor: 'pointer'
                       }}
                     >
                       <option value="PENDING">Pending</option>
@@ -678,13 +680,16 @@ function HistoryModal({ referrer, onClose, onRefresh, onEdit }: { referrer: any,
                       <option value="CANCELLED">Cancelled</option>
                     </select>
                   </td>
+                  <td style={{ padding: '12px', fontSize: '13px', color: '#64748b', maxWidth: '150px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }} title={tx.comments}>
+                    {tx.comments || '-'}
+                  </td>
                   <td style={{ padding: '12px', textAlign: 'right' }}>
-                    <button onClick={() => onEdit(tx)} style={{ padding: '4px 8px', fontSize: '12px', background: '#f8fafc', color: '#2563eb', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer' }}>Edit</button>
+                    <button onClick={() => onEdit(tx)} style={{ padding: '6px 12px', fontSize: '12px', background: '#f8fafc', color: '#2563eb', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', fontWeight: 600 }}>Edit</button>
                   </td>
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan={7} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
                     No transactions found for this referrer.
                   </td>
                 </tr>
