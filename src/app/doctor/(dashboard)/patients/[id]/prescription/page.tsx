@@ -281,6 +281,7 @@ export default function PrescriptionPage() {
               const parsed = JSON.parse(decodedText);
               setFormData(prev => ({
                 ...prev,
+                consultationDate: parsed.consultationDate || prev.consultationDate,
                 consultationMode: parsed.consultationMode || 'Video',
                 patientName: parsed.patientName || prev.patientName,
                 patientAge: parsed.patientAge || prev.patientAge,
