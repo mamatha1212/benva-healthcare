@@ -379,74 +379,40 @@ function ReferrerModal({ categories, states, onClose, onSaved }: { categories: a
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
-      <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '500px', color: '#0f172a' }}>
-        <h2 style={{ margin: '0 0 16px 0', fontSize: '18px' }}>Add New Referrer</h2>
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Name</label>
-            <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-          </div>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px', animation: 'fadeIn 0.2s ease-out' }}>
+      <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '850px', color: '#0f172a', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+        <h2 style={{ margin: '0 0 8px 0', fontSize: '22px', fontWeight: 800, color: '#1e293b', letterSpacing: '-0.02em' }}>Add New Referrer</h2>
+        <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#64748b', lineHeight: 1.5 }}>Fill in the details below to register a new referral partner.</p>
+        
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+          
           <div style={{ display: 'flex', gap: '16px' }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Phone</label>
-              <input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+            <div style={{ flex: 1.5 }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Name</label>
+              <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required placeholder="e.g. Ramesh Kumar" style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '15px', color: '#0f172a', outline: 'none', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'} />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Email (Optional)</label>
-              <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '16px' }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Username</label>
-              <input type="text" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Phone</label>
+              <input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} required placeholder="e.g. 9876543210" style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '15px', color: '#0f172a', outline: 'none', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'} />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Password</label>
-              <input type="text" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Email (Optional)</label>
+              <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} placeholder="e.g. ramesh@gmail.com" style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '15px', color: '#0f172a', outline: 'none', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'} />
             </div>
           </div>
+
           <div style={{ display: 'flex', gap: '16px' }}>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>State</label>
-              <select value={formData.state} onChange={e => setFormData({...formData, state: e.target.value, district: ''})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white' }}>
-                <option value="">Select State...</option>
-                {states.map((s: any) => (
-                  <option key={s.id} value={s.name}>{s.name}</option>
-                ))}
-              </select>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Username</label>
+              <input type="text" value={formData.username} onChange={e => setFormData({...formData, username: e.target.value})} required placeholder="e.g. ramesh123" style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '15px', color: '#0f172a', outline: 'none', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'} />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>District</label>
-              <select value={formData.district} onChange={e => setFormData({...formData, district: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white' }} disabled={!formData.state}>
-                <option value="">Select District...</option>
-                {states.find((s: any) => s.name === formData.state)?.districts?.map((d: any) => (
-                  <option key={d.id} value={d.name}>{d.name}</option>
-                ))}
-              </select>
-            </div>
-          </div>
-          <div style={{ display: 'flex', gap: '16px' }}>
-            <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Pincode</label>
-              <div style={{ display: 'flex', gap: '8px' }}>
-                <input type="text" value={formData.pincode} onChange={e => {
-                  setFormData({...formData, pincode: e.target.value, area: ''});
-                  setCheckAreaMessage('');
-                  setShowAreaSelect(false);
-                }} placeholder="e.g. 500081" required maxLength={6} style={{ flex: 1, padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-                <button type="button" onClick={handleCheckPincode} disabled={isCheckingArea || formData.pincode.length !== 6} style={{ padding: '0 16px', borderRadius: '6px', border: 'none', background: '#3b82f6', color: 'white', fontWeight: 600, cursor: (isCheckingArea || formData.pincode.length !== 6) ? 'not-allowed' : 'pointer', opacity: (isCheckingArea || formData.pincode.length !== 6) ? 0.6 : 1 }}>
-                  {isCheckingArea ? '...' : 'Check'}
-                </button>
-              </div>
-              {checkAreaMessage && !formData.area && (
-                <div style={{ fontSize: '12px', color: checkAreaMessage.includes('valid') || checkAreaMessage.includes('No') ? '#ef4444' : '#10b981', marginTop: '6px' }}>{checkAreaMessage}</div>
-              )}
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Password</label>
+              <input type="text" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required placeholder="Enter password" style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '15px', color: '#0f172a', outline: 'none', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'} />
             </div>
             <div style={{ flex: 1 }}>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Category</label>
-              <select value={formData.categoryId} onChange={e => setFormData({...formData, categoryId: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Category</label>
+              <select value={formData.categoryId} onChange={e => setFormData({...formData, categoryId: e.target.value})} required style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', fontSize: '15px', color: '#0f172a', outline: 'none', cursor: 'pointer', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'}>
                 <option value="">Select Category...</option>
                 {categories.map(cat => (
                   <option key={cat.id} value={cat.id}>{cat.name}</option>
@@ -455,17 +421,56 @@ function ReferrerModal({ categories, states, onClose, onSaved }: { categories: a
             </div>
           </div>
 
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>State</label>
+              <select value={formData.state} onChange={e => setFormData({...formData, state: e.target.value, district: ''})} required style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', fontSize: '15px', color: '#0f172a', outline: 'none', cursor: 'pointer', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'}>
+                <option value="">Select State...</option>
+                {states.map((s: any) => (
+                  <option key={s.id} value={s.name}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>District</label>
+              <select value={formData.district} onChange={e => setFormData({...formData, district: e.target.value})} required disabled={!formData.state} style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: formData.state ? 'white' : '#f1f5f9', fontSize: '15px', color: formData.state ? '#0f172a' : '#94a3b8', outline: 'none', cursor: formData.state ? 'pointer' : 'not-allowed', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'}>
+                <option value="">Select District...</option>
+                {states.find((s: any) => s.name === formData.state)?.districts?.map((d: any) => (
+                  <option key={d.id} value={d.name}>{d.name}</option>
+                ))}
+              </select>
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Pincode & Area</label>
+              <div style={{ display: 'flex', gap: '8px' }}>
+                <input type="text" value={formData.pincode} onChange={e => {
+                  setFormData({...formData, pincode: e.target.value, area: ''});
+                  setCheckAreaMessage('');
+                  setShowAreaSelect(false);
+                }} placeholder="e.g. 500081" required maxLength={6} style={{ flex: 1, padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '15px', color: '#0f172a', outline: 'none', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'} />
+                <button type="button" onClick={handleCheckPincode} disabled={isCheckingArea || formData.pincode.length !== 6} style={{ padding: '0 20px', borderRadius: '8px', border: 'none', background: (isCheckingArea || formData.pincode.length !== 6) ? '#94a3b8' : '#2563eb', color: 'white', fontWeight: 700, cursor: (isCheckingArea || formData.pincode.length !== 6) ? 'not-allowed' : 'pointer', transition: 'background 0.2s', fontSize: '14px' }}>
+                  {isCheckingArea ? '...' : 'Check'}
+                </button>
+              </div>
+              {checkAreaMessage && !formData.area && (
+                <div style={{ fontSize: '12px', color: checkAreaMessage.includes('valid') || checkAreaMessage.includes('No') ? '#ef4444' : '#10b981', marginTop: '6px', fontWeight: 500 }}>{checkAreaMessage}</div>
+              )}
+            </div>
+          </div>
+
           {showAreaSelect && availableAreas.length > 0 && (
-            <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <div style={{ fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '12px' }}>Select an Area for this Pincode</div>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '150px', overflowY: 'auto' }}>
+            <div style={{ background: 'linear-gradient(to right bottom, #f8fafc, #f1f5f9)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.03)' }}>
+              <div style={{ fontSize: '14px', fontWeight: 700, color: '#334155', marginBottom: '16px', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Select an Area</div>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(240px, 1fr))', gap: '12px', maxHeight: '180px', overflowY: 'auto', paddingRight: '8px' }}>
                 {availableAreas.map((loc) => (
-                  <div key={loc.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
+                  <div key={loc.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', boxShadow: '0 1px 2px 0 rgba(0, 0, 0, 0.05)', transition: 'border-color 0.2s', cursor: 'pointer' }} onClick={() => selectArea(loc)} onMouseOver={e => e.currentTarget.style.borderColor = '#3b82f6'} onMouseOut={e => e.currentTarget.style.borderColor = '#cbd5e1'}>
                     <div>
-                      <div style={{ fontWeight: 600, fontSize: '14px', color: '#0f172a' }}>{loc.officeName}</div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>{loc.type}</div>
+                      <div style={{ fontWeight: 700, fontSize: '14px', color: '#0f172a' }}>{loc.officeName}</div>
+                      <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>{loc.type}</div>
                     </div>
-                    <button type="button" onClick={() => selectArea(loc)} style={{ padding: '6px 12px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '4px', fontSize: '12px', fontWeight: 600, cursor: 'pointer' }}>Select</button>
+                    <div style={{ width: '20px', height: '20px', borderRadius: '50%', border: '2px solid #cbd5e1', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                      <div style={{ width: '10px', height: '10px', borderRadius: '50%', background: 'transparent' }}></div>
+                    </div>
                   </div>
                 ))}
               </div>
@@ -473,17 +478,19 @@ function ReferrerModal({ categories, states, onClose, onSaved }: { categories: a
           )}
 
           {formData.area && (
-            <div style={{ padding: '10px 14px', background: '#ecfdf5', border: '1px solid #10b981', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <div style={{ padding: '16px 20px', background: '#ecfdf5', border: '1.5px solid #10b981', borderRadius: '12px', display: 'flex', alignItems: 'center', gap: '12px', boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.1)' }}>
+              <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
               <div style={{ flex: 1 }}>
-                <div style={{ fontSize: '11px', color: '#065f46', fontWeight: 600, textTransform: 'uppercase' }}>Selected Area</div>
-                <div style={{ fontSize: '14px', color: '#047857', fontWeight: 700 }}>{formData.area}</div>
+                <div style={{ fontSize: '12px', color: '#065f46', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Selected Area</div>
+                <div style={{ fontSize: '16px', color: '#047857', fontWeight: 800, marginTop: '2px' }}>{formData.area}</div>
               </div>
-              <button type="button" onClick={() => setFormData({...formData, area: ''})} style={{ background: 'transparent', border: 'none', color: '#10b981', cursor: 'pointer', fontSize: '12px', fontWeight: 600, textDecoration: 'underline' }}>Change</button>
+              <button type="button" onClick={() => setFormData({...formData, area: ''})} style={{ background: 'white', border: '1px solid #10b981', color: '#10b981', cursor: 'pointer', fontSize: '13px', fontWeight: 700, padding: '6px 16px', borderRadius: '6px', transition: 'all 0.2s' }} onMouseOver={e => { e.currentTarget.style.background = '#10b981'; e.currentTarget.style.color = 'white'; }} onMouseOut={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#10b981'; }}>Change</button>
             </div>
           )}
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
-            <button type="button" onClick={onClose} style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer' }}>Cancel</button>
-            <button type="submit" disabled={submitting} style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', background: '#2563eb', color: 'white', cursor: 'pointer', fontWeight: 600 }}>
+          
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '12px', paddingTop: '20px', borderTop: '1px solid #e2e8f0' }}>
+            <button type="button" onClick={onClose} style={{ padding: '12px 24px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', cursor: 'pointer', fontWeight: 600, fontSize: '14px', transition: 'all 0.2s' }} onMouseOver={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#0f172a'; }} onMouseOut={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#475569'; }}>Cancel</button>
+            <button type="submit" disabled={submitting || (showAreaSelect ? false : (formData.pincode.length === 6 && !formData.area))} style={{ padding: '12px 32px', borderRadius: '8px', border: 'none', background: '#2563eb', color: 'white', cursor: (submitting || (formData.pincode.length === 6 && !formData.area)) ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: '14px', boxShadow: '0 4px 6px -1px rgba(37, 99, 235, 0.2)', transition: 'all 0.2s', opacity: (submitting || (formData.pincode.length === 6 && !formData.area)) ? 0.7 : 1 }} onMouseOver={e => { if(!submitting && formData.area) e.currentTarget.style.background = '#1d4ed8'; }} onMouseOut={e => { if(!submitting) e.currentTarget.style.background = '#2563eb'; }}>
               {submitting ? 'Saving...' : 'Add Referrer'}
             </button>
           </div>
