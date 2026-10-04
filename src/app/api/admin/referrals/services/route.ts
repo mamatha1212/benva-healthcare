@@ -6,7 +6,7 @@ export const dynamic = 'force-dynamic';
 export async function GET() {
   try {
     const packages = await prisma.healthPackage.findMany({
-      select: { id: true, title: true, price: true }
+      select: { id: true, title: true, price: true, originalPrice: true, discount: true }
     });
     
     const dietPlans = await prisma.dietPlan.findMany({
@@ -14,8 +14,9 @@ export async function GET() {
     });
 
     const services = [
-      ...packages.map(p => ({ id: `pkg_${p.id}`, name: p.title, price: p.price, type: 'Package' })),
-      ...dietPlans.map(d => ({ id: `diet_${d.id}`, name: d.title, price: d.price, type: 'Diet Plan' }))
+      ...packages.map(p => ({ id: `pkg_${p.id}`, name: p.title, price: p.price, originalPrice: p.originalPrice, discount: p.discount, type: 'Package' })),
+      ...dietPlans.map(d => ({ id: `diet_${d.id}`, name: d.title, price: d.price, originalPrice: null, discount: null, type: 'Diet Plan' })),
+      { id: 'other_custom', name: 'Others', price: null, originalPrice: null, discount: null, type: 'Custom' }
     ];
 
     return NextResponse.json(services);

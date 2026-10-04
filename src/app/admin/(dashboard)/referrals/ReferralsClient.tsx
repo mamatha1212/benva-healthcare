@@ -417,17 +417,22 @@ function ReferrerModal({ categories, states, onClose, onSaved }: { categories: a
 }
 
 function TransactionModal({ referrer, services, onClose, onSaved }: { referrer: any, services: any[], onClose: () => void, onSaved: () => void }) {
-  const [formData, setFormData] = useState({ serviceName: '', amount: '', referralDate: new Date().toISOString().split('T')[0], patientName: '', patientPhone: '' });
+  const [formData, setFormData] = useState({ serviceName: '', customServiceName: '', amount: '', referralDate: new Date().toISOString().split('T')[0], patientName: '', patientPhone: '' });
   const [submitting, setSubmitting] = useState(false);
+
+  const selectedService = services.find(s => s.name === formData.serviceName);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setSubmitting(true);
+    
+    const finalServiceName = formData.serviceName === 'Others' ? formData.customServiceName : formData.serviceName;
+    
     try {
       const res = await fetch('/api/admin/referrals/transactions', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ referrerId: referrer.id, ...formData })
+        body: JSON.stringify({ referrerId: referrer.id, ...formData, serviceName: finalServiceName })
       });
       if (res.ok) {
         onSaved();
@@ -465,6 +470,32 @@ function TransactionModal({ referrer, services, onClose, onSaved }: { referrer: 
               ))}
             </select>
           </div>
+          
+          {formData.serviceName === 'Others' && (
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Custom Test / Service Name</label>
+              <input type="text" value={formData.customServiceName} onChange={e => setFormData({...formData, customServiceName: e.target.value})} required placeholder="e.g. Blood Test" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+            </div>
+          )}
+
+          {selectedService && formData.serviceName !== 'Others' && (
+            <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', fontSize: '13px', color: '#475569', border: '1px solid #e2e8f0' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <span style={{ fontWeight: 600 }}>Plan Type:</span> <span>{selectedService.type}</span>
+              </div>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
+                <span style={{ fontWeight: 600 }}>MRP Price:</span> <span>₹{selectedService.originalPrice || selectedService.price}</span>
+              </div>
+              {selectedService.discount && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', color: '#10b981' }}>
+                  <span style={{ fontWeight: 600 }}>Discount:</span> <span>{selectedService.discount}</span>
+                </div>
+              )}
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, color: '#0f172a', borderTop: '1px solid #e2e8f0', paddingTop: '4px', marginTop: '4px' }}>
+                <span>Final Price:</span> <span>₹{selectedService.price}</span>
+              </div>
+            </div>
+          )}
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Referral Amount (₹)</label>
             <input type="number" min="0" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} required placeholder="e.g. 500" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
