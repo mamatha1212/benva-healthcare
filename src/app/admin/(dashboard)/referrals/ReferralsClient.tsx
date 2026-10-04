@@ -425,13 +425,15 @@ function TransactionModal({ referrer, services, transactionToEdit, onClose, onSa
 
   const [formData, setFormData] = useState({ 
     serviceName: initialServiceName, 
-    customServiceName: initialCustomName, 
-    customServicePrice: initialCustomPrice, 
     amount: transactionToEdit ? String(transactionToEdit.amount) : '', 
     referralDate: transactionToEdit ? new Date(transactionToEdit.referralDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0], 
     patientName: transactionToEdit?.patientName || '', 
     patientPhone: transactionToEdit?.patientPhone || '' 
   });
+  
+  const [customTests, setCustomTests] = useState([
+    { name: initialCustomName, price: initialCustomPrice, amount: transactionToEdit ? String(transactionToEdit.amount) : '' }
+  ]);
   const [submitting, setSubmitting] = useState(false);
 
   const selectedService = services.find(s => s.name === formData.serviceName);
@@ -440,30 +442,39 @@ function TransactionModal({ referrer, services, transactionToEdit, onClose, onSa
     e.preventDefault();
     setSubmitting(true);
     
-    const finalServiceName = formData.serviceName === 'Others' ? formData.customServiceName : formData.serviceName;
-    const bodyPayload = { referrerId: referrer.id, ...formData, serviceName: finalServiceName };
-
     try {
-      const res = transactionToEdit 
-        ? await fetch(`/api/admin/referrals/transactions/${transactionToEdit.id}`, {
+      if (formData.serviceName === 'Others') {
+        if (transactionToEdit) {
+          const test = customTests[0];
+          const res = await fetch(`/api/admin/referrals/transactions/${transactionToEdit.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(bodyPayload)
-          })
-        : await fetch('/api/admin/referrals/transactions', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify(bodyPayload)
+            body: JSON.stringify({ referrerId: referrer.id, patientName: formData.patientName, patientPhone: formData.patientPhone, referralDate: formData.referralDate, serviceName: test.name, customServicePrice: test.price, amount: test.amount })
           });
-      
-      if (res.ok) {
-        onSaved();
-        onClose();
+          if (!res.ok) throw new Error('Failed to update');
+        } else {
+          for (const test of customTests) {
+            const res = await fetch('/api/admin/referrals/transactions', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ referrerId: referrer.id, patientName: formData.patientName, patientPhone: formData.patientPhone, referralDate: formData.referralDate, serviceName: test.name, customServicePrice: test.price, amount: test.amount })
+            });
+            if (!res.ok) throw new Error('Failed to save');
+          }
+        }
       } else {
-        alert(transactionToEdit ? 'Failed to update transaction' : 'Failed to add transaction');
+        const bodyPayload = { referrerId: referrer.id, ...formData, serviceName: formData.serviceName };
+        const res = transactionToEdit 
+          ? await fetch(`/api/admin/referrals/transactions/${transactionToEdit.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bodyPayload) })
+          : await fetch('/api/admin/referrals/transactions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bodyPayload) });
+        if (!res.ok) throw new Error('Failed to save');
       }
+      
+      onSaved();
+      onClose();
     } catch (err) {
       console.error(err);
+      alert('Failed to save transaction(s)');
     }
     setSubmitting(false);
   };
@@ -494,16 +505,33 @@ function TransactionModal({ referrer, services, transactionToEdit, onClose, onSa
           </div>
           
           {formData.serviceName === 'Others' && (
-            <>
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Custom Test / Service Name</label>
-                <input type="text" value={formData.customServiceName} onChange={e => setFormData({...formData, customServiceName: e.target.value})} required placeholder="e.g. Blood Test" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-              </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Custom Test Price (₹)</label>
-                <input type="number" min="0" value={formData.customServicePrice} onChange={e => setFormData({...formData, customServicePrice: e.target.value})} required placeholder="e.g. 1000" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-              </div>
-            </>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#334155' }}>Custom Tests</h3>
+              {customTests.map((test, index) => (
+                <div key={index} style={{ display: 'flex', flexDirection: 'column', gap: '12px', paddingBottom: '16px', borderBottom: index < customTests.length - 1 ? '1px solid #cbd5e1' : 'none' }}>
+                  <div>
+                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600 }}>Test Name</label>
+                    <input type="text" value={test.name} onChange={e => { const newTests = [...customTests]; newTests[index].name = e.target.value; setCustomTests(newTests); }} required placeholder="e.g. Blood Test" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                  </div>
+                  <div style={{ display: 'flex', gap: '12px' }}>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600 }}>Price (₹)</label>
+                      <input type="number" min="0" value={test.price} onChange={e => { const newTests = [...customTests]; newTests[index].price = e.target.value; setCustomTests(newTests); }} required placeholder="1000" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                    </div>
+                    <div style={{ flex: 1 }}>
+                      <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600 }}>Referrer Cut (₹)</label>
+                      <input type="number" min="0" value={test.amount} onChange={e => { const newTests = [...customTests]; newTests[index].amount = e.target.value; setCustomTests(newTests); }} required placeholder="500" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                    </div>
+                  </div>
+                  {!transactionToEdit && customTests.length > 1 && (
+                    <button type="button" onClick={() => setCustomTests(customTests.filter((_, i) => i !== index))} style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #ef4444', color: '#ef4444', background: 'white', alignSelf: 'flex-end', fontSize: '12px', cursor: 'pointer' }}>Remove</button>
+                  )}
+                </div>
+              ))}
+              {!transactionToEdit && (
+                <button type="button" onClick={() => setCustomTests([...customTests, { name: '', price: '', amount: '' }])} style={{ padding: '8px', borderRadius: '6px', border: '1px dashed #3b82f6', color: '#3b82f6', background: 'white', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>+ Add another test</button>
+              )}
+            </div>
           )}
 
           {selectedService && formData.serviceName !== 'Others' && (
@@ -524,10 +552,12 @@ function TransactionModal({ referrer, services, transactionToEdit, onClose, onSa
               </div>
             </div>
           )}
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Amount to give to Referrer (₹)</label>
-            <input type="number" min="0" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} required placeholder="e.g. 500" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-          </div>
+          {formData.serviceName !== 'Others' && (
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Amount to give to Referrer (₹)</label>
+              <input type="number" min="0" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} required placeholder="e.g. 500" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+            </div>
+          )}
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Referral Date</label>
             <input type="date" value={formData.referralDate} onChange={e => setFormData({...formData, referralDate: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
