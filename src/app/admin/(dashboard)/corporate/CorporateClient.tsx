@@ -11,7 +11,6 @@ export default function CorporateClient() {
   const [submitting, setSubmitting] = useState(false);
   const [importing, setImporting] = useState(false);
   const [editingOrgId, setEditingOrgId] = useState<string | null>(null);
-  const [viewingEmployeesOrg, setViewingEmployeesOrg] = useState<any>(null);
 
   useEffect(() => {
     fetchOrganizations();
@@ -187,9 +186,9 @@ export default function CorporateClient() {
                 </td>
                 <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', textAlign: 'right' }}>
                   <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                    <button onClick={() => setViewingEmployeesOrg(org)} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #8b5cf6', background: '#f5f3ff', color: '#6d28d9', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>
+                    <a href={`/admin/corporate/${org.id}`} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #8b5cf6', background: '#f5f3ff', color: '#6d28d9', cursor: 'pointer', fontWeight: 600, fontSize: '13px', textDecoration: 'none', display: 'inline-block' }}>
                       View Employees
-                    </button>
+                    </a>
                     <button onClick={() => {
                       setEditingOrgId(org.id);
                       setFormData({
@@ -288,46 +287,6 @@ export default function CorporateClient() {
                 <button type="submit" disabled={submitting} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', background: '#10b981', color: 'white', cursor: 'pointer', fontWeight: 600 }}>{submitting ? 'Saving...' : 'Add Employee'}</button>
               </div>
             </form>
-          </div>
-        </div>
-      )}
-
-      {viewingEmployeesOrg && (
-        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '800px', maxHeight: '80vh', overflowY: 'auto', color: '#0f172a' }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-              <h2 style={{ margin: 0, fontSize: '20px', color: '#0f172a' }}>{viewingEmployeesOrg.companyName} - Employees</h2>
-              <button onClick={() => setViewingEmployeesOrg(null)} style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#64748b' }}>&times;</button>
-            </div>
-            
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-              <thead style={{ background: '#f8fafc' }}>
-                <tr>
-                  <th style={{ padding: '12px', fontSize: '13px', color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>S.No</th>
-                  <th style={{ padding: '12px', fontSize: '13px', color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>Name</th>
-                  <th style={{ padding: '12px', fontSize: '13px', color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>Mobile Number</th>
-                  <th style={{ padding: '12px', fontSize: '13px', color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>Corporate Mail ID</th>
-                  <th style={{ padding: '12px', fontSize: '13px', color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>Remarks</th>
-                </tr>
-              </thead>
-              <tbody>
-                {viewingEmployeesOrg.employees && viewingEmployeesOrg.employees.length > 0 ? (
-                  viewingEmployeesOrg.employees.map((emp: any, idx: number) => (
-                    <tr key={emp.id}>
-                      <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', fontSize: '14px' }}>{idx + 1}</td>
-                      <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', fontSize: '14px', fontWeight: 500 }}>{emp.name}</td>
-                      <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', fontSize: '14px' }}>{emp.phone}</td>
-                      <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', fontSize: '14px' }}>{emp.email || '-'}</td>
-                      <td style={{ padding: '12px', borderBottom: '1px solid #e2e8f0', fontSize: '14px' }}>{emp.remarks || '-'}</td>
-                    </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} style={{ padding: '24px', textAlign: 'center', color: '#64748b' }}>No employees found.</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
           </div>
         </div>
       )}
