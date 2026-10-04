@@ -348,5 +348,6 @@ model ReferralTransaction {
   patientName  String?
   patientPhone String?
   status       String   @default("PENDING")
+  comments     String?
   createdAt    DateTime @default(now())
 }

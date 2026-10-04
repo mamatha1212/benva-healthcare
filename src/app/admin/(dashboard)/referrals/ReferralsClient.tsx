@@ -168,7 +168,7 @@ export default function ReferralsClient({ initialStates = [] }: { initialStates?
       )}
 
       {showHistoryModal && (
-        <HistoryModal referrer={showHistoryModal} onClose={() => setShowHistoryModal(null)} onRefresh={fetchReferrers} onEdit={(tx) => { setEditingTransaction(tx); setShowTransactionModal(showHistoryModal); setShowHistoryModal(null); }} />
+        <HistoryModal referrer={referrers.find(r => r.id === showHistoryModal.id) || showHistoryModal} onClose={() => setShowHistoryModal(null)} onRefresh={fetchReferrers} onEdit={(tx) => { setEditingTransaction(tx); setShowTransactionModal(showHistoryModal); setShowHistoryModal(null); }} />
       )}
     </div>
   );
@@ -428,7 +428,9 @@ function TransactionModal({ referrer, services, transactionToEdit, onClose, onSa
     amount: transactionToEdit ? String(transactionToEdit.amount) : '', 
     referralDate: transactionToEdit ? new Date(transactionToEdit.referralDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0], 
     patientName: transactionToEdit?.patientName || '', 
-    patientPhone: transactionToEdit?.patientPhone || '' 
+    patientPhone: transactionToEdit?.patientPhone || '',
+    status: transactionToEdit?.status || 'PENDING',
+    comments: transactionToEdit?.comments || ''
   });
   
   const [customTests, setCustomTests] = useState([
@@ -449,17 +451,17 @@ function TransactionModal({ referrer, services, transactionToEdit, onClose, onSa
           const res = await fetch(`/api/admin/referrals/transactions/${transactionToEdit.id}`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ referrerId: referrer.id, patientName: formData.patientName, patientPhone: formData.patientPhone, referralDate: formData.referralDate, serviceName: test.name, customServicePrice: test.price, amount: test.amount })
+            body: JSON.stringify({ referrerId: referrer.id, patientName: formData.patientName, patientPhone: formData.patientPhone, referralDate: formData.referralDate, serviceName: test.name, customServicePrice: test.price, amount: test.amount, status: formData.status, comments: formData.comments })
           });
-          if (!res.ok) throw new Error('Failed to update');
+          if (!res.ok) throw new Error((await res.json()).error || 'Failed to update');
         } else {
           for (const test of customTests) {
             const res = await fetch('/api/admin/referrals/transactions', {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
-              body: JSON.stringify({ referrerId: referrer.id, patientName: formData.patientName, patientPhone: formData.patientPhone, referralDate: formData.referralDate, serviceName: test.name, customServicePrice: test.price, amount: test.amount })
+              body: JSON.stringify({ referrerId: referrer.id, patientName: formData.patientName, patientPhone: formData.patientPhone, referralDate: formData.referralDate, serviceName: test.name, customServicePrice: test.price, amount: test.amount, comments: formData.comments })
             });
-            if (!res.ok) throw new Error('Failed to save');
+            if (!res.ok) throw new Error((await res.json()).error || 'Failed to save');
           }
         }
       } else {
@@ -467,14 +469,14 @@ function TransactionModal({ referrer, services, transactionToEdit, onClose, onSa
         const res = transactionToEdit 
           ? await fetch(`/api/admin/referrals/transactions/${transactionToEdit.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bodyPayload) })
           : await fetch('/api/admin/referrals/transactions', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bodyPayload) });
-        if (!res.ok) throw new Error('Failed to save');
+        if (!res.ok) throw new Error((await res.json()).error || 'Failed to save');
       }
       
       onSaved();
       onClose();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
-      alert('Failed to save transaction(s)');
+      alert(err.message || 'Failed to save transaction(s)');
     }
     setSubmitting(false);
   };
@@ -562,6 +564,22 @@ function TransactionModal({ referrer, services, transactionToEdit, onClose, onSa
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Referral Date</label>
             <input type="date" value={formData.referralDate} onChange={e => setFormData({...formData, referralDate: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
           </div>
+
+          <div>
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Comments (Optional)</label>
+            <textarea value={formData.comments} onChange={e => setFormData({...formData, comments: e.target.value})} placeholder="Any additional notes..." style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', minHeight: '80px', fontFamily: 'inherit' }} />
+          </div>
+
+          {transactionToEdit && (
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Status</label>
+              <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white' }}>
+                <option value="PENDING">Pending</option>
+                <option value="COMPLETED">Completed</option>
+                <option value="CANCELLED">Cancelled</option>
+              </select>
+            </div>
+          )}
           
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
             <button type="button" onClick={onClose} style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer' }}>Cancel</button>

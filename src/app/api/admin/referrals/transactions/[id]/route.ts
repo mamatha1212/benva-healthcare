@@ -15,6 +15,7 @@ export async function PUT(req: NextRequest, context: { params: Promise<{ id: str
     if (body.patientName !== undefined) dataToUpdate.patientName = body.patientName || null;
     if (body.patientPhone !== undefined) dataToUpdate.patientPhone = body.patientPhone || null;
     if (body.referralDate !== undefined) dataToUpdate.referralDate = new Date(body.referralDate);
+    if (body.comments !== undefined) dataToUpdate.comments = body.comments || null;
 
     const updated = await prisma.referralTransaction.update({
       where: { id },
