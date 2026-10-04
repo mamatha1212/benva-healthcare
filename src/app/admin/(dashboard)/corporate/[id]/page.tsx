@@ -1,9 +1,10 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 
-export default async function OrganizationEmployeesPage({ params }: { params: { id: string } }) {
+export default async function OrganizationEmployeesPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const org = await prisma.organization.findUnique({
-    where: { id: params.id },
+    where: { id },
     include: { employees: true }
   });
 
