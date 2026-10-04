@@ -71,6 +71,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
         <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead style={{ background: '#f8fafc' }}>
             <tr>
+              <th style={{ padding: '16px', fontSize: '13px', color: '#64748b', borderBottom: '1px solid #e2e8f0', width: '60px' }}>S.No</th>
               <th style={{ padding: '16px', fontSize: '13px', color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>Date</th>
               <th style={{ padding: '16px', fontSize: '13px', color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>Patient Details</th>
               <th style={{ padding: '16px', fontSize: '13px', color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>Type</th>
@@ -81,8 +82,11 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
             </tr>
           </thead>
           <tbody>
-            {requests.map(req => (
+            {requests.map((req, index) => (
               <tr key={req.id}>
+                <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px', color: '#334155', fontWeight: 500 }}>
+                  {index + 1}
+                </td>
                 <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px', color: '#334155' }}>
                   {new Date(req.createdAt).toLocaleDateString()}
                 </td>
@@ -125,7 +129,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
             ))}
             {requests.length === 0 && (
               <tr>
-                <td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>No requests found.</td>
+                <td colSpan={7} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>No requests found.</td>
               </tr>
             )}
           </tbody>
