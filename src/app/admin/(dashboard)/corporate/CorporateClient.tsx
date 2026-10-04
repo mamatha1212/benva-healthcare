@@ -185,33 +185,37 @@ export default function CorporateClient() {
                   {org.employees?.length || 0} Employees
                 </td>
                 <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', textAlign: 'right' }}>
-                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexWrap: 'wrap' }}>
-                    <a href={`/admin/corporate/${org.id}`} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #8b5cf6', background: '#f5f3ff', color: '#6d28d9', cursor: 'pointer', fontWeight: 600, fontSize: '13px', textDecoration: 'none', display: 'inline-block' }}>
-                      View Employees
-                    </a>
-                    <button onClick={() => {
-                      setEditingOrgId(org.id);
-                      setFormData({
-                        companyName: org.companyName || '',
-                        hrName: org.hrName || '',
-                        hrEmail: org.hrEmail || '',
-                        hrPhone: org.hrPhone || '',
-                        address: org.address || ''
-                      });
-                      setShowAddModal(true);
-                    }} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #f59e0b', background: '#fef3c7', color: '#d97706', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>
-                      Edit Org
-                    </button>
-                    <button onClick={() => handleExport(org)} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#334155', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>
-                      Export
-                    </button>
-                    <label style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #3b82f6', background: '#eff6ff', color: '#1d4ed8', cursor: 'pointer', fontWeight: 600, fontSize: '13px', display: 'flex', alignItems: 'center' }}>
-                      {importing ? 'Importing...' : 'Import CSV'}
-                      <input type="file" accept=".csv" onChange={(e) => handleBulkImport(e, org.id)} style={{ display: 'none' }} disabled={importing} />
-                    </label>
-                    <button onClick={() => setShowEmployeeModal(org.id)} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #10b981', background: '#ecfdf5', color: '#059669', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>
-                      + Add Single
-                    </button>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <a href={`/admin/corporate/${org.id}`} style={{ padding: '8px 16px', borderRadius: '8px', background: '#2563eb', color: '#ffffff', cursor: 'pointer', fontWeight: 600, fontSize: '13px', textDecoration: 'none', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                        Manage Employees
+                      </a>
+                      <button onClick={() => {
+                        setEditingOrgId(org.id);
+                        setFormData({
+                          companyName: org.companyName || '',
+                          hrName: org.hrName || '',
+                          hrEmail: org.hrEmail || '',
+                          hrPhone: org.hrPhone || '',
+                          address: org.address || ''
+                        });
+                        setShowAddModal(true);
+                      }} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', cursor: 'pointer', fontWeight: 600, fontSize: '13px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                        Edit Info
+                      </button>
+                    </div>
+                    <div style={{ display: 'flex', gap: '6px' }}>
+                      <label style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#475569', cursor: 'pointer', fontWeight: 500, fontSize: '12px', display: 'flex', alignItems: 'center' }}>
+                        {importing ? 'Importing...' : 'Import CSV'}
+                        <input type="file" accept=".csv" onChange={(e) => handleBulkImport(e, org.id)} style={{ display: 'none' }} disabled={importing} />
+                      </label>
+                      <button onClick={() => handleExport(org)} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#475569', cursor: 'pointer', fontWeight: 500, fontSize: '12px' }}>
+                        Export CSV
+                      </button>
+                      <button onClick={() => setShowEmployeeModal(org.id)} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #10b981', background: '#ecfdf5', color: '#059669', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}>
+                        + Add 1
+                      </button>
+                    </div>
                   </div>
                 </td>
               </tr>
