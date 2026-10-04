@@ -7,8 +7,9 @@ export default function CorporateClient() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [showEmployeeModal, setShowEmployeeModal] = useState<any>(null); // holds org id
   const [formData, setFormData] = useState({ companyName: '', hrName: '', hrEmail: '', hrPhone: '', address: '' });
-  const [empFormData, setEmpFormData] = useState({ name: '', phone: '', employeeId: '' });
+  const [empFormData, setEmpFormData] = useState({ name: '', phone: '', email: '', remarks: '' });
   const [submitting, setSubmitting] = useState(false);
+  const [importing, setImporting] = useState(false);
 
   useEffect(() => {
     fetchOrganizations();
@@ -57,7 +58,7 @@ export default function CorporateClient() {
       });
       if (res.ok) {
         setShowEmployeeModal(null);
-        setEmpFormData({ name: '', phone: '', employeeId: '' });
+        setEmpFormData({ name: '', phone: '', email: '', remarks: '' });
         fetchOrganizations();
       } else {
         alert('Failed to add employee');
@@ -66,6 +67,76 @@ export default function CorporateClient() {
       console.error(err);
     }
     setSubmitting(false);
+  };
+
+  const handleExport = (org: any) => {
+    if (!org.employees || org.employees.length === 0) return alert('No employees to export');
+    const headers = ['S.No,Name,Mobile Number,Corporate Mail ID,Remarks'];
+    const rows = org.employees.map((emp: any, index: number) => 
+      `${index + 1},${emp.name},${emp.phone},${emp.email || ''},${emp.remarks || ''}`
+    );
+    const csvContent = headers.concat(rows).join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', `${org.companyName.replace(/\s+/g, '_')}_employees.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleBulkImport = async (e: React.ChangeEvent<HTMLInputElement>, orgId: string) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setImporting(true);
+    const reader = new FileReader();
+    reader.onload = async (event) => {
+      try {
+        const csv = event.target?.result as string;
+        const lines = csv.split('\n').filter(line => line.trim() !== '');
+        if (lines.length < 2) return alert('Invalid CSV format. Need header and at least one row.');
+        
+        // Skip header line (index 0)
+        const employeesToImport = [];
+        for (let i = 1; i < lines.length; i++) {
+          // Splitting by comma, simple parser
+          const row = lines[i].split(',').map(item => item.trim());
+          if (row.length >= 4) {
+             const name = row[1] || '';
+             const phone = row[2] || '';
+             const email = row[3] || '';
+             const remarks = row[4] || '';
+             if (name && phone) {
+               employeesToImport.push({ name, phone, email, remarks, organizationId: orgId });
+             }
+          }
+        }
+
+        if (employeesToImport.length > 0) {
+          const res = await fetch('/api/admin/corporate/employees/bulk', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ employees: employeesToImport })
+          });
+          if (res.ok) {
+            alert(`Successfully imported ${employeesToImport.length} employees`);
+            fetchOrganizations();
+          } else {
+            alert('Failed to import employees');
+          }
+        } else {
+          alert('No valid employees found in CSV.');
+        }
+      } catch (err) {
+        console.error(err);
+        alert('Error parsing CSV');
+      }
+      setImporting(false);
+    };
+    reader.readAsText(file);
+    e.target.value = ''; // reset input
   };
 
   return (
@@ -108,9 +179,18 @@ export default function CorporateClient() {
                   {org.employees?.length || 0} Employees
                 </td>
                 <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', textAlign: 'right' }}>
-                  <button onClick={() => setShowEmployeeModal(org.id)} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #10b981', background: '#ecfdf5', color: '#059669', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>
-                    + Add Employee
-                  </button>
+                  <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                    <button onClick={() => handleExport(org)} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#334155', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>
+                      Export
+                    </button>
+                    <label style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #3b82f6', background: '#eff6ff', color: '#1d4ed8', cursor: 'pointer', fontWeight: 600, fontSize: '13px', display: 'flex', alignItems: 'center' }}>
+                      {importing ? 'Importing...' : 'Import CSV'}
+                      <input type="file" accept=".csv" onChange={(e) => handleBulkImport(e, org.id)} style={{ display: 'none' }} disabled={importing} />
+                    </label>
+                    <button onClick={() => setShowEmployeeModal(org.id)} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #10b981', background: '#ecfdf5', color: '#059669', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>
+                      + Add Single
+                    </button>
+                  </div>
                 </td>
               </tr>
             )) : (
@@ -163,13 +243,19 @@ export default function CorporateClient() {
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Employee Name</label>
                 <input type="text" value={empFormData.name} onChange={e => setEmpFormData({...empFormData, name: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#0f172a', background: 'white', outline: 'none' }} />
               </div>
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Phone Number</label>
-                <input type="text" value={empFormData.phone} onChange={e => setEmpFormData({...empFormData, phone: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#0f172a', background: 'white', outline: 'none' }} />
+              <div style={{ display: 'flex', gap: '12px' }}>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Mobile Number</label>
+                  <input type="text" value={empFormData.phone} onChange={e => setEmpFormData({...empFormData, phone: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#0f172a', background: 'white', outline: 'none' }} />
+                </div>
+                <div style={{ flex: 1 }}>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Corporate Mail ID</label>
+                  <input type="email" value={empFormData.email} onChange={e => setEmpFormData({...empFormData, email: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#0f172a', background: 'white', outline: 'none' }} />
+                </div>
               </div>
               <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Employee ID (Optional)</label>
-                <input type="text" value={empFormData.employeeId} onChange={e => setEmpFormData({...empFormData, employeeId: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#0f172a', background: 'white', outline: 'none' }} />
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Remarks (Optional)</label>
+                <input type="text" value={empFormData.remarks} onChange={e => setEmpFormData({...empFormData, remarks: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#0f172a', background: 'white', outline: 'none' }} />
               </div>
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
                 <button type="button" onClick={() => setShowEmployeeModal(null)} style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>

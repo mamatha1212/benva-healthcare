@@ -372,6 +372,8 @@ model CorporateEmployee {
   organizationId String
   name           String
   phone          String
+  email          String?
+  remarks        String?
   employeeId     String?
   createdAt      DateTime                @default(now())
   updatedAt      DateTime                @updatedAt
