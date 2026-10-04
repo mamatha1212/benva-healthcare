@@ -14,6 +14,7 @@ export default function ReferralsClient({ initialStates = [] }: { initialStates?
   const [copiedLink, setCopiedLink] = useState(false);
 
   const [showHistoryModal, setShowHistoryModal] = useState<any>(null);
+  const [editingTransaction, setEditingTransaction] = useState<any | null>(null);
 
   const fetchCategories = async () => {
     try {
@@ -162,8 +163,6 @@ export default function ReferralsClient({ initialStates = [] }: { initialStates?
         <ReferrerModal categories={categories} states={initialStates} onClose={() => setShowReferrerModal(false)} onSaved={fetchReferrers} />
       )}
       
-      const [editingTransaction, setEditingTransaction] = useState<any | null>(null);
-
       {showTransactionModal && (
         <TransactionModal referrer={showTransactionModal} services={services} transactionToEdit={editingTransaction} onClose={() => { setShowTransactionModal(null); setEditingTransaction(null); }} onSaved={fetchReferrers} />
       )}
