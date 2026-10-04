@@ -391,3 +391,31 @@ model CorporateConsultation {
   createdAt           DateTime           @default(now())
   updatedAt           DateTime           @updatedAt
 }
+
+model FreeConsultationRequest {
+  id                  String             @id @default(cuid())
+  type                String             // "GENERAL" or "CORPORATE"
+  
+  // General Fields
+  name                String?
+  phone               String?
+  email               String?
+  
+  // Corporate Fields
+  employeeId          String?
+  organizationName    String?
+  
+  // Medical Details
+  problem             String             @db.Text
+  previousMedication  String?            @db.Text
+  reportUrl           String?
+  
+  // Location
+  state               String?
+  district            String?
+  pincode             String?
+  
+  status              String             @default("PENDING")
+  createdAt           DateTime           @default(now())
+  updatedAt           DateTime           @updatedAt
+}
