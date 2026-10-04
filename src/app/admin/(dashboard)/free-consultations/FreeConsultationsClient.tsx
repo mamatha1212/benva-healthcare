@@ -1,6 +1,29 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+
+const RemarkInput = ({ req, onSave }: { req: any, onSave: (id: string, text: string) => void }) => {
+  const [value, setValue] = useState(req.adminRemarks || '');
+  
+  useEffect(() => {
+    setValue(req.adminRemarks || '');
+  }, [req.adminRemarks]);
+
+  return (
+    <input
+      type="text"
+      value={value}
+      onChange={e => setValue(e.target.value)}
+      onBlur={() => {
+        if (value !== (req.adminRemarks || '')) {
+          onSave(req.id, value);
+        }
+      }}
+      placeholder="Add comment..."
+      style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', outline: 'none', width: '150px' }}
+    />
+  );
+};
 
 export default function FreeConsultationsClient({ initialRequests }: { initialRequests: any[] }) {
   const [requests, setRequests] = useState(initialRequests);
@@ -91,17 +114,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
                   </select>
                 </td>
                 <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0' }}>
-                  <input
-                    type="text"
-                    defaultValue={req.adminRemarks || ''}
-                    placeholder="Add comment..."
-                    onBlur={(e) => {
-                      if (e.target.value !== req.adminRemarks) {
-                        handleRemarksBlur(req.id, e.target.value);
-                      }
-                    }}
-                    style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', outline: 'none', width: '150px' }}
-                  />
+                  <RemarkInput req={req} onSave={handleRemarksBlur} />
                 </td>
                 <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', textAlign: 'right' }}>
                   <button onClick={() => setViewingRequest(req)} style={{ padding: '6px 12px', borderRadius: '6px', background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>
