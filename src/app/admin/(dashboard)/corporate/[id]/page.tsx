@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
+import OrgEmployeesClient from './OrgEmployeesClient';
 
 export default async function OrganizationEmployeesPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;
@@ -25,36 +26,7 @@ export default async function OrganizationEmployeesPage({ params }: { params: Pr
         </div>
       </div>
 
-      <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left' }}>
-          <thead style={{ background: '#f8fafc' }}>
-            <tr>
-              <th style={{ padding: '16px', fontSize: '13px', color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>S.No</th>
-              <th style={{ padding: '16px', fontSize: '13px', color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>Name</th>
-              <th style={{ padding: '16px', fontSize: '13px', color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>Mobile Number</th>
-              <th style={{ padding: '16px', fontSize: '13px', color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>Corporate Mail ID</th>
-              <th style={{ padding: '16px', fontSize: '13px', color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>Remarks</th>
-            </tr>
-          </thead>
-          <tbody>
-            {org.employees && org.employees.length > 0 ? (
-              org.employees.map((emp: any, idx: number) => (
-                <tr key={emp.id}>
-                  <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px', color: '#334155' }}>{idx + 1}</td>
-                  <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>{emp.name}</td>
-                  <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px', color: '#334155' }}>{emp.phone}</td>
-                  <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px', color: '#334155' }}>{emp.email || '-'}</td>
-                  <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px', color: '#334155' }}>{emp.remarks || '-'}</td>
-                </tr>
-              ))
-            ) : (
-              <tr>
-                <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>No employees found.</td>
-              </tr>
-            )}
-          </tbody>
-        </table>
-      </div>
+      <OrgEmployeesClient initialEmployees={org.employees || []} />
     </div>
   );
 }
