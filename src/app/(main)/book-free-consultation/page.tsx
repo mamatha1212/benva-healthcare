@@ -168,22 +168,22 @@ export default function BookFreeConsultationPage() {
             ) : (
               <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                 <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', marginBottom: '16px' }}>Details Found</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-                  <div>
+                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '24px' }}>
+                  <div style={{ flex: '1 1 120px' }}>
                     <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Name</div>
                     <div style={{ fontSize: '16px', color: '#0f172a', fontWeight: 500 }}>{employeeData.name}</div>
                   </div>
-                  <div>
+                  <div style={{ flex: '1 1 120px' }}>
                     <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Organization</div>
                     <div style={{ fontSize: '16px', color: '#0f172a', fontWeight: 500 }}>{employeeData.organization?.companyName}</div>
                   </div>
-                  <div>
+                  <div style={{ flex: '1 1 120px' }}>
                     <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Phone</div>
                     <div style={{ fontSize: '16px', color: '#0f172a', fontWeight: 500 }}>{employeeData.phone}</div>
                   </div>
-                  <div>
+                  <div style={{ flex: '1 1 120px' }}>
                     <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Email</div>
-                    <div style={{ fontSize: '16px', color: '#0f172a', fontWeight: 500 }}>{employeeData.email || 'N/A'}</div>
+                    <div style={{ fontSize: '16px', color: '#0f172a', fontWeight: 500, wordBreak: 'break-all' }}>{employeeData.email || 'N/A'}</div>
                   </div>
                 </div>
                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
