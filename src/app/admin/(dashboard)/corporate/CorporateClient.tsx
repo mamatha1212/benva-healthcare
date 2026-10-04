@@ -184,10 +184,10 @@ export default function CorporateClient() {
                 <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', color: '#334155' }}>
                   {org.employees?.length || 0} Employees
                 </td>
-                <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', textAlign: 'right' }}>
+                <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', textAlign: 'right', whiteSpace: 'nowrap' }}>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
                     <div style={{ display: 'flex', gap: '6px' }}>
-                      <a href={`/admin/corporate/${org.id}`} style={{ padding: '8px 16px', borderRadius: '8px', background: '#2563eb', color: '#ffffff', cursor: 'pointer', fontWeight: 600, fontSize: '13px', textDecoration: 'none', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                      <a href={`/admin/corporate/${org.id}`} style={{ padding: '8px 16px', borderRadius: '8px', background: '#2563eb', color: '#ffffff', cursor: 'pointer', fontWeight: 600, fontSize: '13px', textDecoration: 'none', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', whiteSpace: 'nowrap' }}>
                         Manage Employees
                       </a>
                       <button onClick={() => {
@@ -200,19 +200,19 @@ export default function CorporateClient() {
                           address: org.address || ''
                         });
                         setShowAddModal(true);
-                      }} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', cursor: 'pointer', fontWeight: 600, fontSize: '13px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)' }}>
+                      }} style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', cursor: 'pointer', fontWeight: 600, fontSize: '13px', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', whiteSpace: 'nowrap' }}>
                         Edit Info
                       </button>
                     </div>
                     <div style={{ display: 'flex', gap: '6px' }}>
-                      <label style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#475569', cursor: 'pointer', fontWeight: 500, fontSize: '12px', display: 'flex', alignItems: 'center' }}>
+                      <label style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#475569', cursor: 'pointer', fontWeight: 500, fontSize: '12px', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
                         {importing ? 'Importing...' : 'Import CSV'}
                         <input type="file" accept=".csv" onChange={(e) => handleBulkImport(e, org.id)} style={{ display: 'none' }} disabled={importing} />
                       </label>
-                      <button onClick={() => handleExport(org)} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#475569', cursor: 'pointer', fontWeight: 500, fontSize: '12px' }}>
+                      <button onClick={() => handleExport(org)} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #e2e8f0', background: '#f8fafc', color: '#475569', cursor: 'pointer', fontWeight: 500, fontSize: '12px', whiteSpace: 'nowrap' }}>
                         Export CSV
                       </button>
-                      <button onClick={() => setShowEmployeeModal(org.id)} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #10b981', background: '#ecfdf5', color: '#059669', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}>
+                      <button onClick={() => setShowEmployeeModal(org.id)} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #10b981', background: '#ecfdf5', color: '#059669', cursor: 'pointer', fontWeight: 600, fontSize: '12px', whiteSpace: 'nowrap' }}>
                         + Add 1
                       </button>
                     </div>
