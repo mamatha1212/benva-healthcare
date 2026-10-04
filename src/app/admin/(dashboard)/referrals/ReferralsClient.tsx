@@ -482,24 +482,24 @@ function TransactionModal({ referrer, services, transactionToEdit, onClose, onSa
   };
 
   return (
-    <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
-      <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '400px', color: '#0f172a', maxHeight: '90vh', overflowY: 'auto' }}>
-        <h2 style={{ margin: '0 0 4px 0', fontSize: '18px' }}>{transactionToEdit ? 'Edit Referral' : 'Add Referral'} for {referrer.name}</h2>
-        <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#64748b' }}>Log a new patient referral and add the amount to their total.</p>
+    <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px', animation: 'fadeIn 0.2s ease-out' }}>
+      <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '480px', color: '#0f172a', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+        <h2 style={{ margin: '0 0 8px 0', fontSize: '22px', fontWeight: 800, color: '#1e293b', letterSpacing: '-0.02em' }}>{transactionToEdit ? 'Edit Referral' : 'Add Referral'} for <span style={{ color: '#2563eb' }}>{referrer.name}</span></h2>
+        <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#64748b', lineHeight: 1.5 }}>{transactionToEdit ? 'Update the details for this patient referral below.' : 'Log a new patient referral and automatically calculate the referrer\'s cut.'}</p>
         
-        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+        <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Patient Name</label>
-            <input type="text" value={formData.patientName || ''} onChange={e => setFormData({...formData, patientName: e.target.value})} required placeholder="e.g. Ramesh Kumar" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Patient Name</label>
+            <input type="text" value={formData.patientName || ''} onChange={e => setFormData({...formData, patientName: e.target.value})} required placeholder="e.g. Ramesh Kumar" style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '15px', color: '#0f172a', outline: 'none', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'} />
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Patient Phone</label>
-            <input type="text" value={formData.patientPhone || ''} onChange={e => setFormData({...formData, patientPhone: e.target.value})} required placeholder="e.g. 9876543210" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Patient Phone</label>
+            <input type="text" value={formData.patientPhone || ''} onChange={e => setFormData({...formData, patientPhone: e.target.value})} required placeholder="e.g. 9876543210" style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '15px', color: '#0f172a', outline: 'none', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'} />
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Service / Package Name</label>
-            <select value={formData.serviceName} onChange={e => setFormData({...formData, serviceName: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white' }}>
-              <option value="">Select a Service / Package...</option>
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Service / Package Name</label>
+            <select value={formData.serviceName} onChange={e => setFormData({...formData, serviceName: e.target.value})} required style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', fontSize: '15px', color: '#0f172a', outline: 'none', cursor: 'pointer', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'}>
+              <option value="" disabled>Select a Service / Package...</option>
               {services.map(s => (
                 <option key={s.id} value={s.name}>{s.type}: {s.name}</option>
               ))}
@@ -507,73 +507,73 @@ function TransactionModal({ referrer, services, transactionToEdit, onClose, onSa
           </div>
           
           {formData.serviceName === 'Others' && (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-              <h3 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#334155' }}>Custom Tests</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', background: 'linear-gradient(to right bottom, #f8fafc, #f1f5f9)', padding: '20px', borderRadius: '12px', border: '1px solid #e2e8f0', boxShadow: 'inset 0 2px 4px 0 rgba(0, 0, 0, 0.03)' }}>
+              <h3 style={{ margin: 0, fontSize: '15px', fontWeight: 800, color: '#1e293b' }}>Custom Tests Breakdown</h3>
               {customTests.map((test, index) => (
-                <div key={index} style={{ display: 'flex', flexDirection: 'column', gap: '12px', paddingBottom: '16px', borderBottom: index < customTests.length - 1 ? '1px solid #cbd5e1' : 'none' }}>
+                <div key={index} style={{ display: 'flex', flexDirection: 'column', gap: '12px', paddingBottom: '16px', borderBottom: index < customTests.length - 1 ? '1px dashed #cbd5e1' : 'none' }}>
                   <div>
-                    <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600 }}>Test Name</label>
-                    <input type="text" value={test.name} onChange={e => { const newTests = [...customTests]; newTests[index].name = e.target.value; setCustomTests(newTests); }} required placeholder="e.g. Blood Test" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                    <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Test Name</label>
+                    <input type="text" value={test.name} onChange={e => { const newTests = [...customTests]; newTests[index].name = e.target.value; setCustomTests(newTests); }} required placeholder="e.g. Blood Test" style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'} />
                   </div>
-                  <div style={{ display: 'flex', gap: '12px' }}>
+                  <div style={{ display: 'flex', gap: '16px' }}>
                     <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600 }}>Price (₹)</label>
-                      <input type="number" min="0" value={test.price} onChange={e => { const newTests = [...customTests]; newTests[index].price = e.target.value; setCustomTests(newTests); }} required placeholder="1000" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Price (₹)</label>
+                      <input type="number" min="0" value={test.price} onChange={e => { const newTests = [...customTests]; newTests[index].price = e.target.value; setCustomTests(newTests); }} required placeholder="1000" style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'} />
                     </div>
                     <div style={{ flex: 1 }}>
-                      <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600 }}>Referrer Cut (₹)</label>
-                      <input type="number" min="0" value={test.amount} onChange={e => { const newTests = [...customTests]; newTests[index].amount = e.target.value; setCustomTests(newTests); }} required placeholder="500" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                      <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Referrer Cut (₹)</label>
+                      <input type="number" min="0" value={test.amount} onChange={e => { const newTests = [...customTests]; newTests[index].amount = e.target.value; setCustomTests(newTests); }} required placeholder="500" style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'} />
                     </div>
                   </div>
                   {!transactionToEdit && customTests.length > 1 && (
-                    <button type="button" onClick={() => setCustomTests(customTests.filter((_, i) => i !== index))} style={{ padding: '6px 12px', borderRadius: '4px', border: '1px solid #ef4444', color: '#ef4444', background: 'white', alignSelf: 'flex-end', fontSize: '12px', cursor: 'pointer' }}>Remove</button>
+                    <button type="button" onClick={() => setCustomTests(customTests.filter((_, i) => i !== index))} style={{ padding: '6px 12px', borderRadius: '4px', border: 'none', color: '#ef4444', background: '#fee2e2', alignSelf: 'flex-end', fontSize: '12px', fontWeight: 700, cursor: 'pointer', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = '#fecaca'} onMouseOut={e => e.currentTarget.style.background = '#fee2e2'}>Remove Test</button>
                   )}
                 </div>
               ))}
               {!transactionToEdit && (
-                <button type="button" onClick={() => setCustomTests([...customTests, { name: '', price: '', amount: '' }])} style={{ padding: '8px', borderRadius: '6px', border: '1px dashed #3b82f6', color: '#3b82f6', background: 'white', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>+ Add another test</button>
+                <button type="button" onClick={() => setCustomTests([...customTests, { name: '', price: '', amount: '' }])} style={{ padding: '10px', borderRadius: '8px', border: '1px dashed #3b82f6', color: '#3b82f6', background: 'rgba(59, 130, 246, 0.05)', cursor: 'pointer', fontWeight: 700, fontSize: '13px', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.1)'} onMouseOut={e => e.currentTarget.style.background = 'rgba(59, 130, 246, 0.05)'}>+ Add Another Test</button>
               )}
             </div>
           )}
 
           {selectedService && formData.serviceName !== 'Others' && (
-            <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', fontSize: '13px', color: '#475569', border: '1px solid #e2e8f0' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <span style={{ fontWeight: 600 }}>Plan Type:</span> <span>{selectedService.type}</span>
+            <div style={{ background: '#f0fdf4', padding: '16px', borderRadius: '12px', fontSize: '14px', color: '#166534', border: '1px solid #bbf7d0', boxShadow: '0 1px 2px rgba(0,0,0,0.02)' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontWeight: 600 }}>Plan Type:</span> <span style={{ fontWeight: 700 }}>{selectedService.type}</span>
               </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px' }}>
-                <span style={{ fontWeight: 600 }}>MRP Price:</span> <span>₹{selectedService.originalPrice || selectedService.price}</span>
+              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                <span style={{ fontWeight: 600 }}>MRP Price:</span> <span style={{ fontWeight: 700 }}>₹{selectedService.originalPrice || selectedService.price}</span>
               </div>
               {selectedService.discount && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '4px', color: '#10b981' }}>
-                  <span style={{ fontWeight: 600 }}>Patient Discount:</span> <span>{selectedService.discount}</span>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px', color: '#059669' }}>
+                  <span style={{ fontWeight: 600 }}>Patient Discount:</span> <span style={{ fontWeight: 700 }}>{selectedService.discount}</span>
                 </div>
               )}
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, color: '#0f172a', borderTop: '1px solid #e2e8f0', paddingTop: '4px', marginTop: '4px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 800, color: '#14532d', borderTop: '1px solid #bbf7d0', paddingTop: '10px', marginTop: '4px', fontSize: '16px' }}>
                 <span>Final Price:</span> <span>₹{selectedService.price}</span>
               </div>
             </div>
           )}
           {formData.serviceName !== 'Others' && (
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Amount to give to Referrer (₹)</label>
-              <input type="number" min="0" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} required placeholder="e.g. 500" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Amount to give to Referrer (₹)</label>
+              <input type="number" min="0" value={formData.amount} onChange={e => setFormData({...formData, amount: e.target.value})} required placeholder="e.g. 500" style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '15px', color: '#0f172a', outline: 'none', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'} />
             </div>
           )}
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Referral Date</label>
-            <input type="date" value={formData.referralDate} onChange={e => setFormData({...formData, referralDate: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Referral Date</label>
+            <input type="date" value={formData.referralDate} onChange={e => setFormData({...formData, referralDate: e.target.value})} required style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '15px', color: '#0f172a', outline: 'none', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'} />
           </div>
 
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Comments (Optional)</label>
-            <textarea value={formData.comments} onChange={e => setFormData({...formData, comments: e.target.value})} placeholder="Any additional notes..." style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', minHeight: '80px', fontFamily: 'inherit' }} />
+            <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Comments (Optional)</label>
+            <textarea value={formData.comments} onChange={e => setFormData({...formData, comments: e.target.value})} placeholder="Any additional notes..." style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '15px', color: '#0f172a', outline: 'none', minHeight: '100px', fontFamily: 'inherit', resize: 'vertical', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'} />
           </div>
 
           {transactionToEdit && (
             <div>
-              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Status</label>
-              <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</label>
+              <select value={formData.status} onChange={e => setFormData({...formData, status: e.target.value})} style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', fontSize: '15px', color: '#0f172a', outline: 'none', cursor: 'pointer', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'}>
                 <option value="PENDING">Pending</option>
                 <option value="COMPLETED">Completed</option>
                 <option value="CANCELLED">Cancelled</option>
@@ -581,9 +581,9 @@ function TransactionModal({ referrer, services, transactionToEdit, onClose, onSa
             </div>
           )}
           
-          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
-            <button type="button" onClick={onClose} style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer' }}>Cancel</button>
-            <button type="submit" disabled={submitting} style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', background: '#10b981', color: 'white', cursor: 'pointer', fontWeight: 600 }}>
+          <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '12px', paddingTop: '20px', borderTop: '1px solid #e2e8f0' }}>
+            <button type="button" onClick={onClose} style={{ padding: '12px 24px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', cursor: 'pointer', fontWeight: 600, fontSize: '14px', transition: 'all 0.2s' }} onMouseOver={e => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#0f172a'; }} onMouseOut={e => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#475569'; }}>Cancel</button>
+            <button type="submit" disabled={submitting} style={{ padding: '12px 24px', borderRadius: '8px', border: 'none', background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)', color: 'white', cursor: submitting ? 'not-allowed' : 'pointer', fontWeight: 700, fontSize: '14px', boxShadow: '0 4px 6px -1px rgba(16, 185, 129, 0.3)', opacity: submitting ? 0.7 : 1, transition: 'all 0.2s' }} onMouseOver={e => { if (!submitting) e.currentTarget.style.transform = 'translateY(-1px)'; e.currentTarget.style.boxShadow = '0 6px 8px -2px rgba(16, 185, 129, 0.4)'; }} onMouseOut={e => { if (!submitting) e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(16, 185, 129, 0.3)'; }}>
               {submitting ? 'Saving...' : (transactionToEdit ? 'Save Changes' : 'Add Referral')}
             </button>
           </div>
