@@ -66,10 +66,11 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
         // Keep phone, clear others
         setFormData(prev => ({ ...prev, name: '', age: '', gender: '' }));
         // Also refresh family members list
-        fetch(`/api/patients/by-phone?phone=${encodeURIComponent(formData.phone)}`)
-          .then(res => res.ok ? res.json() : [])
-          .then(data => { if(data && data.length > 0) setFamilyMembers(data); })
-          .catch(() => {});
+        const newPatientsList = editingPatient ? patients.map(p => p.id === savedPatient.id ? savedPatient : p) : [savedPatient, ...patients];
+        const updatedFamily = newPatientsList.filter((p: any) => p.phone === formData.phone);
+        if (updatedFamily.length > 0) {
+          setFamilyMembers(updatedFamily);
+        }
         setFormError('Patient saved. You can add another family member.');
       } else {
         setIsModalOpen(false);
@@ -320,24 +321,21 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
                     
                     if (newPhone.trim().length >= 10 && !editingPatient) {
                       const phone = newPhone.trim();
-                      fetch(`/api/patients/by-phone?phone=${encodeURIComponent(phone)}`)
-                        .then(res => res.ok ? res.json() : [])
-                        .then((data: any[]) => {
-                          if (data && data.length > 0) {
-                            setFamilyMembers(data);
-                            const primary = data[0];
-                            setFormData(prev => ({
-                              ...prev,
-                              name: prev.name || primary.name,
-                              age: prev.age || primary.age,
-                              gender: prev.gender || primary.gender
-                            }));
-                            setFormError(`Found ${data.length} family member(s) with this number. Auto-filled primary member.`);
-                          } else {
-                            setFamilyMembers([]);
-                          }
-                        })
-                        .catch(() => { setFamilyMembers([]); });
+                      const data = patients.filter((p: any) => p.phone === phone);
+                      
+                      if (data.length > 0) {
+                        setFamilyMembers(data);
+                        const primary = data[0];
+                        setFormData(prev => ({
+                          ...prev,
+                          name: prev.name || primary.name,
+                          age: prev.age || primary.age,
+                          gender: prev.gender || primary.gender
+                        }));
+                        setFormError(`Found ${data.length} family member(s) with this number. Auto-filled primary member.`);
+                      } else {
+                        setFamilyMembers([]);
+                      }
                     } else if (newPhone.trim().length < 10) {
                       setFamilyMembers([]);
                     }
