@@ -162,12 +162,14 @@ export default function ReferralsClient({ initialStates = [] }: { initialStates?
         <ReferrerModal categories={categories} states={initialStates} onClose={() => setShowReferrerModal(false)} onSaved={fetchReferrers} />
       )}
       
+      const [editingTransaction, setEditingTransaction] = useState<any | null>(null);
+
       {showTransactionModal && (
-        <TransactionModal referrer={showTransactionModal} services={services} onClose={() => setShowTransactionModal(null)} onSaved={fetchReferrers} />
+        <TransactionModal referrer={showTransactionModal} services={services} transactionToEdit={editingTransaction} onClose={() => { setShowTransactionModal(null); setEditingTransaction(null); }} onSaved={fetchReferrers} />
       )}
 
       {showHistoryModal && (
-        <HistoryModal referrer={showHistoryModal} onClose={() => setShowHistoryModal(null)} onRefresh={fetchReferrers} />
+        <HistoryModal referrer={showHistoryModal} onClose={() => setShowHistoryModal(null)} onRefresh={fetchReferrers} onEdit={(tx) => { setEditingTransaction(tx); setShowTransactionModal(showHistoryModal); setShowHistoryModal(null); }} />
       )}
     </div>
   );
@@ -416,8 +418,21 @@ function ReferrerModal({ categories, states, onClose, onSaved }: { categories: a
   );
 }
 
-function TransactionModal({ referrer, services, onClose, onSaved }: { referrer: any, services: any[], onClose: () => void, onSaved: () => void }) {
-  const [formData, setFormData] = useState({ serviceName: '', customServiceName: '', customServicePrice: '', amount: '', referralDate: new Date().toISOString().split('T')[0], patientName: '', patientPhone: '' });
+function TransactionModal({ referrer, services, transactionToEdit, onClose, onSaved }: { referrer: any, services: any[], transactionToEdit?: any, onClose: () => void, onSaved: () => void }) {
+  const isKnownService = transactionToEdit ? services.some(s => s.name === transactionToEdit.serviceName) : false;
+  const initialServiceName = transactionToEdit ? (isKnownService ? transactionToEdit.serviceName : 'Others') : '';
+  const initialCustomName = transactionToEdit && !isKnownService ? transactionToEdit.serviceName : '';
+  const initialCustomPrice = transactionToEdit && !isKnownService && transactionToEdit.servicePrice ? String(transactionToEdit.servicePrice) : '';
+
+  const [formData, setFormData] = useState({ 
+    serviceName: initialServiceName, 
+    customServiceName: initialCustomName, 
+    customServicePrice: initialCustomPrice, 
+    amount: transactionToEdit ? String(transactionToEdit.amount) : '', 
+    referralDate: transactionToEdit ? new Date(transactionToEdit.referralDate).toISOString().split('T')[0] : new Date().toISOString().split('T')[0], 
+    patientName: transactionToEdit?.patientName || '', 
+    patientPhone: transactionToEdit?.patientPhone || '' 
+  });
   const [submitting, setSubmitting] = useState(false);
 
   const selectedService = services.find(s => s.name === formData.serviceName);
@@ -427,18 +442,26 @@ function TransactionModal({ referrer, services, onClose, onSaved }: { referrer: 
     setSubmitting(true);
     
     const finalServiceName = formData.serviceName === 'Others' ? formData.customServiceName : formData.serviceName;
-    
+    const bodyPayload = { referrerId: referrer.id, ...formData, serviceName: finalServiceName };
+
     try {
-      const res = await fetch('/api/admin/referrals/transactions', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ referrerId: referrer.id, ...formData, serviceName: finalServiceName })
-      });
+      const res = transactionToEdit 
+        ? await fetch(`/api/admin/referrals/transactions/${transactionToEdit.id}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bodyPayload)
+          })
+        : await fetch('/api/admin/referrals/transactions', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bodyPayload)
+          });
+      
       if (res.ok) {
         onSaved();
         onClose();
       } else {
-        alert('Failed to add transaction');
+        alert(transactionToEdit ? 'Failed to update transaction' : 'Failed to add transaction');
       }
     } catch (err) {
       console.error(err);
@@ -449,7 +472,7 @@ function TransactionModal({ referrer, services, onClose, onSaved }: { referrer: 
   return (
     <div style={{ position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
       <div style={{ background: 'white', padding: '24px', borderRadius: '12px', width: '100%', maxWidth: '400px', color: '#0f172a', maxHeight: '90vh', overflowY: 'auto' }}>
-        <h2 style={{ margin: '0 0 4px 0', fontSize: '18px' }}>Add Referral for {referrer.name}</h2>
+        <h2 style={{ margin: '0 0 4px 0', fontSize: '18px' }}>{transactionToEdit ? 'Edit Referral' : 'Add Referral'} for {referrer.name}</h2>
         <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#64748b' }}>Log a new patient referral and add the amount to their total.</p>
         
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -514,7 +537,7 @@ function TransactionModal({ referrer, services, onClose, onSaved }: { referrer: 
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
             <button type="button" onClick={onClose} style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer' }}>Cancel</button>
             <button type="submit" disabled={submitting} style={{ padding: '8px 16px', borderRadius: '6px', border: 'none', background: '#10b981', color: 'white', cursor: 'pointer', fontWeight: 600 }}>
-              {submitting ? 'Saving...' : 'Add Referral'}
+              {submitting ? 'Saving...' : (transactionToEdit ? 'Save Changes' : 'Add Referral')}
             </button>
           </div>
         </form>
@@ -523,7 +546,7 @@ function TransactionModal({ referrer, services, onClose, onSaved }: { referrer: 
   );
 }
 
-function HistoryModal({ referrer, onClose, onRefresh }: { referrer: any, onClose: () => void, onRefresh: () => void }) {
+function HistoryModal({ referrer, onClose, onRefresh, onEdit }: { referrer: any, onClose: () => void, onRefresh: () => void, onEdit: (tx: any) => void }) {
   const [updating, setUpdating] = useState<string | null>(null);
 
   const handleStatusChange = async (txId: string, newStatus: string) => {
@@ -559,6 +582,7 @@ function HistoryModal({ referrer, onClose, onRefresh }: { referrer: any, onClose
                 <th style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>Service</th>
                 <th style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>Amount</th>
                 <th style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>Status</th>
+                <th style={{ padding: '12px', fontSize: '13px', color: '#64748b', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -593,10 +617,13 @@ function HistoryModal({ referrer, onClose, onRefresh }: { referrer: any, onClose
                       <option value="CANCELLED">Cancelled</option>
                     </select>
                   </td>
+                  <td style={{ padding: '12px', textAlign: 'right' }}>
+                    <button onClick={() => onEdit(tx)} style={{ padding: '4px 8px', fontSize: '12px', background: '#f8fafc', color: '#2563eb', border: '1px solid #cbd5e1', borderRadius: '4px', cursor: 'pointer' }}>Edit</button>
+                  </td>
                 </tr>
               )) : (
                 <tr>
-                  <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
+                  <td colSpan={6} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>
                     No transactions found for this referrer.
                   </td>
                 </tr>
