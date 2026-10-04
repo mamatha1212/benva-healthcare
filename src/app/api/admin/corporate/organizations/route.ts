@@ -35,3 +35,22 @@ export async function POST(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to create' }, { status: 500 });
   }
 }
+
+export async function PUT(req: NextRequest) {
+  try {
+    const { id, companyName, hrName, hrEmail, hrPhone, address } = await req.json();
+    
+    if (!id || !companyName || !hrName || !hrEmail || !hrPhone) {
+      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    }
+
+    const updatedOrg = await prisma.organization.update({
+      where: { id },
+      data: { companyName, hrName, hrEmail, hrPhone, address }
+    });
+    return NextResponse.json(updatedOrg, { status: 200 });
+  } catch (error) {
+    console.error('Error updating org:', error);
+    return NextResponse.json({ error: 'Failed to update' }, { status: 500 });
+  }
+}

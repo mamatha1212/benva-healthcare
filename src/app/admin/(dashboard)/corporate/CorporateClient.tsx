@@ -10,6 +10,7 @@ export default function CorporateClient() {
   const [empFormData, setEmpFormData] = useState({ name: '', phone: '', email: '', remarks: '' });
   const [submitting, setSubmitting] = useState(false);
   const [importing, setImporting] = useState(false);
+  const [editingOrgId, setEditingOrgId] = useState<string | null>(null);
 
   useEffect(() => {
     fetchOrganizations();
@@ -30,16 +31,17 @@ export default function CorporateClient() {
     setSubmitting(true);
     try {
       const res = await fetch('/api/admin/corporate/organizations', {
-        method: 'POST',
+        method: editingOrgId ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(editingOrgId ? { ...formData, id: editingOrgId } : formData)
       });
       if (res.ok) {
         setShowAddModal(false);
         setFormData({ companyName: '', hrName: '', hrEmail: '', hrPhone: '', address: '' });
+        setEditingOrgId(null);
         fetchOrganizations();
       } else {
-        alert('Failed to add organization');
+        alert(editingOrgId ? 'Failed to update organization' : 'Failed to add organization');
       }
     } catch (err) {
       console.error(err);
@@ -146,7 +148,11 @@ export default function CorporateClient() {
           <h1 style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#0f172a' }}>Corporate Family Doctor Program</h1>
           <p style={{ margin: '4px 0 0 0', color: '#64748b' }}>Manage enrolled companies and their employees.</p>
         </div>
-        <button onClick={() => setShowAddModal(true)} style={{ background: '#2563eb', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
+        <button onClick={() => {
+          setEditingOrgId(null);
+          setFormData({ companyName: '', hrName: '', hrEmail: '', hrPhone: '', address: '' });
+          setShowAddModal(true);
+        }} style={{ background: '#2563eb', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', cursor: 'pointer', fontWeight: 600 }}>
           + Add Company
         </button>
       </div>
@@ -180,6 +186,19 @@ export default function CorporateClient() {
                 </td>
                 <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', textAlign: 'right' }}>
                   <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+                    <button onClick={() => {
+                      setEditingOrgId(org.id);
+                      setFormData({
+                        companyName: org.companyName || '',
+                        hrName: org.hrName || '',
+                        hrEmail: org.hrEmail || '',
+                        hrPhone: org.hrPhone || '',
+                        address: org.address || ''
+                      });
+                      setShowAddModal(true);
+                    }} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #f59e0b', background: '#fef3c7', color: '#d97706', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>
+                      Edit Org
+                    </button>
                     <button onClick={() => handleExport(org)} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc', color: '#334155', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>
                       Export
                     </button>
@@ -205,7 +224,7 @@ export default function CorporateClient() {
       {showAddModal && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
           <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '500px', color: '#0f172a' }}>
-            <h2 style={{ margin: '0 0 16px 0', fontSize: '20px', color: '#0f172a' }}>Add New Corporate Client</h2>
+            <h2 style={{ margin: '0 0 16px 0', fontSize: '20px', color: '#0f172a' }}>{editingOrgId ? 'Edit Corporate Client' : 'Add New Corporate Client'}</h2>
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Company Name</label>
@@ -226,8 +245,11 @@ export default function CorporateClient() {
                 <input type="email" value={formData.hrEmail} onChange={e => setFormData({...formData, hrEmail: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#0f172a', background: 'white', outline: 'none' }} />
               </div>
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
-                <button type="button" onClick={() => setShowAddModal(false)} style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
-                <button type="submit" disabled={submitting} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', background: '#2563eb', color: 'white', cursor: 'pointer', fontWeight: 600 }}>{submitting ? 'Saving...' : 'Add Company'}</button>
+                <button type="button" onClick={() => {
+                  setShowAddModal(false);
+                  setEditingOrgId(null);
+                }} style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+                <button type="submit" disabled={submitting} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', background: '#2563eb', color: 'white', cursor: 'pointer', fontWeight: 600 }}>{submitting ? 'Saving...' : (editingOrgId ? 'Update Company' : 'Add Company')}</button>
               </div>
             </form>
           </div>
