@@ -251,6 +251,23 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
         </Link>
 
         <Link
+          href="/admin/corporate"
+          className={`${styles.navItem} ${usePathname().includes('/admin/corporate') ? styles.active : ''}`}
+        >
+          <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 21h18"></path>
+            <path d="M9 8h1"></path>
+            <path d="M9 12h1"></path>
+            <path d="M9 16h1"></path>
+            <path d="M14 8h1"></path>
+            <path d="M14 12h1"></path>
+            <path d="M14 16h1"></path>
+            <path d="M5 21V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2v16"></path>
+          </svg>
+          Corporate Clients
+        </Link>
+
+        <Link
           href="/admin/pages"
           className={`${styles.navItem} ${usePathname().includes('/admin/pages') ? styles.active : ''}`}
         >
