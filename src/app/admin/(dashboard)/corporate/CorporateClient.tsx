@@ -5,7 +5,9 @@ import React, { useState, useEffect } from 'react';
 export default function CorporateClient() {
   const [organizations, setOrganizations] = useState<any[]>([]);
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showEmployeeModal, setShowEmployeeModal] = useState<any>(null); // holds org id
   const [formData, setFormData] = useState({ companyName: '', hrName: '', hrEmail: '', hrPhone: '', address: '' });
+  const [empFormData, setEmpFormData] = useState({ name: '', phone: '', employeeId: '' });
   const [submitting, setSubmitting] = useState(false);
 
   useEffect(() => {
@@ -44,6 +46,28 @@ export default function CorporateClient() {
     setSubmitting(false);
   };
 
+  const handleAddEmployee = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setSubmitting(true);
+    try {
+      const res = await fetch('/api/admin/corporate/employees', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ ...empFormData, organizationId: showEmployeeModal })
+      });
+      if (res.ok) {
+        setShowEmployeeModal(null);
+        setEmpFormData({ name: '', phone: '', employeeId: '' });
+        fetchOrganizations();
+      } else {
+        alert('Failed to add employee');
+      }
+    } catch (err) {
+      console.error(err);
+    }
+    setSubmitting(false);
+  };
+
   return (
     <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -64,6 +88,7 @@ export default function CorporateClient() {
               <th style={{ padding: '16px', fontSize: '13px', color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>HR Contact</th>
               <th style={{ padding: '16px', fontSize: '13px', color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>Status</th>
               <th style={{ padding: '16px', fontSize: '13px', color: '#64748b', borderBottom: '1px solid #e2e8f0' }}>Employees Enrolled</th>
+              <th style={{ padding: '16px', fontSize: '13px', color: '#64748b', borderBottom: '1px solid #e2e8f0', textAlign: 'right' }}>Actions</th>
             </tr>
           </thead>
           <tbody>
@@ -82,10 +107,15 @@ export default function CorporateClient() {
                 <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', color: '#334155' }}>
                   {org.employees?.length || 0} Employees
                 </td>
+                <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', textAlign: 'right' }}>
+                  <button onClick={() => setShowEmployeeModal(org.id)} style={{ padding: '6px 12px', borderRadius: '6px', border: '1px solid #10b981', background: '#ecfdf5', color: '#059669', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>
+                    + Add Employee
+                  </button>
+                </td>
               </tr>
             )) : (
               <tr>
-                <td colSpan={4} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>No organizations enrolled yet.</td>
+                <td colSpan={5} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>No organizations enrolled yet.</td>
               </tr>
             )}
           </tbody>
@@ -118,6 +148,32 @@ export default function CorporateClient() {
               <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
                 <button type="button" onClick={() => setShowAddModal(false)} style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
                 <button type="submit" disabled={submitting} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', background: '#2563eb', color: 'white', cursor: 'pointer', fontWeight: 600 }}>{submitting ? 'Saving...' : 'Add Company'}</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showEmployeeModal && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
+          <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '400px', color: '#0f172a' }}>
+            <h2 style={{ margin: '0 0 16px 0', fontSize: '20px', color: '#0f172a' }}>Add Employee</h2>
+            <form onSubmit={handleAddEmployee} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Employee Name</label>
+                <input type="text" value={empFormData.name} onChange={e => setEmpFormData({...empFormData, name: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#0f172a', background: 'white', outline: 'none' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Phone Number</label>
+                <input type="text" value={empFormData.phone} onChange={e => setEmpFormData({...empFormData, phone: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#0f172a', background: 'white', outline: 'none' }} />
+              </div>
+              <div>
+                <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Employee ID (Optional)</label>
+                <input type="text" value={empFormData.employeeId} onChange={e => setEmpFormData({...empFormData, employeeId: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#0f172a', background: 'white', outline: 'none' }} />
+              </div>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
+                <button type="button" onClick={() => setShowEmployeeModal(null)} style={{ padding: '10px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', cursor: 'pointer', fontWeight: 600 }}>Cancel</button>
+                <button type="submit" disabled={submitting} style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', background: '#10b981', color: 'white', cursor: 'pointer', fontWeight: 600 }}>{submitting ? 'Saving...' : 'Add Employee'}</button>
               </div>
             </form>
           </div>
