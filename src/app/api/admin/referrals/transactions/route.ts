@@ -6,7 +6,7 @@ export async function POST(req: NextRequest) {
     const body = await req.json();
     const { referrerId, serviceName, amount, referralDate, patientName, patientPhone, customServicePrice } = body;
     
-    if (!referrerId || !serviceName || amount === undefined) {
+    if (!referrerId || !serviceName || amount === undefined || !patientName || !patientPhone) {
       return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
     }
 

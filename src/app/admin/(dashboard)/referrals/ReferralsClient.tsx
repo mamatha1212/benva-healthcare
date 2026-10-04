@@ -476,12 +476,12 @@ function TransactionModal({ referrer, services, transactionToEdit, onClose, onSa
         
         <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Patient Name (Optional)</label>
-            <input type="text" value={formData.patientName || ''} onChange={e => setFormData({...formData, patientName: e.target.value})} placeholder="e.g. Ramesh Kumar" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Patient Name</label>
+            <input type="text" value={formData.patientName || ''} onChange={e => setFormData({...formData, patientName: e.target.value})} required placeholder="e.g. Ramesh Kumar" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
           </div>
           <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Patient Phone (Optional)</label>
-            <input type="text" value={formData.patientPhone || ''} onChange={e => setFormData({...formData, patientPhone: e.target.value})} placeholder="e.g. 9876543210" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Patient Phone</label>
+            <input type="text" value={formData.patientPhone || ''} onChange={e => setFormData({...formData, patientPhone: e.target.value})} required placeholder="e.g. 9876543210" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
           </div>
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Service / Package Name</label>
