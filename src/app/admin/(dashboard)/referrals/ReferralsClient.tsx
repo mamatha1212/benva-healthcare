@@ -149,9 +149,9 @@ export default function ReferralsClient({ initialStates = [] }: { initialStates?
                     <td className={styles.td} style={{ fontWeight: 600, color: '#059669' }}>₹{totalAmount.toFixed(2)}</td>
                     <td className={styles.td} style={{ textAlign: 'right' }}>
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', flexDirection: 'column' }}>
-                        <button onClick={() => setShowHistoryModal(referrer)} style={{ background: '#f8fafc', color: '#0f172a', border: '1px solid #cbd5e1', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
+                        <a href={`/admin/referrals/${referrer.id}`} style={{ background: '#f8fafc', color: '#0f172a', border: '1px solid #cbd5e1', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, textDecoration: 'none', textAlign: 'center' }}>
                           View History
-                        </button>
+                        </a>
                         <button onClick={() => setShowTransactionModal(referrer)} style={{ background: '#10b981', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}>
                           + Add Referral
                         </button>
@@ -521,7 +521,7 @@ function ReferrerModal({ categories, states, onClose, onSaved }: { categories: a
   );
 }
 
-function TransactionModal({ referrer, services, transactionToEdit, onClose, onSaved }: { referrer: any, services: any[], transactionToEdit?: any, onClose: () => void, onSaved: () => void }) {
+export function TransactionModal({ referrer, services, transactionToEdit, onClose, onSaved }: { referrer: any, services: any[], transactionToEdit?: any, onClose: () => void, onSaved: () => void }) {
   const isKnownService = transactionToEdit ? services.some(s => s.name === transactionToEdit.serviceName) : false;
   const initialServiceName = transactionToEdit ? (isKnownService ? transactionToEdit.serviceName : 'Others') : '';
   const initialCustomName = transactionToEdit && !isKnownService ? transactionToEdit.serviceName : '';
