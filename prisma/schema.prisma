@@ -327,6 +327,9 @@ model Referrer {
   phone        String
   username     String                @unique
   password     String
+  state        String?
+  district     String?
+  pincode      String?
   category     ReferralCategory      @relation(fields: [categoryId], references: [id])
   categoryId   String
   createdAt    DateTime              @default(now())

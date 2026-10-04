@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import styles from './ReferralsClient.module.css';
 
-export default function ReferralsClient() {
+export default function ReferralsClient({ initialStates = [] }: { initialStates?: any[] }) {
   const [categories, setCategories] = useState<any[]>([]);
   const [referrers, setReferrers] = useState<any[]>([]);
   const [services, setServices] = useState<any[]>([]);
@@ -159,7 +159,7 @@ export default function ReferralsClient() {
       )}
       
       {showReferrerModal && (
-        <ReferrerModal categories={categories} onClose={() => setShowReferrerModal(false)} onSaved={fetchReferrers} />
+        <ReferrerModal categories={categories} states={initialStates} onClose={() => setShowReferrerModal(false)} onSaved={fetchReferrers} />
       )}
       
       {showTransactionModal && (
@@ -314,8 +314,8 @@ function CategoryModal({ onClose, onSaved }: { onClose: () => void, onSaved: () 
   );
 }
 
-function ReferrerModal({ categories, onClose, onSaved }: { categories: any[], onClose: () => void, onSaved: () => void }) {
-  const [formData, setFormData] = useState({ name: '', email: '', phone: '', username: '', password: '', categoryId: '' });
+function ReferrerModal({ categories, states, onClose, onSaved }: { categories: any[], states: any[], onClose: () => void, onSaved: () => void }) {
+  const [formData, setFormData] = useState({ name: '', email: '', phone: '', username: '', password: '', categoryId: '', state: '', district: '', pincode: '' });
   const [submitting, setSubmitting] = useState(false);
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -369,14 +369,40 @@ function ReferrerModal({ categories, onClose, onSaved }: { categories: any[], on
               <input type="text" value={formData.password} onChange={e => setFormData({...formData, password: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
             </div>
           </div>
-          <div>
-            <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Category</label>
-            <select value={formData.categoryId} onChange={e => setFormData({...formData, categoryId: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white' }}>
-              <option value="">Select Category...</option>
-              {categories.map(cat => (
-                <option key={cat.id} value={cat.id}>{cat.name}</option>
-              ))}
-            </select>
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>State</label>
+              <select value={formData.state} onChange={e => setFormData({...formData, state: e.target.value, district: ''})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white' }}>
+                <option value="">Select State...</option>
+                {states.map((s: any) => (
+                  <option key={s.id} value={s.name}>{s.name}</option>
+                ))}
+              </select>
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>District</label>
+              <select value={formData.district} onChange={e => setFormData({...formData, district: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white' }} disabled={!formData.state}>
+                <option value="">Select District...</option>
+                {states.find((s: any) => s.name === formData.state)?.districts?.map((d: any) => (
+                  <option key={d.id} value={d.name}>{d.name}</option>
+                ))}
+              </select>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '16px' }}>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Pincode</label>
+              <input type="text" value={formData.pincode} onChange={e => setFormData({...formData, pincode: e.target.value})} placeholder="e.g. 500081" required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+            </div>
+            <div style={{ flex: 1 }}>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600 }}>Category</label>
+              <select value={formData.categoryId} onChange={e => setFormData({...formData, categoryId: e.target.value})} required style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white' }}>
+                <option value="">Select Category...</option>
+                {categories.map(cat => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+            </div>
           </div>
           <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', marginTop: '8px' }}>
             <button type="button" onClick={onClose} style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white', cursor: 'pointer' }}>Cancel</button>
