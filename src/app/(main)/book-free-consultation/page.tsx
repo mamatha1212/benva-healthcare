@@ -226,7 +226,7 @@ export default function BookFreeConsultationPage() {
               {/* Location Details */}
               <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', margin: '12px 0 0 0', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>Location Details</h3>
               <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                <div style={{ flex: '1 1 120px' }}>
+                <div style={{ flex: '1 1 120px', minWidth: '120px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>State *</label>
                   <select 
                     value={formData.state} 
@@ -240,7 +240,7 @@ export default function BookFreeConsultationPage() {
                     ))}
                   </select>
                 </div>
-                <div style={{ flex: '1 1 120px' }}>
+                <div style={{ flex: '1 1 120px', minWidth: '120px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>District *</label>
                   <select 
                     value={formData.district} 
@@ -255,7 +255,7 @@ export default function BookFreeConsultationPage() {
                     ))}
                   </select>
                 </div>
-                <div style={{ flex: '2 1 250px' }}>
+                <div style={{ flex: '2 1 250px', minWidth: '250px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Pincode *</label>
                   <input type="text" value={formData.pincode} onChange={e => setFormData({...formData, pincode: e.target.value})} required style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
                 </div>
