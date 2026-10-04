@@ -152,23 +152,23 @@ export default function BookFreeConsultationPage() {
             <p style={{ color: '#64748b', marginBottom: '24px' }}>Please enter your mobile number to verify your corporate enrollment.</p>
             
             {!employeeData ? (
-              <form onSubmit={handleVerify} style={{ display: 'flex', gap: '12px' }}>
+              <form onSubmit={handleVerify} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 <input 
                   type="text" 
                   placeholder="Enter 10-digit mobile number" 
                   value={phoneToVerify} 
                   onChange={e => setPhoneToVerify(e.target.value)}
-                  style={{ flex: 1, padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', fontSize: '16px' }}
+                  style={{ flex: '1 1 200px', padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', fontSize: '16px' }}
                   required
                 />
-                <button type="submit" disabled={verifying} style={{ padding: '12px 24px', background: '#2563eb', color: 'white', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>
+                <button type="submit" disabled={verifying} style={{ flex: '1 1 120px', padding: '12px 24px', background: '#2563eb', color: 'white', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>
                   {verifying ? 'Verifying...' : 'Verify'}
                 </button>
               </form>
             ) : (
               <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
                 <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', marginBottom: '16px' }}>Details Found</h3>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', marginBottom: '24px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '16px', marginBottom: '24px' }}>
                   <div>
                     <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Name</div>
                     <div style={{ fontSize: '16px', color: '#0f172a', fontWeight: 500 }}>{employeeData.name}</div>
@@ -186,9 +186,9 @@ export default function BookFreeConsultationPage() {
                     <div style={{ fontSize: '16px', color: '#0f172a', fontWeight: 500 }}>{employeeData.email || 'N/A'}</div>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <button onClick={() => setCorporateConfirmed(true)} style={{ flex: 1, padding: '12px', background: '#10b981', color: 'white', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Yes, this is me</button>
-                  <button onClick={() => setEmployeeData(null)} style={{ flex: 1, padding: '12px', background: 'white', color: '#475569', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 600, cursor: 'pointer' }}>No, try another number</button>
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  <button onClick={() => setCorporateConfirmed(true)} style={{ flex: '1 1 200px', padding: '12px', background: '#10b981', color: 'white', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Yes, this is me</button>
+                  <button onClick={() => setEmployeeData(null)} style={{ flex: '1 1 200px', padding: '12px', background: 'white', color: '#475569', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 600, cursor: 'pointer' }}>No, try another number</button>
                 </div>
               </div>
             )}
@@ -207,7 +207,7 @@ export default function BookFreeConsultationPage() {
             
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
               {/* Personal Details */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
                 <div>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Full Name *</label>
                   <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required disabled={type === 'CORPORATE'} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', background: type === 'CORPORATE' ? '#f1f5f9' : 'white' }} />
@@ -225,7 +225,7 @@ export default function BookFreeConsultationPage() {
 
               {/* Location Details */}
               <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', margin: '12px 0 0 0', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>Location Details</h3>
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '20px' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: '20px' }}>
                 <div>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>State *</label>
                   <select 
