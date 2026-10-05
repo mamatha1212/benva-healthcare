@@ -112,7 +112,7 @@ export default function HeroVariant4() {
           </div>
 
           <div className={styles.buttonsContainer}>
-            <Link href="/health-packages" className={styles.btnAction}>
+            <Link href="https://www.benvahealthcare.in/health-packages#packages-" className={styles.btnAction}>
               <div className={styles.btnIcon}>
                 <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M14 6L2 18" />
