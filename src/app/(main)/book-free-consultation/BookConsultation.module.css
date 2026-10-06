@@ -335,8 +335,8 @@
 
 .detailsGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 20px;
+  grid-template-columns: 1fr 1fr;
+  gap: 24px;
   margin-bottom: 25px;
 }
 
@@ -344,6 +344,11 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
+  background: white;
+  padding: 16px;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .detailLabel {
@@ -355,10 +360,11 @@
 }
 
 .detailValue {
-  font-size: 1rem;
+  font-size: 1.05rem;
   color: #0f172a;
   font-weight: 600;
-  word-break: break-all;
+  overflow-wrap: break-word;
+  word-wrap: break-word;
 }
 
 .actionRow {
