@@ -128,12 +128,26 @@ export default function BookFreeConsultationPage() {
 
   if (success) {
     return (
-      <div className={styles.pageContainer} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className={styles.successCard}>
+      <div className={styles.pageContainer} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
+        <div className={styles.successCard} style={{ maxWidth: '600px', margin: '40px auto', padding: '50px 30px' }}>
           <div className={styles.successIcon}>✓</div>
-          <h2 className={styles.successTitle}>Request Submitted Successfully!</h2>
-          <p className={styles.successDesc}>Thank you for requesting a free consultation. Our team will review your details and contact you shortly to schedule your session.</p>
-          <button onClick={() => window.location.href = '/'} className={styles.btnPrimary}>Return to Home</button>
+          <h2 className={styles.successTitle} style={{ color: '#00509e', fontSize: '2rem' }}>Request Submitted Successfully!</h2>
+          
+          <div style={{ background: '#f0f9ff', padding: '30px', borderRadius: '16px', margin: '30px 0', border: '2px dashed #38bdf8' }}>
+            <h3 style={{ fontSize: '1.4rem', color: '#0f172a', marginBottom: '15px' }}>Next Step: Book Your Free Tele-Consultation</h3>
+            <p style={{ fontSize: '1.1rem', color: '#334155', marginBottom: '25px', lineHeight: '1.6' }}>
+              Please call Benva Support now to book your appointment slot for the free tele-consultation.
+            </p>
+            <div style={{ display: 'inline-block', background: '#0284c7', color: 'white', padding: '16px 32px', borderRadius: '50px', fontSize: '1.8rem', fontWeight: '800', letterSpacing: '1px', boxShadow: '0 10px 25px rgba(2, 132, 199, 0.4)', transition: 'transform 0.2s' }}>
+              <a href="tel:+919111145556" style={{ color: 'white', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                +91 91111 45556
+              </a>
+            </div>
+          </div>
+
+          <p className={styles.successDesc} style={{ fontSize: '1.1rem' }}>Thank you for choosing Benva Healthcare. We look forward to assisting you.</p>
+          <button onClick={() => window.location.href = '/'} className={styles.btnSecondary} style={{ width: '100%', marginTop: '10px' }}>Return to Home</button>
         </div>
       </div>
     );
