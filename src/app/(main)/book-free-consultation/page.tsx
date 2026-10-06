@@ -262,7 +262,7 @@ export default function BookFreeConsultationPage() {
 
               {/* Location Details */}
               <h3 className={styles.sectionTitle}>Location Details</h3>
-              <div className={styles.grid3}>
+              <div className={styles.grid2}>
                 <div className={styles.inputGroup}>
                   <label className={styles.label}>State *</label>
                   <select 
@@ -292,31 +292,32 @@ export default function BookFreeConsultationPage() {
                     ))}
                   </select>
                 </div>
-                <div className={styles.inputGroup}>
-                  <label className={styles.label}>Service Area Pincode *</label>
-                  <select 
-                    value={formData.pincode} 
-                    onChange={e => setFormData({...formData, pincode: e.target.value})} 
-                    required 
-                    disabled={!formData.district || loadingPincodes}
-                    className={`${styles.input} ${styles.select}`}
-                  >
-                    <option value="">
-                      {!formData.district 
-                        ? 'Select district first' 
-                        : loadingPincodes 
-                          ? 'Loading pincodes...' 
-                          : districtPincodes.length === 0 
-                            ? 'No pincodes found' 
-                            : 'Select Pincode'}
+              </div>
+              
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Service Area Pincode *</label>
+                <select 
+                  value={formData.pincode} 
+                  onChange={e => setFormData({...formData, pincode: e.target.value})} 
+                  required 
+                  disabled={!formData.district || loadingPincodes}
+                  className={`${styles.input} ${styles.select}`}
+                >
+                  <option value="">
+                    {!formData.district 
+                      ? 'Select district first' 
+                      : loadingPincodes 
+                        ? 'Loading pincodes...' 
+                        : districtPincodes.length === 0 
+                          ? 'No pincodes found' 
+                          : 'Select Pincode'}
+                  </option>
+                  {districtPincodes.map((pin, idx) => (
+                    <option key={idx} value={pin.pincode}>
+                      {pin.pincode} - {pin.officeName}
                     </option>
-                    {districtPincodes.map((pin, idx) => (
-                      <option key={idx} value={pin.pincode}>
-                        {pin.pincode} - {pin.officeName}
-                      </option>
-                    ))}
-                  </select>
-                </div>
+                  ))}
+                </select>
               </div>
 
               {/* Medical Details */}
