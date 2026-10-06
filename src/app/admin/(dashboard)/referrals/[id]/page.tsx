@@ -19,10 +19,8 @@ export default async function ReferralHistoryPage({ params }: { params: Promise<
     return notFound();
   }
 
-  // We need services for the TransactionModal if they edit
-  const services = await prisma.service.findMany({
-    orderBy: { type: 'asc' }
-  });
+  // Service model does not exist in Prisma schema
+  const services: any[] = [];
 
   return (
     <div style={{ padding: '24px', maxWidth: '1200px', margin: '0 auto' }}>
