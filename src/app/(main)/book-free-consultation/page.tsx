@@ -19,8 +19,12 @@ export default function BookFreeConsultationPage() {
   // Locations State
   const [locations, setLocations] = useState<any[]>([]);
   const [availableDistricts, setAvailableDistricts] = useState<any[]>([]);
-  const [districtPincodes, setDistrictPincodes] = useState<{pincode: string, officeName: string}[]>([]);
-  const [loadingPincodes, setLoadingPincodes] = useState(false);
+
+  // Pincode Flow State
+  const [isCheckingArea, setIsCheckingArea] = useState(false);
+  const [availableAreas, setAvailableAreas] = useState<any[]>([]);
+  const [showAreaSelect, setShowAreaSelect] = useState(false);
+  const [checkAreaMessage, setCheckAreaMessage] = useState('');
 
   useEffect(() => {
     getLocationsHierarchy().then(data => {
@@ -36,6 +40,7 @@ export default function BookFreeConsultationPage() {
     state: '',
     district: '',
     pincode: '',
+    selectedOffice: '',
     problem: '',
     previousMedication: '',
     reportUrl: ''
@@ -46,22 +51,55 @@ export default function BookFreeConsultationPage() {
     const selectedStateName = e.target.value;
     const selectedState = locations.find(s => s.name === selectedStateName);
     setAvailableDistricts(selectedState ? selectedState.districts : []);
-    setFormData({ ...formData, state: selectedStateName, district: '', pincode: '' });
-    setDistrictPincodes([]);
+    setFormData({ ...formData, state: selectedStateName, district: '', pincode: '', selectedOffice: '' });
+    setAvailableAreas([]);
+    setShowAreaSelect(false);
+    setCheckAreaMessage('');
   };
 
   // Handle district change
-  const handleDistrictChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+  const handleDistrictChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     const districtName = e.target.value;
-    setFormData({ ...formData, district: districtName, pincode: '' });
-    if (districtName) {
-      setLoadingPincodes(true);
-      const pins = await getPincodesForDistrict(districtName);
-      setDistrictPincodes(pins);
-      setLoadingPincodes(false);
-    } else {
-      setDistrictPincodes([]);
+    setFormData({ ...formData, district: districtName, pincode: '', selectedOffice: '' });
+    setAvailableAreas([]);
+    setShowAreaSelect(false);
+    setCheckAreaMessage('');
+  };
+
+  const handleCheckPincode = async () => {
+    if (!formData.pincode || formData.pincode.length < 6) {
+      setCheckAreaMessage('Please enter a valid 6-digit pincode');
+      return;
     }
+    
+    setIsCheckingArea(true);
+    setCheckAreaMessage('');
+    setAvailableAreas([]);
+    setShowAreaSelect(false);
+
+    try {
+      const res = await fetch(`/api/admin/service-locations/check?pincode=${formData.pincode}`);
+      const data = await res.json();
+      
+      if (res.ok && data.locations && data.locations.length > 0) {
+        setAvailableAreas(data.locations);
+        setShowAreaSelect(true);
+      } else {
+        setCheckAreaMessage('No service areas found for this pincode. Please try another.');
+      }
+    } catch (e) {
+      setCheckAreaMessage('Failed to check availability. Please try again.');
+    } finally {
+      setIsCheckingArea(false);
+    }
+  };
+
+  const selectArea = (loc: any) => {
+    setFormData(prev => ({
+      ...prev,
+      selectedOffice: loc.officeName || ''
+    }));
+    setShowAreaSelect(false);
   };
   
   const [submitting, setSubmitting] = useState(false);
@@ -100,6 +138,12 @@ export default function BookFreeConsultationPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!formData.selectedOffice) {
+      alert("Please click 'Check' and select a service area for your pincode.");
+      return;
+    }
+
     setSubmitting(true);
     
     const submitData = {
@@ -310,30 +354,64 @@ export default function BookFreeConsultationPage() {
               </div>
               
               <div className={styles.inputGroup}>
-                <label className={styles.label}>Service Area Pincode *</label>
-                <select 
-                  value={formData.pincode} 
-                  onChange={e => setFormData({...formData, pincode: e.target.value})} 
-                  required 
-                  disabled={!formData.district || loadingPincodes}
-                  className={`${styles.input} ${styles.select}`}
-                >
-                  <option value="">
-                    {!formData.district 
-                      ? 'Select district first' 
-                      : loadingPincodes 
-                        ? 'Loading pincodes...' 
-                        : districtPincodes.length === 0 
-                          ? 'No pincodes found' 
-                          : 'Select Pincode'}
-                  </option>
-                  {districtPincodes.map((pin, idx) => (
-                    <option key={idx} value={pin.pincode}>
-                      {pin.pincode} - {pin.officeName}
-                    </option>
-                  ))}
-                </select>
+                <label className={styles.label}>Pincode *</label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input 
+                    type="text" 
+                    name="pincode" 
+                    placeholder="e.g. 533005" 
+                    value={formData.pincode} 
+                    onChange={e => setFormData({...formData, pincode: e.target.value, selectedOffice: ''})} 
+                    className={styles.input} 
+                    maxLength={6} 
+                  />
+                  <button 
+                    type="button" 
+                    onClick={handleCheckPincode} 
+                    disabled={isCheckingArea || formData.pincode.length !== 6} 
+                    className={styles.btnPrimary} 
+                    style={{ width: 'auto', padding: '0 24px', margin: 0 }}
+                  >
+                    {isCheckingArea ? '...' : 'Check'}
+                  </button>
+                </div>
+                
+                {formData.selectedOffice && (
+                  <div style={{ marginTop: '10px', padding: '10px 14px', background: '#ecfdf5', border: '1.5px solid #10b981', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="#10b981" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                    <div>
+                      <div style={{ fontSize: '11px', color: '#065f46', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Selected Area</div>
+                      <div style={{ fontSize: '14px', color: '#047857', fontWeight: 700 }}>{formData.selectedOffice}</div>
+                    </div>
+                  </div>
+                )}
+                {checkAreaMessage && !formData.selectedOffice && (
+                  <span style={{ color: checkAreaMessage.includes('Sorry') ? '#ef4444' : '#10b981', fontSize: '13px', display: 'block', marginTop: '6px' }}>{checkAreaMessage}</span>
+                )}
               </div>
+
+              {showAreaSelect && (
+                <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '16px', marginBottom: '24px' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: '#334155', marginBottom: '12px' }}>Serviceability</div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto' }}>
+                    {availableAreas.map((loc) => (
+                      <div key={loc.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '12px' }}>
+                        <div>
+                          <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '14px' }}>{loc.officeName}</div>
+                          <div style={{ fontSize: '12px', color: '#64748b' }}>{loc.type} • {loc.area} Area</div>
+                        </div>
+                        <button 
+                          type="button" 
+                          onClick={() => selectArea(loc)}
+                          style={{ padding: '6px 12px', background: '#e0e7ff', color: '#4338ca', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
+                        >
+                          Select
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
 
               {/* Medical Details */}
               <h3 className={styles.sectionTitle}>Medical Details</h3>
