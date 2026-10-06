@@ -1,6 +1,8 @@
 import { prisma } from '@/lib/prisma';
 import FreeConsultationsClient from './FreeConsultationsClient';
 
+export const dynamic = 'force-dynamic';
+
 export default async function FreeConsultationsPage() {
   const requests = await prisma.freeConsultationRequest.findMany({
     orderBy: { createdAt: 'desc' }

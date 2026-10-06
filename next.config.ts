@@ -21,6 +21,7 @@ const nextConfig: NextConfig = {
       bodySizeLimit: '35mb',
     },
   },
+  turbopack: {},
 };
 
 export default withPWA(nextConfig);

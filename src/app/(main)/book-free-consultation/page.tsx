@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getLocationsHierarchy } from '@/components/DoorstepSection/actions';
+import styles from './BookConsultation.module.css';
 
 export default function BookFreeConsultationPage() {
   const [type, setType] = useState<'NONE' | 'GENERAL' | 'CORPORATE'>('NONE');
@@ -109,130 +110,148 @@ export default function BookFreeConsultationPage() {
 
   if (success) {
     return (
-      <div style={{ minHeight: '80vh', display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#f8fafc', padding: '24px' }}>
-        <div style={{ background: 'white', padding: '48px', borderRadius: '16px', textAlign: 'center', maxWidth: '500px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
-          <div style={{ width: '64px', height: '64px', background: '#dcfce7', color: '#16a34a', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '32px', margin: '0 auto 24px auto' }}>✓</div>
-          <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#0f172a', marginBottom: '16px' }}>Request Submitted Successfully!</h2>
-          <p style={{ color: '#475569', marginBottom: '32px', lineHeight: 1.6 }}>Thank you for requesting a free consultation. Our team will review your details and contact you shortly to schedule your session.</p>
-          <button onClick={() => window.location.href = '/'} style={{ padding: '12px 24px', background: '#2563eb', color: 'white', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Return to Home</button>
+      <div className={styles.pageContainer} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+        <div className={styles.successCard}>
+          <div className={styles.successIcon}>✓</div>
+          <h2 className={styles.successTitle}>Request Submitted Successfully!</h2>
+          <p className={styles.successDesc}>Thank you for requesting a free consultation. Our team will review your details and contact you shortly to schedule your session.</p>
+          <button onClick={() => window.location.href = '/'} className={styles.btnPrimary}>Return to Home</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div style={{ minHeight: '100vh', background: '#f8fafc', padding: '48px 24px' }}>
-      <div style={{ maxWidth: '800px', margin: '0 auto' }}>
-        <div style={{ textAlign: 'center', marginBottom: '40px' }}>
-          <h1 style={{ fontSize: '36px', fontWeight: 800, color: '#0f172a', marginBottom: '12px' }}>Book Your Free Consultation</h1>
-          <p style={{ fontSize: '16px', color: '#64748b' }}>Please select your path to proceed with your booking.</p>
+    <div className={styles.pageContainer}>
+      {/* ── Header ── */}
+      <header className={styles.header}>
+        <div className={styles.headerContent}>
+          <div className={styles.badge}>Expert Medical Consultation</div>
+          <h1 className={styles.mainTitle}>Book Your Free Consultation</h1>
+          <p className={styles.mainSubtitle}>Select your path below to get personalized care and connect with our health experts today.</p>
         </div>
+      </header>
 
+      <main className={styles.mainContent}>
         {type === 'NONE' && (
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px' }}>
-            <div onClick={() => setType('GENERAL')} style={{ background: 'white', padding: '32px', borderRadius: '16px', border: '2px solid transparent', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', cursor: 'pointer', transition: 'all 0.2s', textAlign: 'center' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>👥</div>
-              <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a', marginBottom: '8px' }}>General Public</h3>
-              <p style={{ color: '#64748b', fontSize: '14px' }}>I am booking as an individual seeking general consultation.</p>
+          <div className={styles.cardContainer}>
+            <div onClick={() => setType('GENERAL')} className={`${styles.selectionCard} ${styles.general}`}>
+              <div className={styles.iconWrapper}>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="9" cy="7" r="4"></circle><path d="M23 21v-2a4 4 0 0 0-3-3.87"></path><path d="M16 3.13a4 4 0 0 1 0 7.75"></path></svg>
+              </div>
+              <h3 className={styles.cardTitle}>General Public</h3>
+              <p className={styles.cardDesc}>I am booking as an individual seeking general consultation.</p>
             </div>
             
-            <div onClick={() => setType('CORPORATE')} style={{ background: 'white', padding: '32px', borderRadius: '16px', border: '2px solid #2563eb', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)', cursor: 'pointer', transition: 'all 0.2s', textAlign: 'center' }}>
-              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🏢</div>
-              <h3 style={{ fontSize: '20px', fontWeight: 700, color: '#2563eb', marginBottom: '8px' }}>Corporate Plan</h3>
-              <p style={{ color: '#64748b', fontSize: '14px' }}>My company is enrolled in Benva Healthcare corporate program.</p>
+            <div onClick={() => setType('CORPORATE')} className={`${styles.selectionCard} ${styles.corporate}`}>
+              <div className={styles.iconWrapper}>
+                <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><path d="M9 22v-4h6v4"></path><path d="M8 6h.01"></path><path d="M16 6h.01"></path><path d="M12 6h.01"></path><path d="M12 10h.01"></path><path d="M12 14h.01"></path><path d="M16 10h.01"></path><path d="M16 14h.01"></path><path d="M8 10h.01"></path><path d="M8 14h.01"></path></svg>
+              </div>
+              <h3 className={styles.cardTitle}>Corporate Plan</h3>
+              <p className={styles.cardDesc}>My company is enrolled in Benva Healthcare corporate program.</p>
             </div>
           </div>
         )}
 
         {type === 'CORPORATE' && !corporateConfirmed && (
-          <div style={{ background: 'white', padding: '32px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
-            <button onClick={() => { setType('NONE'); setEmployeeData(null); setVerifyError(''); }} style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', marginBottom: '24px', fontWeight: 600 }}>&larr; Back to Selection</button>
+          <div className={styles.formContainer}>
+            <button onClick={() => { setType('NONE'); setEmployeeData(null); setVerifyError(''); }} className={styles.backBtn}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+              Back to Selection
+            </button>
             
-            <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#0f172a', marginBottom: '8px' }}>Corporate Verification</h2>
-            <p style={{ color: '#64748b', marginBottom: '24px' }}>Please enter your mobile number to verify your corporate enrollment.</p>
+            <h2 className={styles.formTitle}>Corporate Verification</h2>
+            <p className={styles.formDesc}>Please enter your mobile number to verify your corporate enrollment.</p>
             
             {!employeeData ? (
-              <form onSubmit={handleVerify} style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                <input 
-                  type="text" 
-                  placeholder="Enter 10-digit mobile number" 
-                  value={phoneToVerify} 
-                  onChange={e => setPhoneToVerify(e.target.value)}
-                  style={{ flex: '1 1 200px', padding: '12px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', fontSize: '16px' }}
-                  required
-                />
-                <button type="submit" disabled={verifying} style={{ flex: '1 1 120px', padding: '12px 24px', background: '#2563eb', color: 'white', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>
-                  {verifying ? 'Verifying...' : 'Verify'}
-                </button>
+              <form onSubmit={handleVerify}>
+                <div className={styles.verifyRow}>
+                  <div className={styles.inputGroup} style={{ marginBottom: 0 }}>
+                    <input 
+                      type="text" 
+                      placeholder="Enter 10-digit mobile number" 
+                      value={phoneToVerify} 
+                      onChange={e => setPhoneToVerify(e.target.value)}
+                      className={styles.input}
+                      required
+                    />
+                  </div>
+                  <button type="submit" disabled={verifying} className={styles.btnPrimary}>
+                    {verifying ? 'Verifying...' : 'Verify'}
+                  </button>
+                </div>
               </form>
             ) : (
-              <div style={{ background: '#f8fafc', padding: '24px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
-                <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', marginBottom: '16px' }}>Details Found</h3>
-                <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', marginBottom: '24px' }}>
-                  <div style={{ flex: '1 1 120px' }}>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Name</div>
-                    <div style={{ fontSize: '16px', color: '#0f172a', fontWeight: 500 }}>{employeeData.name}</div>
+              <div className={styles.detailsCard}>
+                <h3>Details Found</h3>
+                <div className={styles.detailsGrid}>
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Name</span>
+                    <span className={styles.detailValue}>{employeeData.name}</span>
                   </div>
-                  <div style={{ flex: '1 1 120px' }}>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Organization</div>
-                    <div style={{ fontSize: '16px', color: '#0f172a', fontWeight: 500 }}>{employeeData.organization?.companyName}</div>
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Organization</span>
+                    <span className={styles.detailValue}>{employeeData.organization?.companyName}</span>
                   </div>
-                  <div style={{ flex: '1 1 120px' }}>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Phone</div>
-                    <div style={{ fontSize: '16px', color: '#0f172a', fontWeight: 500 }}>{employeeData.phone}</div>
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Phone</span>
+                    <span className={styles.detailValue}>{employeeData.phone}</span>
                   </div>
-                  <div style={{ flex: '1 1 120px' }}>
-                    <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Email</div>
-                    <div style={{ fontSize: '16px', color: '#0f172a', fontWeight: 500, wordBreak: 'break-all' }}>{employeeData.email || 'N/A'}</div>
+                  <div className={styles.detailItem}>
+                    <span className={styles.detailLabel}>Email</span>
+                    <span className={styles.detailValue}>{employeeData.email || 'N/A'}</span>
                   </div>
                 </div>
-                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                  <button onClick={() => setCorporateConfirmed(true)} style={{ flex: '1 1 200px', padding: '12px', background: '#10b981', color: 'white', borderRadius: '8px', border: 'none', fontWeight: 600, cursor: 'pointer' }}>Yes, this is me</button>
-                  <button onClick={() => setEmployeeData(null)} style={{ flex: '1 1 200px', padding: '12px', background: 'white', color: '#475569', borderRadius: '8px', border: '1px solid #cbd5e1', fontWeight: 600, cursor: 'pointer' }}>No, try another number</button>
+                <div className={styles.actionRow}>
+                  <button onClick={() => setCorporateConfirmed(true)} className={styles.btnSuccess}>Yes, this is me</button>
+                  <button onClick={() => setEmployeeData(null)} className={styles.btnSecondary}>No, try another number</button>
                 </div>
               </div>
             )}
             
-            {verifyError && <div style={{ color: '#ef4444', marginTop: '16px', fontSize: '14px', background: '#fef2f2', padding: '12px', borderRadius: '8px' }}>{verifyError}</div>}
+            {verifyError && <div className={styles.errorMsg}>{verifyError}</div>}
           </div>
         )}
 
         {((type === 'GENERAL') || (type === 'CORPORATE' && corporateConfirmed)) && (
-          <div style={{ background: 'white', padding: '32px', borderRadius: '16px', boxShadow: '0 4px 6px -1px rgba(0,0,0,0.1)' }}>
-            <button onClick={() => { setType('NONE'); setCorporateConfirmed(false); setEmployeeData(null); }} style={{ background: 'transparent', border: 'none', color: '#64748b', cursor: 'pointer', marginBottom: '24px', fontWeight: 600 }}>&larr; Start Over</button>
+          <div className={styles.formContainer}>
+            <button onClick={() => { setType('NONE'); setCorporateConfirmed(false); setEmployeeData(null); }} className={styles.backBtn}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
+              Start Over
+            </button>
             
-            <h2 style={{ fontSize: '24px', fontWeight: 700, color: '#0f172a', marginBottom: '24px' }}>
+            <h2 className={styles.formTitle}>
               {type === 'CORPORATE' ? 'Complete Your Consultation Request' : 'General Consultation Request'}
             </h2>
             
-            <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <form onSubmit={handleSubmit}>
               {/* Personal Details */}
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '20px' }}>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Full Name *</label>
-                  <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required disabled={type === 'CORPORATE'} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', background: type === 'CORPORATE' ? '#f1f5f9' : 'white' }} />
+              <div className={styles.grid2}>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Full Name *</label>
+                  <input type="text" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} required disabled={type === 'CORPORATE'} className={styles.input} />
                 </div>
-                <div>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Mobile Number *</label>
-                  <input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} required disabled={type === 'CORPORATE'} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', background: type === 'CORPORATE' ? '#f1f5f9' : 'white' }} />
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Mobile Number *</label>
+                  <input type="text" value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} required disabled={type === 'CORPORATE'} className={styles.input} />
                 </div>
               </div>
               
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Email Address</label>
-                <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} disabled={type === 'CORPORATE' && !!employeeData?.email} style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', background: (type === 'CORPORATE' && !!employeeData?.email) ? '#f1f5f9' : 'white' }} />
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Email Address</label>
+                <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} disabled={type === 'CORPORATE' && !!employeeData?.email} className={styles.input} />
               </div>
 
               {/* Location Details */}
-              <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', margin: '12px 0 0 0', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>Location Details</h3>
-              <div style={{ display: 'flex', gap: '20px', flexWrap: 'wrap' }}>
-                <div style={{ flex: '1 1 calc(50% - 10px)', minWidth: '100px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>State *</label>
+              <h3 className={styles.sectionTitle}>Location Details</h3>
+              <div className={styles.grid3}>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>State *</label>
                   <select 
                     value={formData.state} 
                     onChange={handleStateChange} 
                     required 
-                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', background: 'white', appearance: 'auto' }}
+                    className={`${styles.input} ${styles.select}`}
                   >
                     <option value="">Select State</option>
                     {locations.map(state => (
@@ -240,14 +259,14 @@ export default function BookFreeConsultationPage() {
                     ))}
                   </select>
                 </div>
-                <div style={{ flex: '1 1 calc(50% - 10px)', minWidth: '100px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>District *</label>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>District *</label>
                   <select 
                     value={formData.district} 
                     onChange={e => setFormData({...formData, district: e.target.value})} 
                     required 
                     disabled={!formData.state}
-                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', background: !formData.state ? '#f1f5f9' : 'white', appearance: 'auto' }}
+                    className={`${styles.input} ${styles.select}`}
                   >
                     <option value="">Select District</option>
                     {availableDistricts.map(district => (
@@ -255,42 +274,43 @@ export default function BookFreeConsultationPage() {
                     ))}
                   </select>
                 </div>
-                <div style={{ flex: '1 1 100%', minWidth: '200px' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Pincode *</label>
-                  <input type="text" value={formData.pincode} onChange={e => setFormData({...formData, pincode: e.target.value})} required style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Pincode *</label>
+                  <input type="text" value={formData.pincode} onChange={e => setFormData({...formData, pincode: e.target.value})} required className={styles.input} />
                 </div>
               </div>
 
               {/* Medical Details */}
-              <h3 style={{ fontSize: '18px', fontWeight: 700, color: '#0f172a', margin: '12px 0 0 0', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>Medical Details</h3>
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Primary Problem / Issue *</label>
-                <textarea rows={3} value={formData.problem} onChange={e => setFormData({...formData, problem: e.target.value})} required placeholder="Please describe your health issue briefly..." style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}></textarea>
+              <h3 className={styles.sectionTitle}>Medical Details</h3>
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Primary Problem / Issue *</label>
+                <textarea rows={3} value={formData.problem} onChange={e => setFormData({...formData, problem: e.target.value})} required placeholder="Please describe your health issue briefly..." className={`${styles.input} ${styles.textarea}`}></textarea>
               </div>
               
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Previous Medication (Optional)</label>
-                <textarea rows={2} value={formData.previousMedication} onChange={e => setFormData({...formData, previousMedication: e.target.value})} placeholder="List any medications you are currently taking..." style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', resize: 'vertical', fontFamily: 'inherit' }}></textarea>
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Previous Medication (Optional)</label>
+                <textarea rows={2} value={formData.previousMedication} onChange={e => setFormData({...formData, previousMedication: e.target.value})} placeholder="List any medications you are currently taking..." className={`${styles.input} ${styles.textarea}`}></textarea>
               </div>
 
-              <div>
-                <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Medical Reports (Optional)</label>
-                <div style={{ padding: '24px', border: '2px dashed #cbd5e1', borderRadius: '8px', textAlign: 'center', background: '#f8fafc' }}>
+              <div className={styles.inputGroup}>
+                <label className={styles.label}>Medical Reports (Optional)</label>
+                <div className={styles.fileUpload}>
                   <input type="file" id="reportFile" style={{ display: 'none' }} />
-                  <label htmlFor="reportFile" style={{ display: 'inline-block', padding: '10px 20px', background: 'white', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, color: '#475569' }}>Choose File</label>
-                  <p style={{ margin: '8px 0 0 0', fontSize: '12px', color: '#94a3b8' }}>Upload PDF, JPG, or PNG (Max 5MB)</p>
+                  <label htmlFor="reportFile" className={styles.fileUploadLabel}>Choose File</label>
+                  <p style={{ margin: '10px 0 0 0', fontSize: '13px', color: '#94a3b8' }}>Upload PDF, JPG, or PNG (Max 5MB)</p>
                 </div>
               </div>
 
-              <div style={{ marginTop: '24px', borderTop: '1px solid #e2e8f0', paddingTop: '24px' }}>
-                <button type="submit" disabled={submitting} style={{ width: '100%', padding: '16px', background: '#2563eb', color: 'white', borderRadius: '8px', border: 'none', fontWeight: 700, fontSize: '16px', cursor: 'pointer', boxShadow: '0 4px 6px -1px rgba(37,99,235,0.3)' }}>
+              <div style={{ marginTop: '30px' }}>
+                <button type="submit" disabled={submitting} className={styles.btnPrimary}>
                   {submitting ? 'Submitting Request...' : 'Submit Request'}
                 </button>
               </div>
             </form>
           </div>
         )}
-      </div>
+      </main>
     </div>
   );
 }
+
