@@ -173,35 +173,66 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
 
       {viewingRequest && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '600px', color: '#0f172a', maxHeight: '90vh', overflowY: 'auto' }}>
+          <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '600px', color: '#0f172a', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 style={{ margin: 0, fontSize: '20px' }}>Consultation Request Details</h2>
               <button onClick={() => setViewingRequest(null)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#64748b' }}>&times;</button>
             </div>
             
-            <div style={{ display: 'grid', gap: '16px' }}>
-              <div>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Patient Info</div>
-                <div style={{ fontSize: '16px', fontWeight: 500 }}>{viewingRequest.name}</div>
-                <div>{viewingRequest.phone} | {viewingRequest.email}</div>
+            <div id="patient-details-pdf" style={{ display: 'grid', gap: '16px', padding: '16px', background: 'white' }}>
+              <div style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '16px', marginBottom: '8px' }}>
+                <div style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}>{viewingRequest.name}</div>
+                <div style={{ fontSize: '14px', color: '#475569', marginBottom: '8px' }}>{viewingRequest.phone} | {viewingRequest.email || 'No Email provided'}</div>
+                <div style={{ fontSize: '14px', fontWeight: 600, color: '#2563eb', display: 'flex', gap: '12px' }}>
+                  <span>Date: {new Date(viewingRequest.createdAt).toLocaleDateString()}</span>
+                  <span>Type: {viewingRequest.type}</span>
+                </div>
               </div>
               
               <div>
                 <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Location</div>
-                <div>{viewingRequest.district}, {viewingRequest.state} - {viewingRequest.pincode}</div>
+                <div style={{ fontSize: '15px' }}>{viewingRequest.district}, {viewingRequest.state} - {viewingRequest.pincode}</div>
               </div>
 
+              {viewingRequest.type === 'CORPORATE' && (
+                <div>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase' }}>Corporate Organization</div>
+                  <div style={{ fontSize: '15px' }}>{viewingRequest.organizationName}</div>
+                </div>
+              )}
+
               <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>Primary Problem</div>
-                <div style={{ whiteSpace: 'pre-wrap' }}>{viewingRequest.problem}</div>
+                <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', marginBottom: '8px' }}>Primary Problem</div>
+                <div style={{ whiteSpace: 'pre-wrap', fontSize: '15px', lineHeight: '1.5' }}>{viewingRequest.problem}</div>
               </div>
 
               {viewingRequest.previousMedication && (
                 <div style={{ background: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>Previous Medication</div>
-                  <div style={{ whiteSpace: 'pre-wrap' }}>{viewingRequest.previousMedication}</div>
+                  <div style={{ fontSize: '12px', fontWeight: 600, color: '#64748b', textTransform: 'uppercase', marginBottom: '8px' }}>Previous Medication</div>
+                  <div style={{ whiteSpace: 'pre-wrap', fontSize: '15px', lineHeight: '1.5' }}>{viewingRequest.previousMedication}</div>
                 </div>
               )}
+            </div>
+            
+            <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button 
+                onClick={() => {
+                  const element = document.getElementById('patient-details-pdf');
+                  if (!element) return;
+                  const opt = {
+                    margin:       0.5,
+                    filename:     `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`,
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2 },
+                    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
+                  };
+                  html2pdf().set(opt).from(element).save();
+                }}
+                style={{ padding: '10px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+                Download Patient Details PDF
+              </button>
             </div>
           </div>
         </div>
