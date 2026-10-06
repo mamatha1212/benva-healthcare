@@ -35,24 +35,25 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
   const [toDate, setToDate] = useState('');
   const [typeFilter, setTypeFilter] = useState('ALL');
 
+  // Helper: convert any date to local "YYYY-MM-DD" string (timezone-safe)
+  const toLocalDateStr = (date: Date) => {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
+  };
+
   const filteredRequests = requests.filter(req => {
-    let matches = true;
+    if (typeFilter !== 'ALL' && req.type !== typeFilter) return false;
     
-    if (typeFilter !== 'ALL' && req.type !== typeFilter) matches = false;
+    // Convert the record's createdAt to local date string (handles IST timezone correctly)
+    const reqLocalDate = toLocalDateStr(new Date(req.createdAt));
     
-    if (fromDate) {
-      const reqDate = new Date(req.createdAt).setHours(0,0,0,0);
-      const filterDate = new Date(fromDate).setHours(0,0,0,0);
-      if (reqDate < filterDate) matches = false;
-    }
+    // fromDate and toDate are already in "YYYY-MM-DD" format from the date input
+    if (fromDate && reqLocalDate < fromDate) return false;
+    if (toDate && reqLocalDate > toDate) return false;
     
-    if (toDate) {
-      const reqDate = new Date(req.createdAt).setHours(0,0,0,0);
-      const filterDate = new Date(toDate).setHours(0,0,0,0);
-      if (reqDate > filterDate) matches = false;
-    }
-    
-    return matches;
+    return true;
   });
 
   const handleDownloadPDF = async (targetId: string, filename: string) => {
