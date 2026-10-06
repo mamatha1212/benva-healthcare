@@ -470,6 +470,10 @@
   }
   .verifyRow {
     flex-direction: column;
+    align-items: stretch;
+  }
+  .verifyRow > div {
+    width: 100%;
   }
   .verifyRow > button {
     width: 100%;
