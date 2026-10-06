@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 
+// @ts-ignore
 import html2pdf from 'html2pdf.js';
 
 const RemarkInput = ({ req, onSave }: { req: any, onSave: (id: string, text: string) => void }) => {
@@ -52,7 +53,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
     const opt = {
       margin:       0.3,
       filename:     'Free_Consultations.pdf',
-      image:        { type: 'jpeg', quality: 0.98 },
+      image:        { type: 'jpeg' as const, quality: 0.98 },
       html2canvas:  { scale: 2 },
       jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
     };
@@ -222,7 +223,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
                   const opt = {
                     margin:       0.5,
                     filename:     `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`,
-                    image:        { type: 'jpeg', quality: 0.98 },
+                    image:        { type: 'jpeg' as const, quality: 0.98 },
                     html2canvas:  { scale: 2 },
                     jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
                   };
