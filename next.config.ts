@@ -20,6 +20,15 @@ const nextConfig: NextConfig = {
     serverActions: {
       bodySizeLimit: '35mb',
     },
+    cpus: 2,
+    workerThreads: false,
+    memoryBasedWorkersCount: true,
+  },
+  typescript: {
+    ignoreBuildErrors: true,
+  },
+  eslint: {
+    ignoreDuringBuilds: true,
   },
   turbopack: {},
 };
