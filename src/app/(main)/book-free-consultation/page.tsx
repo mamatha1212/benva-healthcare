@@ -178,9 +178,9 @@ export default function BookFreeConsultationPage() {
           <div className={styles.successIcon}>✓</div>
           <h2 className={styles.successTitle} style={{ color: '#00509e', fontSize: '2rem' }}>Request Submitted Successfully!</h2>
           
-          <div style={{ background: '#111111', padding: '30px', borderRadius: '16px', margin: '30px 0', border: '2px dashed #00509e' }}>
-            <h3 style={{ fontSize: '1.4rem', color: '#f8fafc', marginBottom: '15px' }}>Next Step: Book Your Free Tele-Consultation</h3>
-            <p style={{ fontSize: '1.1rem', color: '#cbd5e0', marginBottom: '25px', lineHeight: '1.6' }}>
+          <div style={{ background: '#f0f9ff', padding: '30px', borderRadius: '16px', margin: '30px 0', border: '2px dashed #38bdf8' }}>
+            <h3 style={{ fontSize: '1.4rem', color: '#0f172a', marginBottom: '15px' }}>Next Step: Book Your Free Tele-Consultation</h3>
+            <p style={{ fontSize: '1.1rem', color: '#334155', marginBottom: '25px', lineHeight: '1.6' }}>
               Please call Benva Support now to book your appointment slot for the free tele-consultation.
             </p>
             <div style={{ display: 'inline-block', background: '#0284c7', color: 'white', padding: '16px 32px', borderRadius: '50px', fontSize: '1.8rem', fontWeight: '800', letterSpacing: '1px', boxShadow: '0 10px 25px rgba(2, 132, 199, 0.4)', transition: 'transform 0.2s' }}>
@@ -377,11 +377,11 @@ export default function BookFreeConsultationPage() {
                 </div>
                 
                 {formData.selectedOffice && (
-                  <div style={{ marginTop: '10px', padding: '10px 14px', background: 'rgba(16, 185, 129, 0.1)', border: '1.5px solid #10b981', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <div style={{ marginTop: '10px', padding: '10px 14px', background: '#ecfdf5', border: '1.5px solid #10b981', borderRadius: '8px', display: 'flex', alignItems: 'center', gap: '8px' }}>
                     <svg width="18" height="18" viewBox="0 0 24 24" fill="#10b981" stroke="#10b981" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
                     <div>
-                      <div style={{ fontSize: '11px', color: '#34d399', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Selected Area</div>
-                      <div style={{ fontSize: '14px', color: '#10b981', fontWeight: 700 }}>{formData.selectedOffice}</div>
+                      <div style={{ fontSize: '11px', color: '#065f46', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>Selected Area</div>
+                      <div style={{ fontSize: '14px', color: '#047857', fontWeight: 700 }}>{formData.selectedOffice}</div>
                     </div>
                   </div>
                 )}
@@ -391,14 +391,14 @@ export default function BookFreeConsultationPage() {
               </div>
 
               {showAreaSelect && (
-                <div style={{ background: '#171717', border: '1px solid #333333', borderRadius: '8px', padding: '16px', marginBottom: '24px' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 600, color: '#f8fafc', marginBottom: '12px' }}>Serviceability</div>
+                <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '16px', marginBottom: '24px' }}>
+                  <div style={{ fontSize: '14px', fontWeight: 600, color: '#334155', marginBottom: '12px' }}>Serviceability</div>
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', maxHeight: '200px', overflowY: 'auto' }}>
                     {availableAreas.map((loc) => (
-                      <div key={loc.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#111111', border: '1px solid #222222', borderRadius: '6px', padding: '12px' }}>
+                      <div key={loc.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'white', border: '1px solid #e2e8f0', borderRadius: '6px', padding: '12px' }}>
                         <div>
-                          <div style={{ fontWeight: 600, color: '#f8fafc', fontSize: '14px' }}>{loc.officeName}</div>
-                          <div style={{ fontSize: '12px', color: '#94a3b8' }}>{loc.type} • {loc.area} Area</div>
+                          <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '14px' }}>{loc.officeName}</div>
+                          <div style={{ fontSize: '12px', color: '#64748b' }}>{loc.type} • {loc.area} Area</div>
                         </div>
                         <button 
                           type="button" 

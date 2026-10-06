@@ -1,12 +1,14 @@
 .pageContainer {
-  background-color: #000000;
+  background-color: #f0f8ff;
   padding-bottom: 20px;
 }
 
 .header {
-  padding: 100px 20px 80px;
+  background: linear-gradient(135deg, #00509e 0%, #00366b 100%);
+  padding: 100px 20px 120px;
   text-align: center;
   color: white;
+  margin-bottom: -80px;
   position: relative;
   overflow: hidden;
 }
@@ -85,14 +87,14 @@
 }
 
 .selectionCard {
-  background: #111111;
+  background: white;
   border-radius: 20px;
   padding: 40px 30px;
   text-align: center;
   cursor: pointer;
   transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-  border: 2px solid #333333;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+  border: 2px solid transparent;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -126,13 +128,13 @@
 }
 
 .general .iconWrapper {
-  background: rgba(16, 185, 129, 0.1);
+  background: #ecfdf5;
   color: #10b981;
 }
 
 .corporate .iconWrapper {
-  background: rgba(0, 80, 158, 0.2);
-  color: #38bdf8;
+  background: #e0f2fe;
+  color: #00509e;
 }
 
 .selectionCard:hover .iconWrapper {
@@ -146,11 +148,11 @@
 }
 
 .general .cardTitle {
-  color: #34d399;
+  color: #064e3b;
 }
 
 .corporate .cardTitle {
-  color: #38bdf8;
+  color: #00509e;
 }
 
 .cardDesc {
@@ -160,16 +162,17 @@
 }
 
 .formContainer {
-  background: transparent;
-  padding: 0;
-  box-shadow: none;
+  background: white;
+  border-radius: 20px;
+  padding: 40px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
   margin-top: 20px;
 }
 
 .backBtn {
   background: none;
   border: none;
-  color: #94a3b8;
+  color: #64748b;
   font-weight: 600;
   font-size: 1rem;
   cursor: pointer;
@@ -182,13 +185,13 @@
 }
 
 .backBtn:hover {
-  color: #f8fafc;
+  color: #00509e;
 }
 
 .formTitle {
   font-size: 1.8rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: #0f172a;
   margin-bottom: 10px;
 }
 
@@ -205,21 +208,21 @@
   display: block;
   font-size: 0.9rem;
   font-weight: 600;
-  color: #cbd5e0;
+  color: #334155;
   margin-bottom: 8px;
 }
 
 .input {
   width: 100%;
   padding: 14px 16px;
-  border: 1px solid #333333;
+  border: 1.5px solid #cbd5e1;
   border-radius: 10px;
   outline: none;
   font-size: 1rem;
   transition: all 0.2s;
   font-family: inherit;
-  background-color: #171717;
-  color: #f8fafc;
+  background-color: white;
+  color: #0f172a;
 }
 
 .input:focus {
@@ -228,10 +231,9 @@
 }
 
 .input:disabled {
-  background-color: #111111;
-  color: #475569;
+  background-color: #f8fafc;
+  color: #94a3b8;
   cursor: not-allowed;
-  border-color: #222222;
 }
 
 .select {
@@ -281,10 +283,10 @@
 .sectionTitle {
   font-size: 1.2rem;
   font-weight: 700;
-  color: #f8fafc;
+  color: #0f172a;
   margin: 30px 0 20px;
   padding-bottom: 10px;
-  border-bottom: 2px solid #1e293b;
+  border-bottom: 2px solid #e2e8f0;
 }
 
 .grid2 {
@@ -319,8 +321,8 @@
 }
 
 .detailsCard {
-  background: #171717;
-  border: 1px solid #333333;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-radius: 12px;
   padding: 24px;
   margin-top: 20px;
@@ -328,7 +330,7 @@
 
 .detailsCard h3 {
   font-size: 1.1rem;
-  color: #f8fafc;
+  color: #0f172a;
   margin-bottom: 20px;
 }
 
@@ -343,11 +345,11 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-  background: #111111;
+  background: white;
   padding: 16px;
   border-radius: 10px;
-  border: 1px solid #222222;
-  box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+  border: 1px solid #f1f5f9;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.02);
 }
 
 .detailLabel {
@@ -360,7 +362,7 @@
 
 .detailValue {
   font-size: 1.05rem;
-  color: #f8fafc;
+  color: #0f172a;
   font-weight: 600;
   overflow-wrap: break-word;
   word-wrap: break-word;
@@ -388,9 +390,9 @@
 }
 
 .btnSecondary {
-  background: #171717;
-  color: #cbd5e0;
-  border: 1.5px solid #333333;
+  background: white;
+  color: #475569;
+  border: 1.5px solid #cbd5e1;
   border-radius: 8px;
   padding: 12px;
   font-weight: 600;
@@ -400,33 +402,33 @@
 }
 
 .btnSecondary:hover {
-  background: #222222;
-  color: #f8fafc;
-  border-color: #444444;
+  background: #f8fafc;
+  color: #0f172a;
+  border-color: #94a3b8;
 }
 
 .fileUpload {
-  border: 2px dashed #333333;
+  border: 2px dashed #cbd5e1;
   border-radius: 10px;
   padding: 30px;
   text-align: center;
-  background: #171717;
+  background: #f8fafc;
   transition: all 0.2s;
 }
 
 .fileUpload:hover {
   border-color: #00509e;
-  background: #111111;
+  background: #f0f8ff;
 }
 
 .fileUploadLabel {
   display: inline-block;
-  background: #222222;
-  border: 1.5px solid #444444;
+  background: white;
+  border: 1.5px solid #cbd5e1;
   padding: 10px 24px;
   border-radius: 8px;
   font-weight: 600;
-  color: #e2e8f0;
+  color: #475569;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -437,14 +439,13 @@
 }
 
 .successCard {
-  background: #111111;
+  background: white;
   padding: 50px 40px;
   border-radius: 20px;
   text-align: center;
-  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.08);
   max-width: 500px;
   margin: 0 auto;
-  border: 1px solid #333333;
 }
 
 .successIcon {
