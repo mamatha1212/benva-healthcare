@@ -117,6 +117,7 @@ export default function BookFreeConsultationPage() {
       });
       if (res.ok) {
         setSuccess(true);
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
         alert('Failed to submit your request. Please try again.');
       }
