@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 
+import html2pdf from 'html2pdf.js';
+
 const RemarkInput = ({ req, onSave }: { req: any, onSave: (id: string, text: string) => void }) => {
   const [value, setValue] = useState(req.adminRemarks || '');
   
@@ -29,6 +31,33 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
   const [requests, setRequests] = useState(initialRequests);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [viewingRequest, setViewingRequest] = useState<any>(null);
+
+  const handleDownloadPDF = () => {
+    const element = document.getElementById('consultations-table');
+    if (!element) return;
+    
+    // Create a clone to remove actions column before printing
+    const clone = element.cloneNode(true) as HTMLElement;
+    
+    // Remove the 'Actions' header (last th) and last td of every row
+    const ths = clone.querySelectorAll('th');
+    if (ths.length > 0) ths[ths.length - 1].remove();
+    
+    const rows = clone.querySelectorAll('tbody tr');
+    rows.forEach(row => {
+      const tds = row.querySelectorAll('td');
+      if (tds.length > 0) tds[tds.length - 1].remove();
+    });
+
+    const opt = {
+      margin:       0.3,
+      filename:     'Free_Consultations.pdf',
+      image:        { type: 'jpeg', quality: 0.98 },
+      html2canvas:  { scale: 2 },
+      jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
+    };
+    html2pdf().set(opt).from(clone).save();
+  };
 
   const handleStatusChange = async (id: string, newStatus: string) => {
     setLoadingId(id);
@@ -67,7 +96,13 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
 
   return (
     <div>
-      <div style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflowX: 'auto' }}>
+      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
+        <button onClick={handleDownloadPDF} style={{ padding: '8px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+          Download PDF
+        </button>
+      </div>
+      <div id="consultations-table" style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflowX: 'auto' }}>
         <table style={{ width: '100%', minWidth: '900px', borderCollapse: 'collapse', textAlign: 'left' }}>
           <thead style={{ background: '#f8fafc' }}>
             <tr>
