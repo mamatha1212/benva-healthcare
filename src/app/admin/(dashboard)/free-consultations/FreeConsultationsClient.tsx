@@ -2,9 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 
-// @ts-ignore
-import html2pdf from 'html2pdf.js';
-
 const RemarkInput = ({ req, onSave }: { req: any, onSave: (id: string, text: string) => void }) => {
   const [value, setValue] = useState(req.adminRemarks || '');
   
@@ -33,30 +30,36 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [viewingRequest, setViewingRequest] = useState<any>(null);
 
-  const handleDownloadPDF = () => {
-    const element = document.getElementById('consultations-table');
+  const handleDownloadPDF = async (targetId: string, filename: string) => {
+    const element = document.getElementById(targetId);
     if (!element) return;
     
-    // Create a clone to remove actions column before printing
+    // Create a clone to modify before printing
     const clone = element.cloneNode(true) as HTMLElement;
     
-    // Remove the 'Actions' header (last th) and last td of every row
-    const ths = clone.querySelectorAll('th');
-    if (ths.length > 0) ths[ths.length - 1].remove();
-    
-    const rows = clone.querySelectorAll('tbody tr');
-    rows.forEach(row => {
-      const tds = row.querySelectorAll('td');
-      if (tds.length > 0) tds[tds.length - 1].remove();
-    });
+    // If we are downloading the main table, hide actions column
+    if (targetId === 'consultations-table') {
+      const ths = clone.querySelectorAll('th');
+      if (ths.length > 0) ths[ths.length - 1].remove();
+      
+      const rows = clone.querySelectorAll('tbody tr');
+      rows.forEach(row => {
+        const tds = row.querySelectorAll('td');
+        if (tds.length > 0) tds[tds.length - 1].remove();
+      });
+    }
 
     const opt = {
       margin:       0.3,
-      filename:     'Free_Consultations.pdf',
+      filename:     filename,
       image:        { type: 'jpeg' as const, quality: 0.98 },
       html2canvas:  { scale: 2 },
-      jsPDF:        { unit: 'in', format: 'letter', orientation: 'landscape' }
+      jsPDF:        { unit: 'in', format: 'letter', orientation: (targetId === 'consultations-table' ? 'landscape' : 'portrait') as 'landscape' | 'portrait' }
     };
+    
+    // Dynamically import to avoid SSR 'window is not defined' error
+    // @ts-ignore
+    const html2pdf = (await import('html2pdf.js')).default;
     html2pdf().set(opt).from(clone).save();
   };
 
@@ -98,7 +101,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
   return (
     <div>
       <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
-        <button onClick={handleDownloadPDF} style={{ padding: '8px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <button onClick={() => handleDownloadPDF('consultations-table', 'Free_Consultations.pdf')} style={{ padding: '8px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           Download PDF
         </button>
@@ -217,18 +220,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
             
             <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
               <button 
-                onClick={() => {
-                  const element = document.getElementById('patient-details-pdf');
-                  if (!element) return;
-                  const opt = {
-                    margin:       0.5,
-                    filename:     `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`,
-                    image:        { type: 'jpeg' as const, quality: 0.98 },
-                    html2canvas:  { scale: 2 },
-                    jsPDF:        { unit: 'in', format: 'letter', orientation: 'portrait' }
-                  };
-                  html2pdf().set(opt).from(element).save();
-                }}
+                onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`)}
                 style={{ padding: '10px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
