@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { getPincodesForDistrict } from './actions';
 import { getLocationsHierarchy } from '@/components/DoorstepSection/actions';
 import styles from './BookConsultation.module.css';
 
@@ -18,6 +19,8 @@ export default function BookFreeConsultationPage() {
   // Locations State
   const [locations, setLocations] = useState<any[]>([]);
   const [availableDistricts, setAvailableDistricts] = useState<any[]>([]);
+  const [districtPincodes, setDistrictPincodes] = useState<{pincode: string, officeName: string}[]>([]);
+  const [loadingPincodes, setLoadingPincodes] = useState(false);
 
   useEffect(() => {
     getLocationsHierarchy().then(data => {
@@ -43,7 +46,22 @@ export default function BookFreeConsultationPage() {
     const selectedStateName = e.target.value;
     const selectedState = locations.find(s => s.name === selectedStateName);
     setAvailableDistricts(selectedState ? selectedState.districts : []);
-    setFormData({ ...formData, state: selectedStateName, district: '' });
+    setFormData({ ...formData, state: selectedStateName, district: '', pincode: '' });
+    setDistrictPincodes([]);
+  };
+
+  // Handle district change
+  const handleDistrictChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    const districtName = e.target.value;
+    setFormData({ ...formData, district: districtName, pincode: '' });
+    if (districtName) {
+      setLoadingPincodes(true);
+      const pins = await getPincodesForDistrict(districtName);
+      setDistrictPincodes(pins);
+      setLoadingPincodes(false);
+    } else {
+      setDistrictPincodes([]);
+    }
   };
   
   const [submitting, setSubmitting] = useState(false);
@@ -263,7 +281,7 @@ export default function BookFreeConsultationPage() {
                   <label className={styles.label}>District *</label>
                   <select 
                     value={formData.district} 
-                    onChange={e => setFormData({...formData, district: e.target.value})} 
+                    onChange={handleDistrictChange} 
                     required 
                     disabled={!formData.state}
                     className={`${styles.input} ${styles.select}`}
@@ -275,17 +293,27 @@ export default function BookFreeConsultationPage() {
                   </select>
                 </div>
                 <div className={styles.inputGroup}>
-                  <label className={styles.label}>Service Area / Locality *</label>
+                  <label className={styles.label}>Service Area Pincode *</label>
                   <select 
                     value={formData.pincode} 
                     onChange={e => setFormData({...formData, pincode: e.target.value})} 
                     required 
-                    disabled={!formData.district}
+                    disabled={!formData.district || loadingPincodes}
                     className={`${styles.input} ${styles.select}`}
                   >
-                    <option value="">{formData.district ? 'Select Service Area' : 'Please select district first'}</option>
-                    {locations.find(s => s.name === formData.state)?.districts.find((d: any) => d.name === formData.district)?.areas.map((a: any) => (
-                      <option key={a.id} value={a.name}>{a.name}</option>
+                    <option value="">
+                      {!formData.district 
+                        ? 'Select district first' 
+                        : loadingPincodes 
+                          ? 'Loading pincodes...' 
+                          : districtPincodes.length === 0 
+                            ? 'No pincodes found' 
+                            : 'Select Pincode'}
+                    </option>
+                    {districtPincodes.map((pin, idx) => (
+                      <option key={idx} value={pin.pincode}>
+                        {pin.pincode} - {pin.officeName}
+                      </option>
                     ))}
                   </select>
                 </div>
