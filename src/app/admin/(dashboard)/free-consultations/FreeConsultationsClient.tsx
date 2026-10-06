@@ -30,6 +30,31 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [viewingRequest, setViewingRequest] = useState<any>(null);
 
+  // Filters
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [typeFilter, setTypeFilter] = useState('ALL');
+
+  const filteredRequests = requests.filter(req => {
+    let matches = true;
+    
+    if (typeFilter !== 'ALL' && req.type !== typeFilter) matches = false;
+    
+    if (fromDate) {
+      const reqDate = new Date(req.createdAt).setHours(0,0,0,0);
+      const filterDate = new Date(fromDate).setHours(0,0,0,0);
+      if (reqDate < filterDate) matches = false;
+    }
+    
+    if (toDate) {
+      const reqDate = new Date(req.createdAt).setHours(0,0,0,0);
+      const filterDate = new Date(toDate).setHours(0,0,0,0);
+      if (reqDate > filterDate) matches = false;
+    }
+    
+    return matches;
+  });
+
   const handleDownloadPDF = async (targetId: string, filename: string) => {
     const element = document.getElementById(targetId);
     if (!element) return;
@@ -100,8 +125,32 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
 
   return (
     <div>
-      <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '16px' }}>
-        <button onClick={() => handleDownloadPDF('consultations-table', 'Free_Consultations.pdf')} style={{ padding: '8px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', background: 'white', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', flexWrap: 'wrap', gap: '16px' }}>
+        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>From Date</label>
+            <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} style={{ padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>To Date</label>
+            <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} style={{ padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
+          </div>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+            <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>Type</label>
+            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={{ padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}>
+              <option value="ALL">All Types</option>
+              <option value="GENERAL">General</option>
+              <option value="CORPORATE">Corporate</option>
+            </select>
+          </div>
+          {(fromDate || toDate || typeFilter !== 'ALL') && (
+            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '100%', marginTop: '20px' }}>
+               <button onClick={() => { setFromDate(''); setToDate(''); setTypeFilter('ALL'); }} style={{ background: 'none', border: 'none', color: '#ef4444', fontWeight: 600, cursor: 'pointer', fontSize: '13px' }}>Clear Filters</button>
+            </div>
+          )}
+        </div>
+        
+        <button onClick={() => handleDownloadPDF('consultations-table', `Free_Consultations${fromDate ? `_from_${fromDate}` : ''}.pdf`)} style={{ padding: '10px 20px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           Download PDF
         </button>
@@ -121,7 +170,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
             </tr>
           </thead>
           <tbody>
-            {requests.map((req, index) => (
+            {filteredRequests.map((req, index) => (
               <tr key={req.id}>
                 <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px', color: '#334155', fontWeight: 500 }}>
                   {index + 1}
@@ -166,7 +215,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
                 </td>
               </tr>
             ))}
-            {requests.length === 0 && (
+            {filteredRequests.length === 0 && (
               <tr>
                 <td colSpan={7} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>No requests found.</td>
               </tr>
