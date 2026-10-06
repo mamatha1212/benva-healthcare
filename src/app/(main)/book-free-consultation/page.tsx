@@ -275,8 +275,19 @@ export default function BookFreeConsultationPage() {
                   </select>
                 </div>
                 <div className={styles.inputGroup}>
-                  <label className={styles.label}>Pincode *</label>
-                  <input type="text" value={formData.pincode} onChange={e => setFormData({...formData, pincode: e.target.value})} required className={styles.input} />
+                  <label className={styles.label}>Service Area / Locality *</label>
+                  <select 
+                    value={formData.pincode} 
+                    onChange={e => setFormData({...formData, pincode: e.target.value})} 
+                    required 
+                    disabled={!formData.district}
+                    className={`${styles.input} ${styles.select}`}
+                  >
+                    <option value="">{formData.district ? 'Select Service Area' : 'Please select district first'}</option>
+                    {locations.find(s => s.name === formData.state)?.districts.find((d: any) => d.name === formData.district)?.areas.map((a: any) => (
+                      <option key={a.id} value={a.name}>{a.name}</option>
+                    ))}
+                  </select>
                 </div>
               </div>
 
