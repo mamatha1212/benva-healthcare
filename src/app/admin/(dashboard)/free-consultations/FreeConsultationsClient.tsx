@@ -79,7 +79,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
       margin:       0.3,
       filename:     filename,
       image:        { type: 'jpeg' as const, quality: 0.98 },
-      html2canvas:  { scale: 2 },
+      html2canvas:  { scale: 2, windowWidth: 1024 },
       jsPDF:        { unit: 'in', format: 'letter', orientation: (targetId === 'consultations-table' ? 'landscape' : 'portrait') as 'landscape' | 'portrait' }
     };
     
@@ -126,6 +126,25 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
 
   return (
     <div>
+      <style>{`
+        @media (max-width: 640px) {
+          #patient-details-pdf {
+            padding: 20px !important;
+          }
+          #patient-details-pdf table, 
+          #patient-details-pdf tbody, 
+          #patient-details-pdf tr, 
+          #patient-details-pdf td {
+            display: block !important;
+            width: 100% !important;
+            text-align: left !important;
+            border-right: none !important;
+          }
+          #patient-details-pdf td {
+            padding-bottom: 12px !important;
+          }
+        }
+      `}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', background: 'white', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', flexWrap: 'wrap', gap: '16px' }}>
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
