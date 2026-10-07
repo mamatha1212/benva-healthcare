@@ -321,12 +321,27 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
               .view-grid > div {
                 padding: 16px;
               }
+              .modal-actions { margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px; }
+              .modal-action-btn { padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; border: none; }
               @media (max-width: 600px) {
                 .view-grid {
                   grid-template-columns: 1fr;
                 }
                 .view-header {
                   flex-direction: column;
+                }
+                .modal-actions {
+                  justify-content: space-between;
+                  gap: 6px;
+                }
+                .modal-action-btn {
+                  flex: 1;
+                  padding: 10px 2px;
+                  font-size: 11px;
+                }
+                .modal-action-btn svg {
+                  width: 14px;
+                  height: 14px;
                 }
               }
             `}</style>
@@ -497,24 +512,27 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
               </div>
             </div>
             
-            <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '12px', flexWrap: 'wrap' }}>
+            <div className="modal-actions">
               <button 
                 onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'view')}
-                style={{ padding: '10px 20px', background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                className="modal-action-btn"
+                style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1' }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 View
               </button>
               <button 
                 onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'share')}
-                style={{ padding: '10px 20px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                className="modal-action-btn"
+                style={{ background: '#10b981', color: 'white' }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
                 Share
               </button>
               <button 
                 onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'download')}
-                style={{ padding: '10px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+                className="modal-action-btn"
+                style={{ background: '#3b82f6', color: 'white' }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
                 Download PDF
