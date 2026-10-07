@@ -253,102 +253,209 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
               <button onClick={() => setViewingRequest(null)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#64748b' }}>&times;</button>
             </div>
             
-            <div id="patient-details-pdf" style={{ padding: '40px', background: 'white', color: '#000000', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
-              
-              {/* Header / Branding */}
-              <div style={{ borderBottom: '2px solid #2563eb', paddingBottom: '20px', marginBottom: '30px' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-                  <tbody>
-                    <tr>
-                      <td style={{ verticalAlign: 'middle', width: '50%' }}>
-                        <div style={{ fontSize: '28px', fontWeight: 900, color: '#1e3a8a', letterSpacing: '-0.5px' }}>Benva Healthcare</div>
-                        <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Patient Consultation Record</div>
-                      </td>
-                      <td style={{ verticalAlign: 'middle', width: '50%', textAlign: 'right' }}>
-                        <div style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>Date: {new Date(viewingRequest.createdAt).toLocaleDateString()}</div>
-                        <div style={{ marginTop: '8px' }}>
-                          <span style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, background: viewingRequest.type === 'CORPORATE' ? '#e0e7ff' : '#f1f5f9', color: viewingRequest.type === 'CORPORATE' ? '#4338ca' : '#475569', display: 'inline-block', border: `1px solid ${viewingRequest.type === 'CORPORATE' ? '#c7d2fe' : '#e2e8f0'}` }}>
-                            {viewingRequest.type} CONSULTATION
-                          </span>
-                        </div>
-                      </td>
-                    </tr>
-                  </tbody>
-                </table>
-              </div>
+            <style>{`
+              .pdf-hidden-export {
+                position: absolute;
+                left: -9999px;
+                top: -9999px;
+                width: 800px;
+                background: white;
+              }
+              .view-header {
+                display: flex;
+                justify-content: space-between;
+                align-items: flex-start;
+                flex-wrap: wrap;
+                gap: 16px;
+                border-bottom: 2px solid #2563eb;
+                padding-bottom: 20px;
+                margin-bottom: 20px;
+              }
+              .view-grid {
+                display: grid;
+                grid-template-columns: 1fr 1fr;
+                gap: 0;
+                border: 1px solid #e2e8f0;
+                border-radius: 8px;
+                overflow: hidden;
+                margin-bottom: 24px;
+              }
+              .view-grid > div {
+                padding: 16px;
+              }
+              @media (max-width: 600px) {
+                .view-grid {
+                  grid-template-columns: 1fr;
+                }
+                .view-header {
+                  flex-direction: column;
+                }
+              }
+            `}</style>
+            
+            {/* RESPONSIVE UI FOR BROWSER */}
+            <div style={{ padding: '10px 0', color: '#000000', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+              <div className="view-header">
+                 <div>
+                   <div style={{ fontSize: '24px', fontWeight: 900, color: '#1e3a8a', letterSpacing: '-0.5px' }}>Benva Healthcare</div>
+                   <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Patient Consultation Record</div>
+                 </div>
+                 <div style={{ textAlign: 'left' }}>
+                   <div style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>Date: {new Date(viewingRequest.createdAt).toLocaleDateString()}</div>
+                   <div style={{ marginTop: '8px' }}>
+                     <span style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, background: viewingRequest.type === 'CORPORATE' ? '#e0e7ff' : '#f1f5f9', color: viewingRequest.type === 'CORPORATE' ? '#4338ca' : '#475569', display: 'inline-block', border: `1px solid ${viewingRequest.type === 'CORPORATE' ? '#c7d2fe' : '#e2e8f0'}` }}>
+                       {viewingRequest.type} CONSULTATION
+                     </span>
+                   </div>
+                 </div>
+               </div>
 
-              {/* Patient Details Section */}
-              <div style={{ marginBottom: '30px' }}>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', marginBottom: '16px' }}>
-                  <span style={{ color: '#3b82f6', marginRight: '8px' }}>■</span>
-                  Patient Information
-                </div>
-                
-                <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e2e8f0' }}>
-                  <tbody>
-                    <tr>
-                      <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', width: '50%', background: '#f8fafc' }}>
-                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Full Name</div>
-                        <div style={{ fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>{viewingRequest.name}</div>
-                      </td>
-                      <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', width: '50%', background: '#ffffff' }}>
-                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Contact Details</div>
-                        <div style={{ fontSize: '14px', color: '#334155', fontWeight: 500 }}>{viewingRequest.phone}</div>
-                        <div style={{ fontSize: '14px', color: '#334155', fontWeight: 500 }}>{viewingRequest.email || 'N/A'}</div>
-                      </td>
-                    </tr>
-                    <tr>
-                      <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', width: '50%', background: '#ffffff' }}>
-                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Age & Gender</div>
-                        <div style={{ fontSize: '14px', color: '#334155', fontWeight: 600 }}>{viewingRequest.age ? `${viewingRequest.age} years` : 'N/A'} • {viewingRequest.gender || 'N/A'}</div>
-                      </td>
-                      <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', width: '50%', background: '#f8fafc' }}>
-                        <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Location</div>
-                        <div style={{ fontSize: '14px', color: '#334155', fontWeight: 600 }}>{viewingRequest.district}, {viewingRequest.state} - {viewingRequest.pincode}</div>
-                      </td>
-                    </tr>
-                    {viewingRequest.type === 'CORPORATE' && (
+               <div style={{ marginBottom: '24px' }}>
+                 <div style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
+                   <span style={{ width: '4px', height: '16px', background: '#3b82f6', display: 'inline-block', marginRight: '8px', borderRadius: '2px' }}></span>
+                   Patient Information
+                 </div>
+                 <div className="view-grid">
+                   <div style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>
+                     <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Full Name</div>
+                     <div style={{ fontSize: '15px', color: '#0f172a', fontWeight: 700 }}>{viewingRequest.name}</div>
+                   </div>
+                   <div style={{ background: '#ffffff', borderBottom: '1px solid #e2e8f0' }}>
+                     <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Contact Details</div>
+                     <div style={{ fontSize: '14px', color: '#334155', fontWeight: 500 }}>{viewingRequest.phone}</div>
+                     <div style={{ fontSize: '14px', color: '#334155', fontWeight: 500 }}>{viewingRequest.email || 'N/A'}</div>
+                   </div>
+                   <div style={{ background: '#ffffff', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0' }}>
+                     <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Age & Gender</div>
+                     <div style={{ fontSize: '14px', color: '#334155', fontWeight: 600 }}>{viewingRequest.age ? `${viewingRequest.age} years` : 'N/A'} • {viewingRequest.gender || 'N/A'}</div>
+                   </div>
+                   <div style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                     <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Location</div>
+                     <div style={{ fontSize: '14px', color: '#334155', fontWeight: 600 }}>{viewingRequest.district}, {viewingRequest.state} - {viewingRequest.pincode}</div>
+                   </div>
+                   {viewingRequest.type === 'CORPORATE' && (
+                     <div style={{ background: '#e0e7ff', gridColumn: '1 / -1' }}>
+                       <div style={{ fontSize: '11px', fontWeight: 800, color: '#4338ca', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Corporate Organization</div>
+                       <div style={{ fontSize: '15px', color: '#312e81', fontWeight: 700 }}>{viewingRequest.organizationName}</div>
+                     </div>
+                   )}
+                 </div>
+               </div>
+
+               <div>
+                 <div style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', marginBottom: '12px', display: 'flex', alignItems: 'center' }}>
+                   <span style={{ width: '4px', height: '16px', background: '#ef4444', display: 'inline-block', marginRight: '8px', borderRadius: '2px' }}></span>
+                   Medical Details
+                 </div>
+                 <div style={{ border: '1px solid #fecdd3', borderRadius: '8px', overflow: 'hidden' }}>
+                   <div style={{ padding: '16px', background: '#fff1f2', borderBottom: viewingRequest.previousMedication ? '1px solid #fecdd3' : 'none' }}>
+                     <div style={{ fontSize: '12px', fontWeight: 800, color: '#be123c', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Primary Problem</div>
+                     <div style={{ whiteSpace: 'pre-wrap', fontSize: '14px', lineHeight: '1.6', color: '#4c0519', fontWeight: 500 }}>{viewingRequest.problem}</div>
+                   </div>
+                   {viewingRequest.previousMedication && (
+                     <div style={{ padding: '16px', background: '#eff6ff', borderTop: '1px solid #bfdbfe' }}>
+                       <div style={{ fontSize: '12px', fontWeight: 800, color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Previous Medication</div>
+                       <div style={{ whiteSpace: 'pre-wrap', fontSize: '14px', lineHeight: '1.6', color: '#1e3a8a', fontWeight: 500 }}>{viewingRequest.previousMedication}</div>
+                     </div>
+                   )}
+                 </div>
+               </div>
+            </div>
+
+            {/* HIDDEN PDF TEMPLATE - TABLE-BASED FOR HTML2CANVAS */}
+            <div className="pdf-hidden-export">
+              <div id="patient-details-pdf" style={{ padding: '40px', background: 'white', color: '#000000', fontFamily: 'system-ui, -apple-system, sans-serif' }}>
+                <div style={{ borderBottom: '2px solid #2563eb', paddingBottom: '20px', marginBottom: '30px' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                    <tbody>
                       <tr>
-                        <td colSpan={2} style={{ padding: '16px', background: '#e0e7ff' }}>
-                          <div style={{ fontSize: '11px', fontWeight: 800, color: '#4338ca', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Corporate Organization</div>
-                          <div style={{ fontSize: '15px', color: '#312e81', fontWeight: 700 }}>{viewingRequest.organizationName}</div>
+                        <td style={{ verticalAlign: 'middle', width: '50%' }}>
+                          <div style={{ fontSize: '28px', fontWeight: 900, color: '#1e3a8a', letterSpacing: '-0.5px' }}>Benva Healthcare</div>
+                          <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Patient Consultation Record</div>
+                        </td>
+                        <td style={{ verticalAlign: 'middle', width: '50%', textAlign: 'right' }}>
+                          <div style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>Date: {new Date(viewingRequest.createdAt).toLocaleDateString()}</div>
+                          <div style={{ marginTop: '8px' }}>
+                            <span style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, background: viewingRequest.type === 'CORPORATE' ? '#e0e7ff' : '#f1f5f9', color: viewingRequest.type === 'CORPORATE' ? '#4338ca' : '#475569', display: 'inline-block', border: `1px solid ${viewingRequest.type === 'CORPORATE' ? '#c7d2fe' : '#e2e8f0'}` }}>
+                              {viewingRequest.type} CONSULTATION
+                            </span>
+                          </div>
                         </td>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
-
-              {/* Medical Details Section */}
-              <div>
-                <div style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', marginBottom: '16px' }}>
-                  <span style={{ color: '#ef4444', marginRight: '8px' }}>■</span>
-                  Medical Details
+                    </tbody>
+                  </table>
                 </div>
-                
-                <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #fecdd3' }}>
-                  <tbody>
-                    <tr>
-                      <td style={{ padding: '20px', background: '#fff1f2', borderBottom: viewingRequest.previousMedication ? '1px solid #fecdd3' : 'none' }}>
-                        <div style={{ fontSize: '12px', fontWeight: 800, color: '#be123c', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Primary Problem</div>
-                        <div style={{ whiteSpace: 'pre-wrap', fontSize: '15px', lineHeight: '1.6', color: '#4c0519', fontWeight: 500 }}>{viewingRequest.problem}</div>
-                      </td>
-                    </tr>
-                    {viewingRequest.previousMedication && (
+
+                <div style={{ marginBottom: '30px' }}>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', marginBottom: '16px' }}>
+                    <span style={{ color: '#3b82f6', marginRight: '8px' }}>■</span>
+                    Patient Information
+                  </div>
+                  
+                  <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #e2e8f0' }}>
+                    <tbody>
                       <tr>
-                        <td style={{ padding: '20px', background: '#eff6ff', border: '1px solid #bfdbfe' }}>
-                          <div style={{ fontSize: '12px', fontWeight: 800, color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Previous Medication</div>
-                          <div style={{ whiteSpace: 'pre-wrap', fontSize: '15px', lineHeight: '1.6', color: '#1e3a8a', fontWeight: 500 }}>{viewingRequest.previousMedication}</div>
+                        <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', width: '50%', background: '#f8fafc' }}>
+                          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Full Name</div>
+                          <div style={{ fontSize: '16px', color: '#0f172a', fontWeight: 700 }}>{viewingRequest.name}</div>
+                        </td>
+                        <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', width: '50%', background: '#ffffff' }}>
+                          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Contact Details</div>
+                          <div style={{ fontSize: '14px', color: '#334155', fontWeight: 500 }}>{viewingRequest.phone}</div>
+                          <div style={{ fontSize: '14px', color: '#334155', fontWeight: 500 }}>{viewingRequest.email || 'N/A'}</div>
                         </td>
                       </tr>
-                    )}
-                  </tbody>
-                </table>
-              </div>
+                      <tr>
+                        <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', borderRight: '1px solid #e2e8f0', width: '50%', background: '#ffffff' }}>
+                          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Age & Gender</div>
+                          <div style={{ fontSize: '14px', color: '#334155', fontWeight: 600 }}>{viewingRequest.age ? `${viewingRequest.age} years` : 'N/A'} • {viewingRequest.gender || 'N/A'}</div>
+                        </td>
+                        <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', width: '50%', background: '#f8fafc' }}>
+                          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Location</div>
+                          <div style={{ fontSize: '14px', color: '#334155', fontWeight: 600 }}>{viewingRequest.district}, {viewingRequest.state} - {viewingRequest.pincode}</div>
+                        </td>
+                      </tr>
+                      {viewingRequest.type === 'CORPORATE' && (
+                        <tr>
+                          <td colSpan={2} style={{ padding: '16px', background: '#e0e7ff' }}>
+                            <div style={{ fontSize: '11px', fontWeight: 800, color: '#4338ca', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '4px' }}>Corporate Organization</div>
+                            <div style={{ fontSize: '15px', color: '#312e81', fontWeight: 700 }}>{viewingRequest.organizationName}</div>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
 
-              {/* Footer Stamp */}
-              <div style={{ marginTop: '40px', paddingTop: '20px', borderTop: '1px dashed #cbd5e1', textAlign: 'center', fontSize: '12px', color: '#94a3b8', fontWeight: 600 }}>
-                This is a computer-generated document and requires no physical signature.
+                <div>
+                  <div style={{ fontSize: '18px', fontWeight: 800, color: '#0f172a', marginBottom: '16px' }}>
+                    <span style={{ color: '#ef4444', marginRight: '8px' }}>■</span>
+                    Medical Details
+                  </div>
+                  
+                  <table style={{ width: '100%', borderCollapse: 'collapse', border: '1px solid #fecdd3' }}>
+                    <tbody>
+                      <tr>
+                        <td style={{ padding: '20px', background: '#fff1f2', borderBottom: viewingRequest.previousMedication ? '1px solid #fecdd3' : 'none' }}>
+                          <div style={{ fontSize: '12px', fontWeight: 800, color: '#be123c', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Primary Problem</div>
+                          <div style={{ whiteSpace: 'pre-wrap', fontSize: '15px', lineHeight: '1.6', color: '#4c0519', fontWeight: 500 }}>{viewingRequest.problem}</div>
+                        </td>
+                      </tr>
+                      {viewingRequest.previousMedication && (
+                        <tr>
+                          <td style={{ padding: '20px', background: '#eff6ff', border: '1px solid #bfdbfe' }}>
+                            <div style={{ fontSize: '12px', fontWeight: 800, color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Previous Medication</div>
+                            <div style={{ whiteSpace: 'pre-wrap', fontSize: '15px', lineHeight: '1.6', color: '#1e3a8a', fontWeight: 500 }}>{viewingRequest.previousMedication}</div>
+                          </td>
+                        </tr>
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div style={{ marginTop: '40px', paddingTop: '20px', borderTop: '1px dashed #cbd5e1', textAlign: 'center', fontSize: '12px', color: '#94a3b8', fontWeight: 600 }}>
+                  This is a computer-generated document and requires no physical signature.
+                </div>
               </div>
             </div>
             
