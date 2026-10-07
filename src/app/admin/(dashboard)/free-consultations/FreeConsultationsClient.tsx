@@ -135,11 +135,11 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
 
         @media (max-width: 640px) {
           .filter-bar { flex-direction: column; align-items: stretch; padding: 16px; }
-          .filter-group { flex-direction: column; align-items: stretch; width: 100%; gap: 12px; }
+          .filter-group { display: grid; grid-template-columns: 1fr 1fr; width: 100%; gap: 12px; }
           .filter-item { width: 100%; }
           .filter-item input, .filter-item select { width: 100%; box-sizing: border-box; }
-          .clear-filter-container { align-self: center; margin-top: 8px !important; }
-          .download-btn { width: 100%; justify-content: center; }
+          .clear-filter-container { align-self: end; margin-top: 0 !important; display: flex; align-items: center; justify-content: flex-start; padding-bottom: 4px; }
+          .download-btn { width: 100%; justify-content: center; margin-top: 4px; }
 
           #patient-details-pdf {
             padding: 20px !important;
