@@ -127,7 +127,20 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
   return (
     <div>
       <style>{`
+        .filter-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; background: white; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; flex-wrap: wrap; gap: 16px; }
+        .filter-group { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+        .filter-item { display: flex; flex-direction: column; gap: 4px; }
+        .filter-item input, .filter-item select { padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; outline: none; }
+        .download-btn { padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+
         @media (max-width: 640px) {
+          .filter-bar { flex-direction: column; align-items: stretch; padding: 16px; }
+          .filter-group { flex-direction: column; align-items: stretch; width: 100%; gap: 12px; }
+          .filter-item { width: 100%; }
+          .filter-item input, .filter-item select { width: 100%; box-sizing: border-box; }
+          .clear-filter-container { align-self: center; margin-top: 8px !important; }
+          .download-btn { width: 100%; justify-content: center; }
+
           #patient-details-pdf {
             padding: 20px !important;
           }
@@ -145,32 +158,32 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
           }
         }
       `}</style>
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', background: 'white', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', flexWrap: 'wrap', gap: '16px' }}>
-        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', alignItems: 'center' }}>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+      <div className="filter-bar">
+        <div className="filter-group">
+          <div className="filter-item">
             <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>From Date</label>
-            <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} style={{ padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
+            <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div className="filter-item">
             <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>To Date</label>
-            <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} style={{ padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }} />
+            <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} />
           </div>
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <div className="filter-item">
             <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>Type</label>
-            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)} style={{ padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}>
+            <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}>
               <option value="ALL">All Types</option>
               <option value="GENERAL">General</option>
               <option value="CORPORATE">Corporate</option>
             </select>
           </div>
           {(fromDate || toDate || typeFilter !== 'ALL') && (
-            <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '100%', marginTop: '20px' }}>
+            <div className="clear-filter-container" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '100%', marginTop: '20px' }}>
                <button onClick={() => { setFromDate(''); setToDate(''); setTypeFilter('ALL'); }} style={{ background: 'none', border: 'none', color: '#ef4444', fontWeight: 600, cursor: 'pointer', fontSize: '13px' }}>Clear Filters</button>
             </div>
           )}
         </div>
         
-        <button onClick={() => handleDownloadPDF('consultations-table', `Free_Consultations${fromDate ? `_from_${fromDate}` : ''}.pdf`)} style={{ padding: '10px 20px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <button className="download-btn" onClick={() => handleDownloadPDF('consultations-table', `Free_Consultations${fromDate ? `_from_${fromDate}` : ''}.pdf`)}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
           Download PDF
         </button>
