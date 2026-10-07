@@ -91,7 +91,35 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
       html2pdf().set(opt).from(clone).save();
     } else if (action === 'view') {
       html2pdf().set(opt).from(clone).output('bloburl').then((url: string) => {
-        window.open(url, '_blank');
+        const win = window.open('', '_blank');
+        if (win) {
+          win.document.write(`
+            <!DOCTYPE html>
+            <html>
+              <head>
+                <title>${filename}</title>
+                <style>
+                  body { margin: 0; overflow: hidden; background-color: #525659; display: flex; flex-direction: column; height: 100vh; }
+                  .custom-toolbar { background: #323639; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 10; }
+                  .title { color: white; font-family: system-ui, -apple-system, sans-serif; font-size: 14px; font-weight: 500; }
+                  .download-btn { background: #8ab4f8; color: #202124; border: none; padding: 6px 16px; border-radius: 4px; font-weight: 600; cursor: pointer; font-family: system-ui, -apple-system, sans-serif; font-size: 13px; text-decoration: none; display: inline-block; }
+                  .download-btn:hover { background: #aecbfa; }
+                  iframe { flex: 1; border: none; width: 100%; }
+                </style>
+              </head>
+              <body>
+                <div class="custom-toolbar">
+                  <div class="title">${filename}</div>
+                  <a href="${url}" download="${filename}" class="download-btn">Download PDF</a>
+                </div>
+                <iframe src="${url}#toolbar=0"></iframe>
+              </body>
+            </html>
+          `);
+          win.document.close();
+        } else {
+          window.open(url, '_blank');
+        }
       });
     } else if (action === 'share') {
       html2pdf().set(opt).from(clone).output('blob').then(async (blob: Blob) => {
