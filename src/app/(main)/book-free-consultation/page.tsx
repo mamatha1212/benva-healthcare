@@ -37,6 +37,8 @@ export default function BookFreeConsultationPage() {
     name: '',
     phone: '',
     email: '',
+    age: '',
+    gender: '',
     state: '',
     district: '',
     pincode: '',
@@ -317,6 +319,22 @@ export default function BookFreeConsultationPage() {
               <div className={styles.inputGroup}>
                 <label className={styles.label}>Email Address</label>
                 <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} disabled={type === 'CORPORATE' && !!employeeData?.email} className={styles.input} />
+              </div>
+
+              <div className={styles.grid2}>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Age</label>
+                  <input type="number" value={formData.age} onChange={e => setFormData({...formData, age: e.target.value})} className={styles.input} />
+                </div>
+                <div className={styles.inputGroup}>
+                  <label className={styles.label}>Gender</label>
+                  <select value={formData.gender} onChange={e => setFormData({...formData, gender: e.target.value})} className={`${styles.input} ${styles.select}`}>
+                    <option value="">Select Gender</option>
+                    <option value="Male">Male</option>
+                    <option value="Female">Female</option>
+                    <option value="Other">Other</option>
+                  </select>
+                </div>
               </div>
 
               {/* Location Details */}

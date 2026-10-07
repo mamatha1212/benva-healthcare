@@ -182,6 +182,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
                 <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0' }}>
                   <div style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>{req.name}</div>
                   <div style={{ fontSize: '12px', color: '#64748b' }}>{req.phone} | {req.email || 'N/A'}</div>
+                  <div style={{ fontSize: '11px', color: '#94a3b8' }}>Age: {req.age || 'N/A'} | Gender: {req.gender || 'N/A'}</div>
                 </td>
                 <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0' }}>
                   <span style={{ padding: '4px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 600, background: req.type === 'CORPORATE' ? '#eff6ff' : '#f8fafc', color: req.type === 'CORPORATE' ? '#2563eb' : '#475569' }}>
@@ -236,7 +237,8 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
             <div id="patient-details-pdf" style={{ display: 'grid', gap: '16px', padding: '16px', background: 'white' }}>
               <div style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '16px', marginBottom: '8px' }}>
                 <div style={{ fontSize: '22px', fontWeight: 800, color: '#0f172a', marginBottom: '4px' }}>{viewingRequest.name}</div>
-                <div style={{ fontSize: '14px', color: '#475569', marginBottom: '8px' }}>{viewingRequest.phone} | {viewingRequest.email || 'No Email provided'}</div>
+                <div style={{ fontSize: '14px', color: '#475569', marginBottom: '4px' }}>{viewingRequest.phone} | {viewingRequest.email || 'No Email provided'}</div>
+                <div style={{ fontSize: '13px', color: '#64748b', marginBottom: '8px' }}>Age: {viewingRequest.age || 'N/A'} | Gender: {viewingRequest.gender || 'N/A'}</div>
                 <div style={{ fontSize: '14px', fontWeight: 600, color: '#2563eb', display: 'flex', gap: '12px' }}>
                   <span>Date: {new Date(viewingRequest.createdAt).toLocaleDateString()}</span>
                   <span>Type: {viewingRequest.type}</span>
