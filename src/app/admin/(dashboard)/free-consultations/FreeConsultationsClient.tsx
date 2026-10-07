@@ -56,7 +56,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
     return true;
   });
 
-  const handleDownloadPDF = async (targetId: string, filename: string) => {
+  const handleDownloadPDF = async (targetId: string, filename: string, action: 'download' | 'view' | 'share' = 'download') => {
     const element = document.getElementById(targetId);
     if (!element) return;
     
@@ -86,7 +86,30 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
     // Dynamically import to avoid SSR 'window is not defined' error
     // @ts-ignore
     const html2pdf = (await import('html2pdf.js')).default;
-    html2pdf().set(opt).from(clone).save();
+    
+    if (action === 'download') {
+      html2pdf().set(opt).from(clone).save();
+    } else if (action === 'view') {
+      html2pdf().set(opt).from(clone).output('bloburl').then((url: string) => {
+        window.open(url, '_blank');
+      });
+    } else if (action === 'share') {
+      html2pdf().set(opt).from(clone).output('blob').then(async (blob: Blob) => {
+        const file = new File([blob], filename, { type: 'application/pdf' });
+        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+          try {
+            await navigator.share({
+              files: [file],
+              title: 'Patient Consultation Record',
+            });
+          } catch (err) {
+            console.error('Error sharing:', err);
+          }
+        } else {
+          alert('Sharing is not supported on this device/browser.');
+        }
+      });
+    }
   };
 
   const handleStatusChange = async (id: string, newStatus: string) => {
@@ -128,18 +151,20 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
     <div>
       <style>{`
         .filter-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; background: white; padding: 16px; border-radius: 12px; border: 1px solid #e2e8f0; flex-wrap: wrap; gap: 16px; }
-        .filter-group { display: flex; gap: 16px; flex-wrap: wrap; align-items: center; }
+        .filter-group { display: flex; gap: 16px; flex-wrap: wrap; align-items: flex-end; width: 100%; }
         .filter-item { display: flex; flex-direction: column; gap: 4px; }
         .filter-item input, .filter-item select { padding: 8px; border-radius: 8px; border: 1px solid #cbd5e1; outline: none; }
-        .download-btn { padding: 10px 20px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; gap: 8px; }
+        .download-btn { padding: 8px 16px; height: 35px; background: #10b981; color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; }
+        .type-download-wrapper { display: flex; align-items: flex-end; gap: 8px; }
 
         @media (max-width: 640px) {
           .filter-bar { flex-direction: column; align-items: stretch; padding: 16px; }
-          .filter-group { display: grid; grid-template-columns: 1fr 1fr; width: 100%; gap: 12px; }
+          .filter-group { display: grid; grid-template-columns: 1fr 1fr 1fr; width: 100%; gap: 8px; align-items: end; }
           .filter-item { width: 100%; }
-          .filter-item input, .filter-item select { width: 100%; box-sizing: border-box; }
-          .clear-filter-container { align-self: end; margin-top: 0 !important; display: flex; align-items: center; justify-content: flex-start; padding-bottom: 4px; }
-          .download-btn { width: 100%; justify-content: center; margin-top: 4px; }
+          .filter-item input, .filter-item select { width: 100%; box-sizing: border-box; padding: 8px 4px; font-size: 12px; }
+          .filter-item label { font-size: 11px !important; }
+          .clear-filter-container { grid-column: 1 / -1; display: flex; justify-content: center; margin-top: 8px; }
+          .download-btn { grid-column: 1 / -1; width: 100%; margin-top: 8px; }
 
           #patient-details-pdf {
             padding: 20px !important;
@@ -176,17 +201,17 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
               <option value="CORPORATE">Corporate</option>
             </select>
           </div>
+          <button className="download-btn" onClick={() => handleDownloadPDF('consultations-table', `Free_Consultations${fromDate ? `_from_${fromDate}` : ''}.pdf`)}>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
+            Download PDF
+          </button>
+
           {(fromDate || toDate || typeFilter !== 'ALL') && (
-            <div className="clear-filter-container" style={{ display: 'flex', flexDirection: 'column', justifyContent: 'flex-end', height: '100%', marginTop: '20px' }}>
+            <div className="clear-filter-container">
                <button onClick={() => { setFromDate(''); setToDate(''); setTypeFilter('ALL'); }} style={{ background: 'none', border: 'none', color: '#ef4444', fontWeight: 600, cursor: 'pointer', fontSize: '13px' }}>Clear Filters</button>
             </div>
           )}
         </div>
-        
-        <button className="download-btn" onClick={() => handleDownloadPDF('consultations-table', `Free_Consultations${fromDate ? `_from_${fromDate}` : ''}.pdf`)}>
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-          Download PDF
-        </button>
       </div>
       <div id="consultations-table" style={{ background: 'white', borderRadius: '12px', border: '1px solid #e2e8f0', overflowX: 'auto' }}>
         <table style={{ width: '100%', minWidth: '900px', borderCollapse: 'collapse', textAlign: 'left' }}>
@@ -472,13 +497,27 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
               </div>
             </div>
             
-            <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+            <div style={{ marginTop: '24px', display: 'flex', justifyContent: 'flex-end', gap: '12px', flexWrap: 'wrap' }}>
               <button 
-                onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`)}
+                onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'view')}
+                style={{ padding: '10px 20px', background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                View
+              </button>
+              <button 
+                onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'share')}
+                style={{ padding: '10px 20px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                Share
+              </button>
+              <button 
+                onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'download')}
                 style={{ padding: '10px 20px', background: '#3b82f6', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                Download Patient Details PDF
+                Download PDF
               </button>
             </div>
           </div>
