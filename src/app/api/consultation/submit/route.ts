@@ -28,7 +28,7 @@ export async function POST(req: NextRequest) {
 
         if (pastYearRequests >= 1) {
           return NextResponse.json(
-            { error: 'General users are limited to 1 free consultation per year.' },
+            { error: 'Your yearly limit is completed. General users get only one free consultation per year.' },
             { status: 429 }
           );
         }
@@ -43,7 +43,7 @@ export async function POST(req: NextRequest) {
 
         if (pastQuarterRequests >= 1) {
           return NextResponse.json(
-            { error: 'Corporate users are limited to 1 free consultation per quarter.' },
+            { error: 'Your quarterly limit is completed. Corporate users get only one free consultation per quarter.' },
             { status: 429 }
           );
         }

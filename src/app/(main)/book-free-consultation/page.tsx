@@ -106,6 +106,7 @@ export default function BookFreeConsultationPage() {
   
   const [submitting, setSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleVerify = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -168,10 +169,12 @@ export default function BookFreeConsultationPage() {
         setSuccess(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        alert(responseData.error || 'Failed to submit your request. Please try again.');
+        setSubmitError(responseData.error || 'Failed to submit your request. Please try again.');
+        window.scrollTo({ top: 0, behavior: 'smooth' });
       }
     } catch (err) {
-      alert('Something went wrong.');
+      setSubmitError('Something went wrong.');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     setSubmitting(false);
   };
@@ -198,6 +201,33 @@ export default function BookFreeConsultationPage() {
 
           <p className={styles.successDesc} style={{ fontSize: '1.1rem' }}>Thank you for choosing Benva Healthcare. We look forward to assisting you.</p>
           <button onClick={() => window.location.href = '/'} className={styles.btnSecondary} style={{ width: '100%', marginTop: '10px' }}>Return to Home</button>
+        </div>
+      </div>
+    );
+  }
+
+  if (submitError) {
+    return (
+      <div className={styles.pageContainer} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '80vh' }}>
+        <div className={styles.successCard} style={{ maxWidth: '600px', margin: '40px auto', padding: '50px 30px', borderTop: '5px solid #dc2626' }}>
+          <div className={styles.successIcon} style={{ background: '#fef2f2', color: '#dc2626' }}>✕</div>
+          <h2 className={styles.successTitle} style={{ color: '#dc2626', fontSize: '2rem' }}>Limit Exceeded</h2>
+          
+          <div style={{ background: '#111111', padding: '30px', borderRadius: '16px', margin: '30px 0', border: '2px dashed #dc2626' }}>
+            <h3 style={{ fontSize: '1.4rem', color: '#f8fafc', marginBottom: '15px' }}>{submitError}</h3>
+            <p style={{ fontSize: '1.1rem', color: '#cbd5e0', marginBottom: '25px', lineHeight: '1.6' }}>
+              Please contact Benva Support to book an appointment or to find out more details.
+            </p>
+            <div style={{ display: 'inline-block', background: '#dc2626', color: 'white', padding: '16px 32px', borderRadius: '50px', fontSize: '1.8rem', fontWeight: '800', letterSpacing: '1px', boxShadow: '0 10px 25px rgba(220, 38, 38, 0.4)', transition: 'transform 0.2s' }}>
+              <a href="tel:+919111145556" style={{ color: 'white', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path></svg>
+                +91 91111 45556
+              </a>
+            </div>
+          </div>
+
+          <p className={styles.successDesc} style={{ fontSize: '1.1rem' }}>Thank you for choosing Benva Healthcare.</p>
+          <button onClick={() => { setSubmitError(null); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className={styles.btnSecondary} style={{ width: '100%', marginTop: '10px' }}>Try Again</button>
         </div>
       </div>
     );
