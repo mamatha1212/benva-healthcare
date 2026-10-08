@@ -40,39 +40,27 @@ export async function POST(req: NextRequest) {
           );
         }
       } else if (data.type === 'CORPORATE') {
-        const lastQuarterRequest = await prisma.freeConsultationRequest.findFirst({
-          where: {
-            type: 'CORPORATE',
-            OR: userConditions,
-            createdAt: { gte: threeMonthsAgo },
-          },
-          orderBy: { createdAt: 'desc' },
-        });
-
-        if (lastQuarterRequest) {
-          const bookedDate = lastQuarterRequest.createdAt;
-          const dateStr = bookedDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
-          const renewalDate = new Date(bookedDate);
-          renewalDate.setMonth(renewalDate.getMonth() + 3);
-          const renewalDateStr = renewalDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
-
-          return NextResponse.json(
-            { error: `Your quarterly limit is completed. Corporate users get only one free consultation per quarter.\n(Last booked on: ${dateStr})\n\nYour limit will automatically renew on ${renewalDateStr}, after which you can book again.` },
-            { status: 429 }
-          );
-        }
-
-        const pastYearRequestsCount = await prisma.freeConsultationRequest.count({
+        const pastYearRequests = await prisma.freeConsultationRequest.findMany({
           where: {
             type: 'CORPORATE',
             OR: userConditions,
             createdAt: { gte: oneYearAgo },
           },
+          orderBy: { createdAt: 'asc' }, // Oldest first
         });
 
-        if (pastYearRequestsCount >= 4) {
+        if (pastYearRequests.length >= 4) {
+          const bookedDatesList = pastYearRequests
+            .map(req => req.createdAt.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }))
+            .join(', ');
+            
+          const oldestRequestDate = pastYearRequests[0].createdAt;
+          const renewalDate = new Date(oldestRequestDate);
+          renewalDate.setFullYear(renewalDate.getFullYear() + 1);
+          const renewalDateStr = renewalDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+
           return NextResponse.json(
-            { error: 'Corporate users are limited to 4 free consultations per year.' },
+            { error: `Your yearly limit is completed. Corporate users get 4 free consultations per year.\n\nYou have used them on:\n${bookedDatesList}\n\nYour limit will renew (1 consultation available) on ${renewalDateStr}.` },
             { status: 429 }
           );
         }
