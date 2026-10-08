@@ -28,9 +28,14 @@ export async function POST(req: NextRequest) {
         });
 
         if (lastYearRequest) {
-          const dateStr = lastYearRequest.createdAt.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+          const bookedDate = lastYearRequest.createdAt;
+          const dateStr = bookedDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+          const renewalDate = new Date(bookedDate);
+          renewalDate.setFullYear(renewalDate.getFullYear() + 1);
+          const renewalDateStr = renewalDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+
           return NextResponse.json(
-            { error: `Your yearly limit is completed. General users get only one free consultation per year.\n(Last booked on: ${dateStr})` },
+            { error: `Your yearly limit is completed. General users get only one free consultation per year.\n(Last booked on: ${dateStr})\n\nYour limit will automatically renew on ${renewalDateStr}, after which you can book again.` },
             { status: 429 }
           );
         }
@@ -45,9 +50,14 @@ export async function POST(req: NextRequest) {
         });
 
         if (lastQuarterRequest) {
-          const dateStr = lastQuarterRequest.createdAt.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+          const bookedDate = lastQuarterRequest.createdAt;
+          const dateStr = bookedDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+          const renewalDate = new Date(bookedDate);
+          renewalDate.setMonth(renewalDate.getMonth() + 3);
+          const renewalDateStr = renewalDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+
           return NextResponse.json(
-            { error: `Your quarterly limit is completed. Corporate users get only one free consultation per quarter.\n(Last booked on: ${dateStr})` },
+            { error: `Your quarterly limit is completed. Corporate users get only one free consultation per quarter.\n(Last booked on: ${dateStr})\n\nYour limit will automatically renew on ${renewalDateStr}, after which you can book again.` },
             { status: 429 }
           );
         }
