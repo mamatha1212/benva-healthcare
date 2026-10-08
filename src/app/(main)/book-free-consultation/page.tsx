@@ -161,11 +161,14 @@ export default function BookFreeConsultationPage() {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(submitData)
       });
+      
+      const responseData = await res.json();
+      
       if (res.ok) {
         setSuccess(true);
         window.scrollTo({ top: 0, behavior: 'smooth' });
       } else {
-        alert('Failed to submit your request. Please try again.');
+        alert(responseData.error || 'Failed to submit your request. Please try again.');
       }
     } catch (err) {
       alert('Something went wrong.');
