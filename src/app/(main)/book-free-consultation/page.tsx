@@ -214,7 +214,7 @@ export default function BookFreeConsultationPage() {
           <h2 className={styles.successTitle} style={{ color: '#dc2626', fontSize: '2rem' }}>Limit Exceeded</h2>
           
           <div style={{ background: '#111111', padding: '30px', borderRadius: '16px', margin: '30px 0', border: '2px dashed #dc2626' }}>
-            <h3 style={{ fontSize: '1.4rem', color: '#f8fafc', marginBottom: '15px' }}>{submitError}</h3>
+            <h3 style={{ fontSize: '1.4rem', color: '#f8fafc', marginBottom: '15px', whiteSpace: 'pre-wrap' }}>{submitError}</h3>
             <p style={{ fontSize: '1.1rem', color: '#cbd5e0', marginBottom: '25px', lineHeight: '1.6' }}>
               Please contact Benva Support to book an appointment or to find out more details.
             </p>

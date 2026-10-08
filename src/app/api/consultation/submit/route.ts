@@ -18,37 +18,41 @@ export async function POST(req: NextRequest) {
       if (data.phone) userConditions.push({ phone: data.phone });
 
       if (data.type === 'GENERAL') {
-        const pastYearRequests = await prisma.freeConsultationRequest.count({
+        const lastYearRequest = await prisma.freeConsultationRequest.findFirst({
           where: {
             type: 'GENERAL',
             OR: userConditions,
             createdAt: { gte: oneYearAgo },
           },
+          orderBy: { createdAt: 'desc' },
         });
 
-        if (pastYearRequests >= 1) {
+        if (lastYearRequest) {
+          const dateStr = lastYearRequest.createdAt.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
           return NextResponse.json(
-            { error: 'Your yearly limit is completed. General users get only one free consultation per year.' },
+            { error: `Your yearly limit is completed. General users get only one free consultation per year.\n(Last booked on: ${dateStr})` },
             { status: 429 }
           );
         }
       } else if (data.type === 'CORPORATE') {
-        const pastQuarterRequests = await prisma.freeConsultationRequest.count({
+        const lastQuarterRequest = await prisma.freeConsultationRequest.findFirst({
           where: {
             type: 'CORPORATE',
             OR: userConditions,
             createdAt: { gte: threeMonthsAgo },
           },
+          orderBy: { createdAt: 'desc' },
         });
 
-        if (pastQuarterRequests >= 1) {
+        if (lastQuarterRequest) {
+          const dateStr = lastQuarterRequest.createdAt.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
           return NextResponse.json(
-            { error: 'Your quarterly limit is completed. Corporate users get only one free consultation per quarter.' },
+            { error: `Your quarterly limit is completed. Corporate users get only one free consultation per quarter.\n(Last booked on: ${dateStr})` },
             { status: 429 }
           );
         }
 
-        const pastYearRequests = await prisma.freeConsultationRequest.count({
+        const pastYearRequestsCount = await prisma.freeConsultationRequest.count({
           where: {
             type: 'CORPORATE',
             OR: userConditions,
@@ -56,7 +60,7 @@ export async function POST(req: NextRequest) {
           },
         });
 
-        if (pastYearRequests >= 4) {
+        if (pastYearRequestsCount >= 4) {
           return NextResponse.json(
             { error: 'Corporate users are limited to 4 free consultations per year.' },
             { status: 429 }
