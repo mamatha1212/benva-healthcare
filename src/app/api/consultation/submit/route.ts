@@ -60,7 +60,7 @@ export async function POST(req: NextRequest) {
           const renewalDateStr = renewalDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
 
           return NextResponse.json(
-            { error: `Your yearly limit is completed. Corporate users get 4 free consultations per year.\n\nYou have used them on:\n${bookedDatesList}\n\nYour limit will renew (1 consultation available) on ${renewalDateStr}.` },
+            { error: `Your yearly limit is completed. Corporate users get 4 free consultations per year.\n\nYou have used them on:\n${bookedDatesList}\n\nYour next available consultation will unlock on ${renewalDateStr}.` },
             { status: 429 }
           );
         }
