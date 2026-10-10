@@ -246,7 +246,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                         </tr>
                       </thead>
                       <tbody>
-                        {Array.isArray(order.medicines) && order.medicines.filter((m: any) => m.isSelected).map((med: any, i: number) => (
+                        {Array.isArray(order.medicines) && order.medicines.filter((m: any) => m.isSelected !== false).map((med: any, i: number) => (
                           <tr key={i}>
                             <td style={{ padding: '12px', border: '1px solid #cbd5e1' }}>{med.name}</td>
                             <td style={{ padding: '12px', border: '1px solid #cbd5e1' }}>{med.type}</td>
@@ -338,7 +338,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                   {formData.medicines.map((med, i) => (
                     <div key={med.id} style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '15px', background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
                       <div>
-                        <input type="checkbox" checked={med.isSelected} onChange={e => handleMedicineChange(i, 'isSelected', e.target.checked)} title="Include in Pharmacy PDF" style={{ width: '20px', height: '20px', cursor: 'pointer' }} />
+                        <input type="checkbox" checked={med.isSelected !== false} onChange={e => handleMedicineChange(i, 'isSelected', e.target.checked)} title="Include in Pharmacy PDF" style={{ width: '20px', height: '20px', cursor: 'pointer' }} />
                       </div>
                       <div style={{ flex: 2 }}>
                         <input type="text" placeholder="Medicine Name" value={med.name} onChange={e => handleMedicineChange(i, 'name', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
