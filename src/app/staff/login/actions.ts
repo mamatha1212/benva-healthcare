@@ -16,6 +16,7 @@ export async function loginStaff(username: string) {
   // In a real app we'd verify the password here.
   
   // Set auth cookie
-  cookies().set('staffAuth', username, { path: '/' });
+  const cookieStore = await cookies();
+  cookieStore.set('staffAuth', username, { path: '/' });
   return { success: true };
 }
