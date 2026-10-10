@@ -635,17 +635,20 @@ export default function BookFreeConsultationPage() {
                     style={{ display: 'none' }} 
                     disabled={isProcessingFiles}
                   />
-                  <label htmlFor="reportFile" className={styles.fileUploadLabel} style={{ opacity: isProcessingFiles ? 0.5 : 1 }}>
-                    {isProcessingFiles ? 'Processing...' : 'Choose Files'}
-                  </label>
-                  <p style={{ margin: '10px 0 0 0', fontSize: '13px', color: '#94a3b8' }}>Upload PDF, JPG, or PNG (Max 10MB)</p>
                   
-                  {selectedFiles.length > 0 && (
-                    <div style={{ marginTop: '15px', fontSize: '14px', color: '#334155', textAlign: 'left', background: '#f8fafc', padding: '10px', borderRadius: '8px' }}>
-                      <strong style={{ display: 'block', marginBottom: '8px' }}>Selected ({selectedFiles.length}):</strong>
+                  {selectedFiles.length === 0 ? (
+                    <>
+                      <label htmlFor="reportFile" className={styles.fileUploadLabel} style={{ opacity: isProcessingFiles ? 0.5 : 1, cursor: 'pointer' }}>
+                        {isProcessingFiles ? 'Processing...' : 'Choose Files'}
+                      </label>
+                      <p style={{ margin: '10px 0 0 0', fontSize: '13px', color: '#94a3b8' }}>Upload PDF, JPG, or PNG (Max 10MB)</p>
+                    </>
+                  ) : (
+                    <div style={{ fontSize: '14px', color: '#334155', textAlign: 'left', background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
+                      <strong style={{ display: 'block', marginBottom: '10px' }}>Selected ({selectedFiles.length}):</strong>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {selectedFiles.map((file, idx) => (
-                          <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'white', padding: '8px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'white', padding: '8px', borderRadius: '6px', border: '1px solid #e2e8f0' }}>
                             <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }} title={file.name}>
                               {file.name}
                             </div>
@@ -656,6 +659,18 @@ export default function BookFreeConsultationPage() {
                             </div>
                           </div>
                         ))}
+                      </div>
+                      
+                      <div style={{ marginTop: '14px', display: 'flex', justifyContent: 'center' }}>
+                        <label htmlFor="reportFile" style={{ 
+                          display: 'inline-flex', alignItems: 'center', gap: '6px', 
+                          padding: '8px 16px', background: '#e0e7ff', color: '#4338ca', 
+                          fontWeight: '600', fontSize: '13px', borderRadius: '6px', 
+                          cursor: isProcessingFiles ? 'not-allowed' : 'pointer', opacity: isProcessingFiles ? 0.5 : 1
+                        }}>
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></svg>
+                          {isProcessingFiles ? 'Processing...' : 'Add more photos'}
+                        </label>
                       </div>
                     </div>
                   )}
