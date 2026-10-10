@@ -139,6 +139,13 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         alert('Could not find PDF template element');
         return;
       }
+      const clone = element.cloneNode(true) as HTMLElement;
+      clone.style.display = 'block';
+      clone.style.position = 'absolute';
+      clone.style.left = '-9999px';
+      clone.style.top = '-9999px';
+      document.body.appendChild(clone);
+
       const html2pdf = (await import('html2pdf.js')).default;
       const opt = {
         margin:       10,
@@ -148,8 +155,12 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         jsPDF:        { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const }
       };
 
-      html2pdf().set(opt).from(element).output('bloburl').then((url: string) => {
+      html2pdf().set(opt).from(clone).output('bloburl').then((url: string) => {
         window.open(url, '_blank');
+        document.body.removeChild(clone);
+      }).catch((err: any) => {
+        console.error('PDF Generation failed', err);
+        document.body.removeChild(clone);
       });
     } catch (err) {
       console.error('PDF Generation failed', err);
@@ -220,7 +231,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                   <button onClick={() => handleDelete(order.id)} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}>Delete</button>
 
                   {/* Hidden PDF Template */}
-                  <div id={`pdf-template-${order.id}`} style={{ position: 'absolute', left: '-9999px', top: '-9999px', width: '210mm', minHeight: '297mm', background: 'white', padding: '20mm', boxSizing: 'border-box' }}>
+                  <div id={`pdf-template-${order.id}`} style={{ display: 'none', width: '210mm', minHeight: '297mm', background: 'white', padding: '20mm', boxSizing: 'border-box' }}>
                     <div style={{ borderBottom: '2px solid #0f3162', paddingBottom: '20px', marginBottom: '20px', textAlign: 'center' }}>
                       <h1 style={{ color: '#0f3162', fontSize: '28px', margin: '0 0 10px 0' }}>Benva Healthcare</h1>
                       <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>Pharmacy Order Form</p>
