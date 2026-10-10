@@ -49,9 +49,9 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
           // For 'All Leads', it is active if the path is exactly /admin and no specific tab is selected (or tab=all)
           // Actually, we are currently not on the packages page, so if pathname is /admin and tab matches.
           if (item.path.includes('tab=')) {
-            isActive = currentTab === item.path.split('tab=')[1] && !usePathname().includes('/packages');
+            isActive = currentTab === item.path.split('tab=')[1] && !pathname.includes('/packages');
           } else {
-            isActive = currentTab === 'all' && !usePathname().includes('/packages');
+            isActive = currentTab === 'all' && !pathname.includes('/packages');
           }
 
           return (
@@ -66,7 +66,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
 
         <Link
           href="/admin?tab=availability"
-          className={`${styles.navItem} ${searchParams.get('tab') === 'availability' && !usePathname().includes('/packages') ? styles.active : ''}`}
+          className={`${styles.navItem} ${searchParams.get('tab') === 'availability' && !pathname.includes('/packages') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
@@ -77,7 +77,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
 
         <Link
           href="/admin?tab=contact"
-          className={`${styles.navItem} ${searchParams.get('tab') === 'contact' && !usePathname().includes('/packages') ? styles.active : ''}`}
+          className={`${styles.navItem} ${searchParams.get('tab') === 'contact' && !pathname.includes('/packages') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
@@ -87,7 +87,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
 
         <Link
           href="/admin?tab=callback"
-          className={`${styles.navItem} ${searchParams.get('tab') === 'callback' && !usePathname().includes('/packages') ? styles.active : ''}`}
+          className={`${styles.navItem} ${searchParams.get('tab') === 'callback' && !pathname.includes('/packages') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" />
@@ -97,7 +97,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
 
         <Link
           href="/admin?tab=doctor-applications"
-          className={`${styles.navItem} ${searchParams.get('tab') === 'doctor-applications' && !usePathname().includes('/packages') ? styles.active : ''}`}
+          className={`${styles.navItem} ${searchParams.get('tab') === 'doctor-applications' && !pathname.includes('/packages') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"></path>
@@ -112,7 +112,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
 
         <Link
           href="/admin/free-consultations"
-          className={`${styles.navItem} ${usePathname().includes('/admin/free-consultations') ? styles.active : ''}`}
+          className={`${styles.navItem} ${pathname.includes('/admin/free-consultations') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z" />
@@ -123,7 +123,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
         <p className={styles.navHeader} style={{ marginTop: '24px' }}>MANAGE DOCTORS</p>
         <Link
           href="/admin/manage-doctors"
-          className={`${styles.navItem} ${usePathname().includes('/admin/manage-doctors') ? styles.active : ''}`}
+          className={`${styles.navItem} ${pathname.includes('/admin/manage-doctors') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
@@ -139,7 +139,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
               window.location.href = '/admin/dr-payouts';
             }
           }}
-          className={`${styles.navItem} ${usePathname().includes('/admin/dr-payouts') ? styles.active : ''}`}
+          className={`${styles.navItem} ${pathname.includes('/admin/dr-payouts') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="12" y1="1" x2="12" y2="23" />
@@ -155,7 +155,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
               window.location.href = '/admin/prescriptions';
             }
           }}
-          className={`${styles.navItem} ${usePathname().includes('/admin/prescriptions') ? styles.active : ''}`}
+          className={`${styles.navItem} ${pathname.includes('/admin/prescriptions') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -176,7 +176,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
               window.location.href = '/admin/reports';
             }
           }}
-          className={`${styles.navItem} ${usePathname().includes('/admin/reports') ? styles.active : ''}`}
+          className={`${styles.navItem} ${pathname.includes('/admin/reports') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -190,7 +190,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
         
         <Link
           href="/admin/patient-records"
-          className={`${styles.navItem} ${usePathname().includes('/admin/patient-records') ? styles.active : ''}`}
+          className={`${styles.navItem} ${pathname.includes('/admin/patient-records') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -201,10 +201,36 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
           Patient Data
         </Link>
 
+        <p className={styles.navHeader} style={{ marginTop: '24px' }}>STAFF MANAGEMENT</p>
+        <Link
+          href="/admin/staff"
+          className={`${styles.navItem} ${pathname === '/admin/staff' ? styles.active : ''}`}
+        >
+          <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="9" cy="7" r="4" />
+            <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+            <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+          </svg>
+          Manage Staff
+        </Link>
+        <Link
+          href="/admin/staff/add"
+          className={`${styles.navItem} ${pathname.includes('/admin/staff/add') ? styles.active : ''}`}
+        >
+          <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+            <circle cx="8.5" cy="7" r="4" />
+            <line x1="20" y1="8" x2="20" y2="14" />
+            <line x1="23" y1="11" x2="17" y2="11" />
+          </svg>
+          Add Staff
+        </Link>
+
         <p className={styles.navHeader} style={{ marginTop: '24px' }}>MANAGE CONTENT</p>
         <Link
           href="/admin/packages"
-          className={`${styles.navItem} ${usePathname().includes('/admin/packages') ? styles.active : ''}`}
+          className={`${styles.navItem} ${pathname.includes('/admin/packages') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 20h9" />
@@ -215,7 +241,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
 
         <Link
           href="/admin/diet-plans"
-          className={`${styles.navItem} ${usePathname().includes('/admin/diet-plans') ? styles.active : ''}`}
+          className={`${styles.navItem} ${pathname.includes('/admin/diet-plans') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z" />
@@ -225,7 +251,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
 
         <Link
           href="/admin/tests"
-          className={`${styles.navItem} ${usePathname().includes('/admin/tests') ? styles.active : ''}`}
+          className={`${styles.navItem} ${pathname.includes('/admin/tests') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2" />
@@ -237,7 +263,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
 
         <Link
           href="/admin/locations"
-          className={`${styles.navItem} ${usePathname().includes('/admin/locations') ? styles.active : ''}`}
+          className={`${styles.navItem} ${pathname.includes('/admin/locations') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
@@ -248,7 +274,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
 
         <Link
           href="/admin/referrals"
-          className={`${styles.navItem} ${usePathname().includes('/admin/referrals') ? styles.active : ''}`}
+          className={`${styles.navItem} ${pathname.includes('/admin/referrals') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
@@ -261,7 +287,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
 
         <Link
           href="/admin/corporate"
-          className={`${styles.navItem} ${usePathname().includes('/admin/corporate') ? styles.active : ''}`}
+          className={`${styles.navItem} ${pathname.includes('/admin/corporate') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M3 21h18"></path>
@@ -278,7 +304,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
 
         <Link
           href="/admin/pages"
-          className={`${styles.navItem} ${usePathname().includes('/admin/pages') ? styles.active : ''}`}
+          className={`${styles.navItem} ${pathname.includes('/admin/pages') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
@@ -292,7 +318,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
 
         <Link
           href="/admin/service-areas"
-          className={`${styles.navItem} ${usePathname().includes('/admin/service-areas') ? styles.active : ''}`}
+          className={`${styles.navItem} ${pathname.includes('/admin/service-areas') ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />

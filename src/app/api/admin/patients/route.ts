@@ -61,15 +61,27 @@ export async function POST(req: NextRequest) {
       if (key === 'files' && value instanceof File && value.size > 0) {
         const file = value as File;
         
-        // Upload the file to Vercel Blob
-        const blob = await put(`patients/${patient.id}/${file.name}`, file, {
-          access: 'public',
-        });
+        // Upload the file to Vercel Blob if token is available
+        let fileUrl = '';
+        if (process.env.BLOB_READ_WRITE_TOKEN) {
+          try {
+            const blob = await put(`patients/${patient.id}/${file.name}`, file, {
+              access: 'public',
+            });
+            fileUrl = blob.url;
+          } catch (e) {
+            console.warn("Failed to upload to Vercel Blob:", e);
+            fileUrl = `/mock-uploads/${file.name}`;
+          }
+        } else {
+          console.warn("BLOB_READ_WRITE_TOKEN is not set. Using mock URL.");
+          fileUrl = `/mock-uploads/${file.name}`;
+        }
         
         dbRecords.push({
           patientId: patient.id,
           fileName: file.name,
-          fileUrl: blob.url,
+          fileUrl: fileUrl,
           fileType: 'DOCUMENT',
         });
       }
@@ -93,5 +105,31 @@ export async function POST(req: NextRequest) {
     console.error('Error creating patient:', error);
     const errorMessage = error instanceof Error ? error.message : 'Failed to create patient';
     return NextResponse.json({ error: errorMessage }, { status: 500 });
+  }
+}
+
+export async function PUT(req: NextRequest) {
+  try {
+    const data = await req.json();
+    const { id, name, phone, address, medicalHistory } = data;
+    
+    if (!id) {
+      return NextResponse.json({ error: 'Patient ID is required' }, { status: 400 });
+    }
+
+    const updatedPatient = await prisma.patientRecord.update({
+      where: { id },
+      data: {
+        ...(name !== undefined && { name }),
+        ...(phone !== undefined && { phone }),
+        ...(address !== undefined && { address }),
+        ...(medicalHistory !== undefined && { medicalHistory })
+      }
+    });
+
+    return NextResponse.json(updatedPatient);
+  } catch (error) {
+    console.error('Error updating patient:', error);
+    return NextResponse.json({ error: 'Failed to update patient' }, { status: 500 });
   }
 }

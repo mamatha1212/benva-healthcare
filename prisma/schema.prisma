@@ -32,31 +32,31 @@ model Lead {
 }
 
 model HealthPackage {
-  id            String   @id @default(cuid())
-  slug          String?  @unique
+  id            String        @id @default(cuid())
+  slug          String?       @unique
   title         String
   subtitle      String
   price         String
   originalPrice String
   discount      String
-  theme         String   @default("themePink")
+  theme         String        @default("themePink")
   image         String
-  layout        String   @default("left")
-  isPopular     Boolean  @default(false)
-  createdAt     DateTime @default(now())
-  updatedAt     DateTime @updatedAt
+  layout        String        @default("left")
+  isPopular     Boolean       @default(false)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
   tests         PackageTest[]
   profiles      TestProfile[]
 }
 
 model PackageTest {
-  id          String        @id @default(cuid())
-  name        String
-  parameters  String
-  package     HealthPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
-  packageId   String
-  order       Int           @default(0)
-  createdAt   DateTime      @default(now())
+  id         String        @id @default(cuid())
+  name       String
+  parameters String
+  package    HealthPackage @relation(fields: [packageId], references: [id], onDelete: Cascade)
+  packageId  String
+  order      Int           @default(0)
+  createdAt  DateTime      @default(now())
 }
 
 model TestProfile {
@@ -112,24 +112,24 @@ model StaticPage {
 }
 
 model DietPlan {
-  id          String             @id @default(cuid())
-  title       String
-  duration    String
-  price       String
-  priceUnit   String
-  isActive    Boolean            @default(true)
-  createdAt   DateTime           @default(now())
-  updatedAt   DateTime           @updatedAt
-  benefits    DietPlanBenefit[]
+  id        String            @id @default(cuid())
+  title     String
+  duration  String
+  price     String
+  priceUnit String
+  isActive  Boolean           @default(true)
+  createdAt DateTime          @default(now())
+  updatedAt DateTime          @updatedAt
+  benefits  DietPlanBenefit[]
 }
 
 model DietPlanBenefit {
-  id          String    @id @default(cuid())
-  name        String
-  dietPlan    DietPlan  @relation(fields: [dietPlanId], references: [id], onDelete: Cascade)
-  dietPlanId  String
-  order       Int       @default(0)
-  createdAt   DateTime  @default(now())
+  id         String   @id @default(cuid())
+  name       String
+  dietPlan   DietPlan @relation(fields: [dietPlanId], references: [id], onDelete: Cascade)
+  dietPlanId String
+  order      Int      @default(0)
+  createdAt  DateTime @default(now())
 }
 
 model ServiceLocation {
@@ -172,7 +172,7 @@ model PatientFile {
   patientId String
   fileUrl   String
   fileName  String
-  fileType  String        // e.g., 'PRESCRIPTION', 'BILL', 'REPORT'
+  fileType  String // e.g., 'PRESCRIPTION', 'BILL', 'REPORT'
   status    String        @default("DRAFT") // 'DRAFT' or 'SUBMITTED'
   createdAt DateTime      @default(now())
 }
@@ -216,7 +216,7 @@ model InvoiceItem {
 model Doctor {
   id                String   @id @default(cuid())
   name              String
-  type              String   // 'CONSULTANT' or 'DIETICIAN'
+  type              String // 'CONSULTANT' or 'DIETICIAN'
   phone             String?
   email             String?  @unique
   password          String?
@@ -250,46 +250,46 @@ model ReportFile {
   needsReminder Boolean   @default(false)
   reminderDate  DateTime?
 
-  createdAt    DateTime @default(now())
+  createdAt DateTime @default(now())
 }
 
 model DoctorApplication {
-  id                    String   @id @default(cuid())
-  fullName              String
-  title                 String
-  gender                String
-  dob                   String
-  mobile                String
-  email                 String
-  address               String
-  city                  String
-  state                 String
-  photoUrl              String?
-  medicalQualification  String
-  medicalCollege        String
-  yearOfGraduation      String
-  yearOfPostGraduation  String?
-  medicalCouncilReg     String
-  registeringAuthority  String
-  registrationStatus    String
-  primarySpecialization String
+  id                      String   @id @default(cuid())
+  fullName                String
+  title                   String
+  gender                  String
+  dob                     String
+  mobile                  String
+  email                   String
+  address                 String
+  city                    String
+  state                   String
+  photoUrl                String?
+  medicalQualification    String
+  medicalCollege          String
+  yearOfGraduation        String
+  yearOfPostGraduation    String?
+  medicalCouncilReg       String
+  registeringAuthority    String
+  registrationStatus      String
+  primarySpecialization   String
   secondarySpecialization String?
-  clinicalFocus         String?
-  experience            String
-  languages             String
-  telemedicine          Boolean
-  documents             Json?
-  accountName           String
-  bankName              String
-  accountNumber         String
-  ifscCode              String
-  panNumber             String
-  branchName            String
-  signatureName         String
-  signatureDate         String
-  status                String   @default("PENDING")
-  createdAt             DateTime @default(now())
-  updatedAt             DateTime @updatedAt
+  clinicalFocus           String?
+  experience              String
+  languages               String
+  telemedicine            Boolean
+  documents               Json?
+  accountName             String
+  bankName                String
+  accountNumber           String
+  ifscCode                String
+  panNumber               String
+  branchName              String
+  signatureName           String
+  signatureDate           String
+  status                  String   @default("PENDING")
+  createdAt               DateTime @default(now())
+  updatedAt               DateTime @updatedAt
 }
 
 model DrPayout {
@@ -354,16 +354,16 @@ model ReferralTransaction {
 }
 
 model Organization {
-  id           String              @id @default(cuid())
-  companyName  String
-  hrName       String
-  hrEmail      String
-  hrPhone      String
-  address      String?
-  status       String              @default("PENDING") // PENDING, ACTIVE, INACTIVE
-  createdAt    DateTime            @default(now())
-  updatedAt    DateTime            @updatedAt
-  employees    CorporateEmployee[]
+  id          String              @id @default(cuid())
+  companyName String
+  hrName      String
+  hrEmail     String
+  hrPhone     String
+  address     String?
+  status      String              @default("PENDING") // PENDING, ACTIVE, INACTIVE
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+  employees   CorporateEmployee[]
 }
 
 model CorporateEmployee {
@@ -381,44 +381,111 @@ model CorporateEmployee {
 }
 
 model CorporateConsultation {
-  id                  String             @id @default(cuid())
-  employee            CorporateEmployee  @relation(fields: [employeeId], references: [id], onDelete: Cascade)
-  employeeId          String
-  consultationDate    DateTime           @default(now())
-  status              String             @default("REQUESTED") // REQUESTED, SCHEDULED, COMPLETED, CANCELLED
-  notes               String?            @db.Text
-  prescriptionUrl     String?
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
+  id               String            @id @default(cuid())
+  employee         CorporateEmployee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  employeeId       String
+  consultationDate DateTime          @default(now())
+  status           String            @default("REQUESTED") // REQUESTED, SCHEDULED, COMPLETED, CANCELLED
+  notes            String?           @db.Text
+  prescriptionUrl  String?
+  createdAt        DateTime          @default(now())
+  updatedAt        DateTime          @updatedAt
 }
 
 model FreeConsultationRequest {
-  id                  String             @id @default(cuid())
-  type                String             // "GENERAL" or "CORPORATE"
-  
+  id   String @id @default(cuid())
+  type String // "GENERAL" or "CORPORATE"
+
   // General Fields
-  name                String?
-  phone               String?
-  email               String?
-  age                 String?
-  gender              String?
-  
+  name   String?
+  phone  String?
+  email  String?
+  age    String?
+  gender String?
+
   // Corporate Fields
-  employeeId          String?
-  organizationName    String?
-  
+  employeeId       String?
+  organizationName String?
+
   // Medical Details
-  problem             String             @db.Text
-  previousMedication  String?            @db.Text
-  reportUrl           String?
-  
+  problem            String  @db.Text
+  previousMedication String? @db.Text
+  reportUrl          String?
+
   // Location
-  state               String?
-  district            String?
-  pincode             String?
-  
-  status              String             @default("PENDING")
-  adminRemarks        String?            @db.Text
-  createdAt           DateTime           @default(now())
-  updatedAt           DateTime           @updatedAt
+  state    String?
+  district String?
+  pincode  String?
+
+  status       String   @default("PENDING")
+  adminRemarks String?  @db.Text
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+}
+
+// ------------------------------------------------------
+// BENVA STAFF LOGIN & ACCESS CONTROL SYSTEM (RBAC)
+// ------------------------------------------------------
+
+model Staff {
+  id           String @id @default(cuid())
+  employeeId   String @unique
+  name         String
+  mobileNumber String
+  email        String @unique
+  department   String
+  designation  String
+
+  username       String      @unique
+  password       String
+  isTemporaryPwd Boolean     @default(true)
+  status         StaffStatus @default(ACTIVE)
+
+  permissions StaffPermission[]
+  auditLogs   AuditLog[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+enum StaffStatus {
+  ACTIVE
+  INACTIVE
+}
+
+model StaffPermission {
+  id String @id @default(cuid())
+
+  staffId String
+  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  moduleName String
+
+  // Action level permissions
+  canView   Boolean @default(false)
+  canAdd    Boolean @default(false)
+  canEdit   Boolean @default(false)
+  canDelete Boolean @default(false)
+  canExport Boolean @default(false)
+
+  // Field level permissions stored as JSON
+  fieldAccess Json?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([staffId, moduleName])
+}
+
+model AuditLog {
+  id String @id @default(cuid())
+
+  staffId String
+  staff   Staff  @relation(fields: [staffId], references: [id], onDelete: Cascade)
+
+  action      String
+  module      String
+  description String?
+
+  createdAt DateTime @default(now())
 }
