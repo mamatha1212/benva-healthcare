@@ -225,13 +225,14 @@ export default function BookFreeConsultationPage() {
     let uploadedUrls: string[] = [];
     if (selectedFiles.length > 0) {
       try {
-        for (const file of selectedFiles) {
-          const blob = await upload(file.name, file, {
+        const uploadPromises = selectedFiles.map(file => 
+          upload(file.name, file, {
             access: 'public',
             handleUploadUrl: '/api/upload',
-          });
-          uploadedUrls.push(blob.url);
-        }
+          })
+        );
+        const blobs = await Promise.all(uploadPromises);
+        uploadedUrls = blobs.map(blob => blob.url);
       } catch (err) {
         alert("Failed to upload one or more files. Please try again.");
         setSubmitting(false);
