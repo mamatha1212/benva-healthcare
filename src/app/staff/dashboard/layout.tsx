@@ -2,16 +2,25 @@ import React from 'react';
 import Link from 'next/link';
 import { prisma } from '@/lib/prisma';
 import styles from '@/app/admin/(dashboard)/AdminLayout.module.css';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic';
 
 export default async function StaffLayout({ children }: { children: React.ReactNode }) {
-  const staff = await prisma.staff.findUnique({
-    where: { email: 'mamatha14031995@gmail.com' },
+  const staffAuthCookie = cookies().get('staffAuth')?.value;
+
+  if (!staffAuthCookie) {
+    redirect('/staff/login');
+  }
+
+  const staff = await prisma.staff.findFirst({
+    where: { username: staffAuthCookie },
     include: { permissions: true }
   });
 
   if (!staff) {
+    // If the cookie has an invalid username somehow, clear it and redirect
     return <div style={{ padding: '40px', textAlign: 'center' }}>Staff member not found.</div>;
   }
 

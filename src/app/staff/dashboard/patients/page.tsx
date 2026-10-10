@@ -2,13 +2,17 @@ import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import StaffPatientTable from './StaffPatientTable';
+import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
 export default async function StaffPatientsModule() {
   // 1. Auth & Permission Check
-  const staff = await prisma.staff.findUnique({
-    where: { email: 'test.receptionist@benva.in' },
+  const staffAuthCookie = cookies().get('staffAuth')?.value;
+  if (!staffAuthCookie) redirect('/staff/login');
+
+  const staff = await prisma.staff.findFirst({
+    where: { username: staffAuthCookie },
     include: { permissions: true }
   });
 

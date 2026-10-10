@@ -3,6 +3,7 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
+import { loginStaff } from './actions';
 
 export default function StaffLogin() {
   const router = useRouter();
@@ -24,20 +25,17 @@ export default function StaffLogin() {
     setError('');
 
     try {
-      // We will hook this up to the real authentication API later
-      // For now, let's just pretend to verify
       if (credentials.username && credentials.password) {
-        // Simulate API call
-        await new Promise(resolve => setTimeout(resolve, 1000));
+        // Call the server action to verify and set cookie
+        await loginStaff(credentials.username);
         
-        // This is a placeholder for successful login redirect
-        alert("Login successful! (Authentication backend coming next)");
+        // Redirect to dashboard without alert
         router.push('/staff/dashboard');
       } else {
         setError('Please enter both username and password.');
       }
     } catch (err: any) {
-      setError(err.message || 'Login failed');
+      setError(err.message || 'Login failed - invalid username');
     } finally {
       setLoading(false);
     }

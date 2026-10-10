@@ -1,15 +1,20 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
+import { cookies } from 'next/headers';
+import { redirect } from 'next/navigation';
 
 // Force dynamic so it updates instantly when admin changes permissions
 export const dynamic = 'force-dynamic';
 
 export default async function StaffDashboard() {
-  // SIMULATING AUTHENTICATION:
-  // In a real app, you would get the user ID from the session cookie here.
-  // We will fetch the exact test user we created earlier to prove it works dynamically!
-  const staff = await prisma.staff.findUnique({
-    where: { email: 'mamatha14031995@gmail.com' },
+  const staffAuthCookie = cookies().get('staffAuth')?.value;
+
+  if (!staffAuthCookie) {
+    redirect('/staff/login');
+  }
+
+  const staff = await prisma.staff.findFirst({
+    where: { username: staffAuthCookie },
     include: { permissions: true }
   });
 

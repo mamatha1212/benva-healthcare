@@ -1,6 +1,7 @@
 import { prisma } from '@/lib/prisma';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
+import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
@@ -10,8 +11,11 @@ export default async function GenericModulePage({ params }: { params: Promise<{ 
   const moduleSlug = resolvedParams.module;
   const expectedModuleName = moduleSlug.toUpperCase();
 
-  const staff = await prisma.staff.findUnique({
-    where: { email: 'mamatha14031995@gmail.com' },
+  const staffAuthCookie = cookies().get('staffAuth')?.value;
+  if (!staffAuthCookie) redirect('/staff/login');
+
+  const staff = await prisma.staff.findFirst({
+    where: { username: staffAuthCookie },
     include: { permissions: true }
   });
 
