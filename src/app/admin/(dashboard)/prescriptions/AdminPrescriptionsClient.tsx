@@ -31,7 +31,7 @@ const getFormattedPrescription = (rawText: string) => {
 export default function AdminPrescriptionsClient({ initialPrescriptions }: { initialPrescriptions: any[] }) {
   const [prescriptions, setPrescriptions] = useState(initialPrescriptions);
   const [searchTerm, setSearchTerm] = useState('');
-  const [viewingFileText, setViewingFileText] = useState<string | null>(null);
+  const [viewingFile, setViewingFile] = useState<{ text: string, fileInfo: any } | null>(null);
   const [editingFile, setEditingFile] = useState<any>(null);
   const [editData, setEditData] = useState<any>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
