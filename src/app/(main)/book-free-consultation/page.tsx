@@ -77,6 +77,9 @@ export default function BookFreeConsultationPage() {
   const [availableAreas, setAvailableAreas] = useState<any[]>([]);
   const [showAreaSelect, setShowAreaSelect] = useState(false);
   const [checkAreaMessage, setCheckAreaMessage] = useState('');
+  
+  // Submit Status
+  const [submitStatus, setSubmitStatus] = useState('');
 
   useEffect(() => {
     getLocationsHierarchy().then(data => {
@@ -249,24 +252,30 @@ export default function BookFreeConsultationPage() {
     }
 
     setSubmitting(true);
+    setSubmitStatus('Preparing request...');
     
     let uploadedUrls: string[] = [];
     if (selectedFiles.length > 0) {
       try {
-        const uploadPromises = selectedFiles.map(file => 
-          upload(file.name, file, {
+        for (let i = 0; i < selectedFiles.length; i++) {
+          const file = selectedFiles[i];
+          setSubmitStatus(`Uploading File ${i + 1} of ${selectedFiles.length}... (Please wait, do not close)`);
+          
+          const blob = await upload(file.name, file, {
             access: 'public',
             handleUploadUrl: '/api/upload',
-          })
-        );
-        const blobs = await Promise.all(uploadPromises);
-        uploadedUrls = blobs.map(blob => blob.url);
+          });
+          uploadedUrls.push(blob.url);
+        }
       } catch (err) {
-        alert("Failed to upload one or more files. Please try again.");
+        alert("Failed to upload one or more files. Please check your internet connection and try again.");
         setSubmitting(false);
+        setSubmitStatus('');
         return;
       }
     }
+    
+    setSubmitStatus('Saving to database...');
 
     const submitData = {
       ...formData,
@@ -297,6 +306,7 @@ export default function BookFreeConsultationPage() {
       window.scrollTo({ top: 0, behavior: 'smooth' });
     }
     setSubmitting(false);
+    setSubmitStatus('');
   };
 
   if (success) {
@@ -636,7 +646,7 @@ export default function BookFreeConsultationPage() {
 
               <div style={{ marginTop: '30px' }}>
                 <button type="submit" disabled={submitting} className={styles.btnPrimary}>
-                  {submitting ? 'Submitting Request...' : 'Submit Request'}
+                  {submitting ? (submitStatus || 'Submitting Request...') : 'Submit Request'}
                 </button>
               </div>
             </form>
