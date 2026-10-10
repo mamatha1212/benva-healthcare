@@ -8,7 +8,8 @@ export const dynamic = 'force-dynamic';
 
 export default async function StaffPatientsModule() {
   // 1. Auth & Permission Check
-  const staffAuthCookie = cookies().get('staffAuth')?.value;
+  const cookieStore = await cookies();
+  const staffAuthCookie = cookieStore.get('staffAuth')?.value;
   if (!staffAuthCookie) redirect('/staff/login');
 
   const staff = await prisma.staff.findFirst({

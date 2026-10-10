@@ -7,7 +7,8 @@ import { redirect } from 'next/navigation';
 export const dynamic = 'force-dynamic';
 
 export default async function StaffDashboard() {
-  const staffAuthCookie = cookies().get('staffAuth')?.value;
+  const cookieStore = await cookies();
+  const staffAuthCookie = cookieStore.get('staffAuth')?.value;
 
   if (!staffAuthCookie) {
     redirect('/staff/login');

@@ -11,7 +11,8 @@ export default async function GenericModulePage({ params }: { params: Promise<{ 
   const moduleSlug = resolvedParams.module;
   const expectedModuleName = moduleSlug.toUpperCase();
 
-  const staffAuthCookie = cookies().get('staffAuth')?.value;
+  const cookieStore = await cookies();
+  const staffAuthCookie = cookieStore.get('staffAuth')?.value;
   if (!staffAuthCookie) redirect('/staff/login');
 
   const staff = await prisma.staff.findFirst({
