@@ -439,6 +439,18 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
                        <div style={{ whiteSpace: 'pre-wrap', fontSize: '14px', lineHeight: '1.6', color: '#1e3a8a', fontWeight: 500 }}>{viewingRequest.previousMedication}</div>
                      </div>
                    )}
+                   {viewingRequest.reportUrl && (
+                     <div style={{ padding: '16px', background: '#f8fafc', borderTop: '1px solid #e2e8f0' }}>
+                       <div style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Medical Reports Attached</div>
+                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                         {viewingRequest.reportUrl.split(',').map((url: string, idx: number) => (
+                           <a key={idx} href={url.trim()} target="_blank" rel="noopener noreferrer" style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', padding: '8px 12px', background: '#ffffff', border: '1px solid #cbd5e1', borderRadius: '6px', color: '#2563eb', textDecoration: 'none', fontSize: '14px', fontWeight: 600, width: 'fit-content' }}>
+                             📄 View Attachment {idx + 1}
+                           </a>
+                         ))}
+                       </div>
+                     </div>
+                   )}
                  </div>
                </div>
             </div>
@@ -527,6 +539,16 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
                           <td style={{ padding: '20px', background: '#eff6ff', border: '1px solid #bfdbfe' }}>
                             <div style={{ fontSize: '12px', fontWeight: 800, color: '#1d4ed8', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Previous Medication</div>
                             <div style={{ whiteSpace: 'pre-wrap', fontSize: '15px', lineHeight: '1.6', color: '#1e3a8a', fontWeight: 500 }}>{viewingRequest.previousMedication}</div>
+                          </td>
+                        </tr>
+                      )}
+                      {viewingRequest.reportUrl && (
+                        <tr>
+                          <td style={{ padding: '20px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                            <div style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Medical Reports Attached</div>
+                            <div style={{ whiteSpace: 'pre-wrap', fontSize: '15px', lineHeight: '1.6', color: '#334155', fontWeight: 500 }}>
+                              {viewingRequest.reportUrl.split(',').length} File(s) Attached (Available in digital dashboard)
+                            </div>
                           </td>
                         </tr>
                       )}
