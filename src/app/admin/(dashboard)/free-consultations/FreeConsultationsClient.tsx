@@ -154,7 +154,15 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
               title: 'Patient Consultation Record & Reports',
             });
           } else {
-            alert('Sharing zip files is not fully supported on this device/browser.');
+            // Fallback: download the zip file directly
+            const url = URL.createObjectURL(zipBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = zipFile.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
           }
         } catch (e) {
           console.error('Failed to create and share zip', e);
