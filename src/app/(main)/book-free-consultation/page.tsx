@@ -270,14 +270,23 @@ export default function BookFreeConsultationPage() {
           });
           
           if (!uploadRes.ok) {
-            throw new Error(`Upload failed with status: ${uploadRes.status}`);
+            let errorText = uploadRes.statusText;
+            try {
+              const errData = await uploadRes.json();
+              if (errData.error) errorText = errData.error;
+            } catch (e) {}
+            
+            if (uploadRes.status === 413) {
+              throw new Error(`File "${file.name}" is too large (Server limit is 4.5MB). Please compress it and try again.`);
+            }
+            throw new Error(`Upload failed: ${errorText}`);
           }
           
           const blob = await uploadRes.json();
           uploadedUrls.push(blob.url);
         }
-      } catch (err) {
-        alert("Failed to upload one or more files. Please check your internet connection and try again.");
+      } catch (err: any) {
+        alert(err.message || "Failed to upload one or more files. Please check your internet connection and try again.");
         setSubmitting(false);
         setSubmitStatus('');
         return;
