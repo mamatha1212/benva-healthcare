@@ -10,9 +10,14 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'No file provided' }, { status: 400 });
     }
     
+    const token = process.env.PUBLIC_BLOB_READ_WRITE_TOKEN;
+    if (!token) {
+      throw new Error("Missing PUBLIC_BLOB_READ_WRITE_TOKEN! You forgot to check the 'Add read-write token' box when creating the blob.");
+    }
+
     const blob = await put(file.name, file, {
       access: 'public',
-      token: process.env.PUBLIC_BLOB_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN,
+      token: token,
     });
     
     return NextResponse.json(blob);
