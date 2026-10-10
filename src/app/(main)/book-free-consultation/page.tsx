@@ -7,6 +7,43 @@ import { getLocationsHierarchy } from '@/components/DoorstepSection/actions';
 import { upload } from '@vercel/blob/client';
 import styles from './BookConsultation.module.css';
 
+const processImageToCorrectOrientation = (file: File): Promise<File> => {
+  return new Promise((resolve) => {
+    if (!file.type.startsWith('image/')) {
+      resolve(file); // Return PDFs or other non-images as-is
+      return;
+    }
+    
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      const canvas = document.createElement('canvas');
+      canvas.width = img.width;
+      canvas.height = img.height;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(img, 0, 0);
+        canvas.toBlob((blob) => {
+          if (blob) {
+            resolve(new File([blob], file.name, { type: file.type, lastModified: Date.now() }));
+          } else {
+            resolve(file);
+          }
+        }, file.type, 0.9);
+      } else {
+        resolve(file);
+      }
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      resolve(file);
+    };
+    img.src = url;
+  });
+};
+
 export default function BookFreeConsultationPage() {
   const [type, setType] = useState<'NONE' | 'GENERAL' | 'CORPORATE'>('NONE');
   
@@ -49,6 +86,40 @@ export default function BookFreeConsultationPage() {
     reportUrl: ''
   });
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [isProcessingFiles, setIsProcessingFiles] = useState(false);
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+    setIsProcessingFiles(true);
+    const processedFiles = [];
+    for (const file of files) {
+      processedFiles.push(await processImageToCorrectOrientation(file));
+    }
+    setSelectedFiles(prev => [...prev, ...processedFiles]);
+    setIsProcessingFiles(false);
+    e.target.value = '';
+  };
+
+  const moveFileUp = (index: number) => {
+    if (index === 0) return;
+    const newFiles = [...selectedFiles];
+    [newFiles[index - 1], newFiles[index]] = [newFiles[index], newFiles[index - 1]];
+    setSelectedFiles(newFiles);
+  };
+
+  const moveFileDown = (index: number) => {
+    if (index === selectedFiles.length - 1) return;
+    const newFiles = [...selectedFiles];
+    [newFiles[index + 1], newFiles[index]] = [newFiles[index], newFiles[index + 1]];
+    setSelectedFiles(newFiles);
+  };
+
+  const removeFile = (index: number) => {
+    const newFiles = [...selectedFiles];
+    newFiles.splice(index, 1);
+    setSelectedFiles(newFiles);
+  };
 
   // Handle state change
   const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -503,22 +574,32 @@ export default function BookFreeConsultationPage() {
                     type="file" 
                     id="reportFile" 
                     multiple 
-                    onChange={(e) => setSelectedFiles(Array.from(e.target.files || []))} 
+                    onChange={handleFileChange} 
                     style={{ display: 'none' }} 
+                    disabled={isProcessingFiles}
                   />
-                  <label htmlFor="reportFile" className={styles.fileUploadLabel}>Choose Files</label>
+                  <label htmlFor="reportFile" className={styles.fileUploadLabel} style={{ opacity: isProcessingFiles ? 0.5 : 1 }}>
+                    {isProcessingFiles ? 'Processing...' : 'Choose Files'}
+                  </label>
                   <p style={{ margin: '10px 0 0 0', fontSize: '13px', color: '#94a3b8' }}>Upload PDF, JPG, or PNG (Max 5MB)</p>
                   
                   {selectedFiles.length > 0 && (
                     <div style={{ marginTop: '15px', fontSize: '14px', color: '#334155', textAlign: 'left', background: '#f8fafc', padding: '10px', borderRadius: '8px' }}>
-                      <strong>Selected ({selectedFiles.length}):</strong>
-                      <ul style={{ margin: '8px 0 0 0', paddingLeft: '20px', listStyleType: 'disc' }}>
+                      <strong style={{ display: 'block', marginBottom: '8px' }}>Selected ({selectedFiles.length}):</strong>
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {selectedFiles.map((file, idx) => (
-                          <li key={idx} style={{ marginBottom: '4px' }}>
-                            {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
-                          </li>
+                          <div key={idx} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: 'white', padding: '8px', borderRadius: '4px', border: '1px solid #e2e8f0' }}>
+                            <div style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: '180px' }} title={file.name}>
+                              {file.name}
+                            </div>
+                            <div style={{ display: 'flex', gap: '4px' }}>
+                              <button type="button" onClick={() => moveFileUp(idx)} disabled={idx === 0} style={{ padding: '2px 6px', cursor: idx === 0 ? 'not-allowed' : 'pointer', background: '#e2e8f0', border: 'none', borderRadius: '4px', opacity: idx === 0 ? 0.5 : 1 }}>↑</button>
+                              <button type="button" onClick={() => moveFileDown(idx)} disabled={idx === selectedFiles.length - 1} style={{ padding: '2px 6px', cursor: idx === selectedFiles.length - 1 ? 'not-allowed' : 'pointer', background: '#e2e8f0', border: 'none', borderRadius: '4px', opacity: idx === selectedFiles.length - 1 ? 0.5 : 1 }}>↓</button>
+                              <button type="button" onClick={() => removeFile(idx)} style={{ padding: '2px 6px', cursor: 'pointer', background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '4px', marginLeft: '4px' }}>✕</button>
+                            </div>
+                          </div>
                         ))}
-                      </ul>
+                      </div>
                     </div>
                   )}
                 </div>
