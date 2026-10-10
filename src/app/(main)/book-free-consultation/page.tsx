@@ -261,10 +261,19 @@ export default function BookFreeConsultationPage() {
           const file = selectedFiles[i];
           setSubmitStatus(`Uploading File ${i + 1} of ${selectedFiles.length}... (Please wait, do not close)`);
           
-          const blob = await upload(file.name, file, {
-            access: 'public',
-            handleUploadUrl: '/api/upload',
+          const uploadFormData = new FormData();
+          uploadFormData.append('file', file);
+          
+          const uploadRes = await fetch('/api/upload-direct', {
+            method: 'POST',
+            body: uploadFormData
           });
+          
+          if (!uploadRes.ok) {
+            throw new Error(`Upload failed with status: ${uploadRes.status}`);
+          }
+          
+          const blob = await uploadRes.json();
           uploadedUrls.push(blob.url);
         }
       } catch (err) {
