@@ -124,55 +124,28 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
     } else if (action === 'share') {
       html2pdf().set(opt).from(clone).output('blob').then(async (blob: Blob) => {
         try {
-          // Dynamic import with fallback
-          let JSZip;
-          try {
-            JSZip = (await import('jszip')).default;
-          } catch (importErr) {
-            console.error('Failed to import jszip, trying require', importErr);
-            JSZip = require('jszip');
+          const pdfFile = new File([blob], `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, { type: 'application/pdf' });
+          const filesToShare = [pdfFile];
+          
+          if (navigator.canShare && navigator.canShare({ files: filesToShare })) {
+            await navigator.share({
+              files: filesToShare,
+              title: 'Patient Consultation Record & Reports',
+            });
+          } else {
+            // Fallback if share is not supported
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = pdfFile.name;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
           }
-          const zip = new JSZip();
-          
-          zip.file(filename, blob);
-          
-          if (reportUrls) {
-            const urls = reportUrls.split(',');
-            for (let i = 0; i < urls.length; i++) {
-              const url = urls[i].trim();
-              if (!url) continue;
-              
-              let ext = url.split('.').pop() || 'jpg';
-              if (ext.length > 4) ext = 'jpg';
-              
-              try {
-                const fetchRes = await fetch(url);
-                if (fetchRes.ok) {
-                  const attachmentBlob = await fetchRes.blob();
-                  zip.file(`Attachment_${i + 1}.${ext}`, attachmentBlob);
-                }
-              } catch (fetchErr) {
-                console.warn(`Failed to fetch attachment ${i+1}`, fetchErr);
-              }
-            }
-          }
-          
-          const zipBlob = await zip.generateAsync({ type: 'blob' });
-          const zipFilename = `${viewingRequest.name.replace(/\s+/g, '_')}_Documents.zip`;
-          
-          // Force download on all devices instead of Web Share API to ensure reliability
-          const url = URL.createObjectURL(zipBlob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = zipFilename;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(url), 1000);
-          
         } catch (e: any) {
-          console.error('Failed to create zip', e);
-          alert('Failed to generate zip folder. Error: ' + (e.message || 'Unknown error'));
+          console.error('Failed to share PDF', e);
+          alert('Failed to share PDF. Error: ' + (e.message || 'Unknown error'));
         }
       });
     }
