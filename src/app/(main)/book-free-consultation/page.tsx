@@ -89,8 +89,22 @@ export default function BookFreeConsultationPage() {
   const [isProcessingFiles, setIsProcessingFiles] = useState(false);
 
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(e.target.files || []);
+    let files = Array.from(e.target.files || []);
     if (files.length === 0) return;
+    
+    const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+    const oversizedFiles = files.filter(f => f.size > MAX_FILE_SIZE);
+    
+    if (oversizedFiles.length > 0) {
+      alert(`The following files exceed the 10MB limit and will not be added:\n${oversizedFiles.map(f => `- ${f.name}`).join('\n')}`);
+      files = files.filter(f => f.size <= MAX_FILE_SIZE);
+    }
+    
+    if (files.length === 0) {
+      e.target.value = '';
+      return;
+    }
+
     setIsProcessingFiles(true);
     const processedFiles = [];
     for (const file of files) {
@@ -582,7 +596,7 @@ export default function BookFreeConsultationPage() {
                   <label htmlFor="reportFile" className={styles.fileUploadLabel} style={{ opacity: isProcessingFiles ? 0.5 : 1 }}>
                     {isProcessingFiles ? 'Processing...' : 'Choose Files'}
                   </label>
-                  <p style={{ margin: '10px 0 0 0', fontSize: '13px', color: '#94a3b8' }}>Upload PDF, JPG, or PNG (Max 5MB)</p>
+                  <p style={{ margin: '10px 0 0 0', fontSize: '13px', color: '#94a3b8' }}>Upload PDF, JPG, or PNG (Max 10MB)</p>
                   
                   {selectedFiles.length > 0 && (
                     <div style={{ marginTop: '15px', fontSize: '14px', color: '#334155', textAlign: 'left', background: '#f8fafc', padding: '10px', borderRadius: '8px' }}>
