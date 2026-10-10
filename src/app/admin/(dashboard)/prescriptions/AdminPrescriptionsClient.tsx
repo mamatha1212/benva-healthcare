@@ -215,17 +215,17 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f8fafc', padding: '6px 12px', borderRadius: '20px', border: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
                         <span style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Patient:</span>
-                        <span style={{ fontSize: '13px', color: '#0f172a', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }}>{viewingFile.fileInfo.patient.name}</span>
+                        <span style={{ fontSize: '13px', color: '#0f172a', fontWeight: 600, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }}>{viewingFile?.fileInfo?.patient?.name || 'Unknown'}</span>
                       </div>
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#e0e7ff', padding: '6px 12px', borderRadius: '20px', border: '1px solid #c7d2fe', whiteSpace: 'nowrap' }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#4338ca" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><path d="M22 12h-4l-3 9L9 3l-3 9H2"></path></svg>
                         <span style={{ fontSize: '12px', color: '#6366f1', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Doctor:</span>
-                        <span style={{ fontSize: '13px', color: '#4338ca', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }}>Dr. {viewingFile.fileInfo.patient.consultant}</span>
+                        <span style={{ fontSize: '13px', color: '#4338ca', fontWeight: 700, overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }}>Dr. {viewingFile?.fileInfo?.patient?.consultant || 'Unknown'}</span>
                       </div>
                       <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#f8fafc', padding: '6px 12px', borderRadius: '20px', border: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0 }}><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                         <span style={{ fontSize: '12px', color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Date:</span>
-                        <span style={{ fontSize: '13px', color: '#475569', fontWeight: 600 }}>{new Date(viewingFile.fileInfo.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' })}</span>
+                        <span style={{ fontSize: '13px', color: '#475569', fontWeight: 600 }}>{viewingFile?.fileInfo?.createdAt ? new Date(viewingFile.fileInfo.createdAt).toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' }) : 'Unknown'}</span>
                       </div>
                     </div>
                   </div>
@@ -264,8 +264,8 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                 };
 
                 try {
-                  const parsed = JSON.parse(viewingFile.text);
-                  const patient = viewingFile.fileInfo.patient || {};
+                  const parsed = JSON.parse(viewingFile?.text || '{}');
+                  const patient = viewingFile?.fileInfo?.patient || {};
                   
                   return (
                     <div style={{ padding: 'clamp(10px, 3vw, 20px)', background: '#f8fafc', overflowX: 'auto', width: '100%' }}>
@@ -298,13 +298,13 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                                   <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{viewingFile.fileInfo.doctorProfile.qualification}</td>
                                 </tr>
                               )}
-                              {viewingFile.fileInfo.doctorProfile?.speciality && (
+                              {viewingFile?.fileInfo?.doctorProfile?.speciality && (
                                 <tr>
                                   <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Speciality</td>
                                   <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{viewingFile.fileInfo.doctorProfile.speciality}</td>
                                 </tr>
                               )}
-                              {viewingFile.fileInfo.doctorProfile?.medicalCouncilReg && (
+                              {viewingFile?.fileInfo?.doctorProfile?.medicalCouncilReg && (
                                 <tr>
                                   <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Medical Council Reg. No.</td>
                                   <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{viewingFile.fileInfo.doctorProfile.medicalCouncilReg}</td>
@@ -322,7 +322,7 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                               <tr>
                                 <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '30%', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Consultation Date</td>
                                 <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>
-                                  {new Date(viewingFile.fileInfo.createdAt).toLocaleDateString()}
+                                  {viewingFile?.fileInfo?.createdAt ? new Date(viewingFile.fileInfo.createdAt).toLocaleDateString() : 'Unknown'}
                                 </td>
                               </tr>
                               <tr>
@@ -379,8 +379,8 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                                 </tr>
                               </thead>
                               <tbody>
-                                {parsed.medicines.map((med: any, idx: number) => {
-                                  if (!med.name) return null;
+                                {Array.isArray(parsed.medicines) && parsed.medicines.map((med: any, idx: number) => {
+                                  if (!med || typeof med !== 'object' || !med.name) return null;
                                   return (
                                     <tr key={idx}>
                                       <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{idx + 1}</td>
@@ -438,7 +438,7 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                               <tr>
                                 <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '30%', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg, height: '60px' }}>Doctor Signature</td>
                                 <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', verticalAlign: 'bottom', fontStyle: 'italic', color: colors.headerBg }}>
-                                  {viewingFile.fileInfo.doctorProfile?.signature || ''}
+                                  {viewingFile?.fileInfo?.doctorProfile?.signature || ''}
                                 </td>
                               </tr>
                               <tr>
@@ -451,7 +451,7 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                                   <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{viewingFile.fileInfo.doctorProfile.qualification}</td>
                                 </tr>
                               )}
-                              {viewingFile.fileInfo.doctorProfile?.medicalCouncilReg && (
+                              {viewingFile?.fileInfo?.doctorProfile?.medicalCouncilReg && (
                                 <tr>
                                   <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Registration Number</td>
                                   <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{viewingFile.fileInfo.doctorProfile.medicalCouncilReg}</td>
@@ -482,7 +482,7 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                         <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>Clinical Notes & Prescription</h3>
                       </div>
                       <div style={{ margin: 0, whiteSpace: 'pre-wrap', fontFamily: 'system-ui, -apple-system, sans-serif', fontSize: '15px', lineHeight: '1.8', color: '#334155' }}>
-                        {viewingFile.text}
+                        {viewingFile?.text}
                       </div>
                     </div>
                   );
