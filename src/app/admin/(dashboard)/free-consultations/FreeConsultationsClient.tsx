@@ -56,7 +56,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
     return true;
   });
 
-  const handleDownloadPDF = async (targetId: string, filename: string, action: 'download' | 'view' | 'share' = 'download') => {
+  const handleDownloadPDF = async (targetId: string, filename: string, action: 'download' | 'view' | 'share' = 'download', reportUrls?: string) => {
     const element = document.getElementById(targetId);
     if (!element) return;
     
@@ -123,18 +123,40 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
       });
     } else if (action === 'share') {
       html2pdf().set(opt).from(clone).output('blob').then(async (blob: Blob) => {
-        const file = new File([blob], filename, { type: 'application/pdf' });
-        if (navigator.canShare && navigator.canShare({ files: [file] })) {
+        const pdfFile = new File([blob], filename, { type: 'application/pdf' });
+        const filesToShare = [pdfFile];
+        
+        if (reportUrls) {
+          try {
+            const urls = reportUrls.split(',');
+            for (let i = 0; i < urls.length; i++) {
+              const url = urls[i].trim();
+              if (!url) continue;
+              
+              // Extract extension from URL, fallback to jpg
+              let ext = url.split('.').pop() || 'jpg';
+              if (ext.length > 4) ext = 'jpg';
+              
+              const fetchRes = await fetch(url);
+              const attachmentBlob = await fetchRes.blob();
+              filesToShare.push(new File([attachmentBlob], `Attachment_${i + 1}.${ext}`, { type: attachmentBlob.type }));
+            }
+          } catch (e) {
+            console.error('Failed to fetch attachments for sharing', e);
+          }
+        }
+        
+        if (navigator.canShare && navigator.canShare({ files: filesToShare })) {
           try {
             await navigator.share({
-              files: [file],
+              files: filesToShare,
               title: 'Patient Consultation Record',
             });
           } catch (err) {
             console.error('Error sharing:', err);
           }
         } else {
-          alert('Sharing is not supported on this device/browser.');
+          alert('Sharing multiple files is not fully supported on this device/browser.');
         }
       });
     }
@@ -572,7 +594,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
                 View
               </button>
               <button 
-                onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'share')}
+                onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'share', viewingRequest.reportUrl)}
                 className="modal-action-btn"
                 style={{ background: '#10b981', color: 'white' }}
               >
