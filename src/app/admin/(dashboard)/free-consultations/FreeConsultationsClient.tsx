@@ -566,10 +566,21 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
                       )}
                       {viewingRequest.reportUrl && (
                         <tr>
-                          <td style={{ padding: '20px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
-                            <div style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Medical Reports Attached</div>
-                            <div style={{ whiteSpace: 'pre-wrap', fontSize: '15px', lineHeight: '1.6', color: '#334155', fontWeight: 500 }}>
-                              {viewingRequest.reportUrl.split(',').length} File(s) Attached (Available in digital dashboard)
+                          <td style={{ padding: '20px', background: '#ffffff', border: '1px solid #e2e8f0' }}>
+                            <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '16px' }}>Medical Reports Attached</div>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                              {viewingRequest.reportUrl.split(',').map((url: string, idx: number) => (
+                                <div key={idx} style={{ pageBreakInside: 'avoid', border: '1px solid #cbd5e1', padding: '10px', borderRadius: '8px', background: '#f8fafc' }}>
+                                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '8px' }}>Attachment {idx + 1}</div>
+                                  <img 
+                                    src={url.trim()} 
+                                    alt={`Attachment ${idx + 1}`} 
+                                    style={{ width: '100%', maxWidth: '100%', height: 'auto', display: 'block', borderRadius: '4px' }} 
+                                    crossOrigin="anonymous" 
+                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                                  />
+                                </div>
+                              ))}
                             </div>
                           </td>
                         </tr>
