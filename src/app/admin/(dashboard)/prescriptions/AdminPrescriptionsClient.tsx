@@ -146,16 +146,16 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
               {filteredPrescriptions.map(file => (
                 <tr key={file.id} style={{ borderBottom: '1px solid #e2e8f0' }}>
                   <td style={{ padding: '16px 24px' }}>
-                    <div style={{ fontWeight: 600, color: '#0f172a' }}>{file.patient.name}</div>
-                    <div style={{ fontSize: '13px', color: '#64748b' }}>{file.patient.phone}</div>
+                    <div style={{ fontWeight: 600, color: '#0f172a' }}>{file?.patient?.name || 'Unknown Patient'}</div>
+                    <div style={{ fontSize: '13px', color: '#64748b' }}>{file?.patient?.phone || 'No phone'}</div>
                   </td>
                   <td style={{ padding: '16px 24px' }}>
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#e0e7ff', color: '#4338ca', padding: '4px 10px', borderRadius: '16px', fontSize: '13px', fontWeight: 600 }}>
-                      Dr. {file.patient.consultant}
+                      Dr. {file?.patient?.consultant || 'Unknown'}
                     </span>
                   </td>
                   <td suppressHydrationWarning style={{ padding: '16px 24px', color: '#475569', fontSize: '14px' }}>
-                    {new Date(file.createdAt).toLocaleString()}
+                    {file.createdAt ? new Date(file.createdAt).toLocaleString() : 'Unknown Date'}
                   </td>
                   <td style={{ padding: '16px 24px', textAlign: 'right', whiteSpace: 'nowrap' }}>
                     <button 
@@ -250,8 +250,8 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                   textColor: 'black'
                 };
               
-                const renderFrequencyPDF = (freq: string) => {
-                  if (!freq) return <>M [   ] &nbsp; A [   ] &nbsp; N [   ]</>;
+                const renderFrequencyPDF = (freq: any) => {
+                  if (!freq || typeof freq !== 'string') return <>M [   ] &nbsp; A [   ] &nbsp; N [   ]</>;
                   if (freq === 'SOS') return <span>SOS</span>;
                   const parts = freq.split('-');
                   if (parts.length === 3) {
@@ -264,7 +264,8 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                 };
 
                 try {
-                  const parsed = JSON.parse(viewingFile?.text || '{}');
+                  let parsed = {};
+                  try { parsed = JSON.parse(viewingFile?.text || '{}'); } catch(e) {}
                   const patient = viewingFile?.fileInfo?.patient || {};
                   
                   return (
@@ -364,7 +365,7 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                         </div>
 
                         {/* Medicines */}
-                        {parsed.medicines && parsed.medicines.length > 0 && parsed.medicines.some((m:any) => m.name) && (
+                        {Array.isArray(parsed.medicines) && parsed.medicines.length > 0 && parsed.medicines.some((m:any) => m && m.name) && (
                           <div style={{ marginBottom: '20px' }}>
                             <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>PRESCRIBED MEDICINES</div>
                             <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', tableLayout: 'fixed', wordWrap: 'break-word' }}>
