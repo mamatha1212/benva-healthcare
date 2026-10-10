@@ -139,8 +139,6 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         alert('Could not find PDF template element');
         return;
       }
-      element.style.display = 'block'; // Make it visible temporarily for rendering
-
       const html2pdf = (await import('html2pdf.js')).default;
       const opt = {
         margin:       10,
@@ -152,7 +150,6 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
 
       html2pdf().set(opt).from(element).output('bloburl').then((url: string) => {
         window.open(url, '_blank');
-        element.style.display = 'none'; // Hide it again
       });
     } catch (err) {
       console.error('PDF Generation failed', err);
@@ -223,7 +220,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                   <button onClick={() => handleDelete(order.id)} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}>Delete</button>
 
                   {/* Hidden PDF Template */}
-                  <div id={`pdf-template-${order.id}`} style={{ display: 'none', width: '210mm', minHeight: '297mm', background: 'white', padding: '20mm', boxSizing: 'border-box' }}>
+                  <div id={`pdf-template-${order.id}`} style={{ position: 'absolute', left: '-9999px', top: '-9999px', width: '210mm', minHeight: '297mm', background: 'white', padding: '20mm', boxSizing: 'border-box' }}>
                     <div style={{ borderBottom: '2px solid #0f3162', paddingBottom: '20px', marginBottom: '20px', textAlign: 'center' }}>
                       <h1 style={{ color: '#0f3162', fontSize: '28px', margin: '0 0 10px 0' }}>Benva Healthcare</h1>
                       <p style={{ color: '#64748b', fontSize: '14px', margin: 0 }}>Pharmacy Order Form</p>
@@ -248,14 +245,22 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                         </tr>
                       </thead>
                       <tbody>
-                        {Array.isArray(order.medicines) && order.medicines.filter((m: any) => m.isSelected !== false).map((med: any, i: number) => (
-                          <tr key={i}>
-                            <td style={{ padding: '12px', border: '1px solid #cbd5e1' }}>{med.name}</td>
-                            <td style={{ padding: '12px', border: '1px solid #cbd5e1' }}>{med.type}</td>
-                            <td style={{ padding: '12px', border: '1px solid #cbd5e1', textAlign: 'center' }}>{med.quantity}</td>
-                            <td style={{ padding: '12px', border: '1px solid #cbd5e1' }}>{med.instructions}</td>
-                          </tr>
-                        ))}
+                        {(() => {
+                          let safeMeds: any[] = [];
+                          try {
+                            if (typeof order.medicines === 'string') safeMeds = JSON.parse(order.medicines);
+                            else if (Array.isArray(order.medicines)) safeMeds = order.medicines;
+                          } catch (e) {}
+                          
+                          return safeMeds.filter((m: any) => m.isSelected !== false).map((med: any, i: number) => (
+                            <tr key={i}>
+                              <td style={{ padding: '12px', border: '1px solid #cbd5e1', color: '#0f172a' }}>{med.name}</td>
+                              <td style={{ padding: '12px', border: '1px solid #cbd5e1', color: '#0f172a' }}>{med.type}</td>
+                              <td style={{ padding: '12px', border: '1px solid #cbd5e1', textAlign: 'center', color: '#0f172a' }}>{med.quantity}</td>
+                              <td style={{ padding: '12px', border: '1px solid #cbd5e1', color: '#0f172a' }}>{med.instructions}</td>
+                            </tr>
+                          ));
+                        })()}
                       </tbody>
                     </table>
 
