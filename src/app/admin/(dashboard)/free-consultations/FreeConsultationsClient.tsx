@@ -124,28 +124,55 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
     } else if (action === 'share') {
       html2pdf().set(opt).from(clone).output('blob').then(async (blob: Blob) => {
         try {
-          const pdfFile = new File([blob], `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, { type: 'application/pdf' });
-          const filesToShare = [pdfFile];
-          
-          if (navigator.canShare && navigator.canShare({ files: filesToShare })) {
-            await navigator.share({
-              files: filesToShare,
-              title: 'Patient Consultation Record & Reports',
-            });
-          } else {
-            // Fallback if share is not supported
-            const url = URL.createObjectURL(blob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = pdfFile.name;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            setTimeout(() => URL.revokeObjectURL(url), 1000);
+          // Dynamic import with fallback
+          let JSZip;
+          try {
+            JSZip = (await import('jszip')).default;
+          } catch (importErr) {
+            console.error('Failed to import jszip, trying require', importErr);
+            JSZip = require('jszip');
           }
+          const zip = new JSZip();
+          
+          zip.file(filename, blob);
+          
+          if (reportUrls) {
+            const urls = reportUrls.split(',');
+            for (let i = 0; i < urls.length; i++) {
+              const url = urls[i].trim();
+              if (!url) continue;
+              
+              let ext = url.split('.').pop() || 'jpg';
+              if (ext.length > 4) ext = 'jpg';
+              
+              try {
+                const fetchRes = await fetch(url);
+                if (fetchRes.ok) {
+                  const attachmentBlob = await fetchRes.blob();
+                  zip.file(`Attachment_${i + 1}.${ext}`, attachmentBlob);
+                }
+              } catch (fetchErr) {
+                console.warn(`Failed to fetch attachment ${i+1}`, fetchErr);
+              }
+            }
+          }
+          
+          const zipBlob = await zip.generateAsync({ type: 'blob' });
+          const zipFilename = `${viewingRequest.name.replace(/\s+/g, '_')}_Documents.zip`;
+          
+          // Force download on all devices instead of Web Share API to ensure reliability
+          const url = URL.createObjectURL(zipBlob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = zipFilename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          
         } catch (e: any) {
-          console.error('Failed to share PDF', e);
-          alert('Failed to share PDF. Error: ' + (e.message || 'Unknown error'));
+          console.error('Failed to create zip', e);
+          alert('Failed to generate zip folder. Error: ' + (e.message || 'Unknown error'));
         }
       });
     }
@@ -555,21 +582,10 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
                       )}
                       {viewingRequest.reportUrl && (
                         <tr>
-                          <td style={{ padding: '20px', background: '#ffffff', border: '1px solid #e2e8f0' }}>
-                            <div style={{ fontSize: '14px', fontWeight: 800, color: '#0f172a', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '16px' }}>Medical Reports Attached</div>
-                            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                              {viewingRequest.reportUrl.split(',').map((url: string, idx: number) => (
-                                <div key={idx} style={{ pageBreakInside: 'avoid', border: '1px solid #cbd5e1', padding: '10px', borderRadius: '8px', background: '#f8fafc' }}>
-                                  <div style={{ fontSize: '12px', fontWeight: 700, color: '#475569', marginBottom: '8px' }}>Attachment {idx + 1}</div>
-                                  <img 
-                                    src={url.trim()} 
-                                    alt={`Attachment ${idx + 1}`} 
-                                    style={{ width: '100%', maxWidth: '100%', height: 'auto', display: 'block', borderRadius: '4px' }} 
-                                    crossOrigin="anonymous" 
-                                    onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                                  />
-                                </div>
-                              ))}
+                          <td style={{ padding: '20px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
+                            <div style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Medical Reports Attached</div>
+                            <div style={{ whiteSpace: 'pre-wrap', fontSize: '15px', lineHeight: '1.6', color: '#334155', fontWeight: 500 }}>
+                              {viewingRequest.reportUrl.split(',').length} File(s) Attached (Included in ZIP folder)
                             </div>
                           </td>
                         </tr>
