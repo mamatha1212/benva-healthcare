@@ -124,7 +124,14 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
     } else if (action === 'share') {
       html2pdf().set(opt).from(clone).output('blob').then(async (blob: Blob) => {
         try {
-          const JSZip = (await import('jszip')).default;
+          // Dynamic import with fallback
+          let JSZip;
+          try {
+            JSZip = (await import('jszip')).default;
+          } catch (importErr) {
+            console.error('Failed to import jszip, trying require', importErr);
+            JSZip = require('jszip');
+          }
           const zip = new JSZip();
           
           zip.file(filename, blob);
@@ -138,35 +145,34 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
               let ext = url.split('.').pop() || 'jpg';
               if (ext.length > 4) ext = 'jpg';
               
-              const fetchRes = await fetch(url);
-              const attachmentBlob = await fetchRes.blob();
-              zip.file(`Attachment_${i + 1}.${ext}`, attachmentBlob);
+              try {
+                const fetchRes = await fetch(url);
+                if (fetchRes.ok) {
+                  const attachmentBlob = await fetchRes.blob();
+                  zip.file(`Attachment_${i + 1}.${ext}`, attachmentBlob);
+                }
+              } catch (fetchErr) {
+                console.warn(`Failed to fetch attachment ${i+1}`, fetchErr);
+              }
             }
           }
           
           const zipBlob = await zip.generateAsync({ type: 'blob' });
-          const zipFile = new File([zipBlob], `${viewingRequest.name.replace(/\s+/g, '_')}_Documents.zip`, { type: 'application/zip' });
-          const filesToShare = [zipFile];
+          const zipFilename = `${viewingRequest.name.replace(/\s+/g, '_')}_Documents.zip`;
           
-          if (navigator.canShare && navigator.canShare({ files: filesToShare })) {
-            await navigator.share({
-              files: filesToShare,
-              title: 'Patient Consultation Record & Reports',
-            });
-          } else {
-            // Fallback: download the zip file directly
-            const url = URL.createObjectURL(zipBlob);
-            const a = document.createElement('a');
-            a.href = url;
-            a.download = zipFile.name;
-            document.body.appendChild(a);
-            a.click();
-            document.body.removeChild(a);
-            URL.revokeObjectURL(url);
-          }
-        } catch (e) {
-          console.error('Failed to create and share zip', e);
-          alert('Failed to generate zip folder for sharing.');
+          // Force download on all devices instead of Web Share API to ensure reliability
+          const url = URL.createObjectURL(zipBlob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = zipFilename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+          
+        } catch (e: any) {
+          console.error('Failed to create zip', e);
+          alert('Failed to generate zip folder. Error: ' + (e.message || 'Unknown error'));
         }
       });
     }
