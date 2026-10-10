@@ -200,7 +200,7 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
 
       {viewingFile && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 'clamp(12px, 3vw, 24px)', animation: 'fadeIn 0.2s ease-out' }}>
-          <div style={{ background: 'white', padding: '0', borderRadius: '16px', width: '100%', maxWidth: '700px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+          <div style={{ background: 'white', padding: '0', borderRadius: '16px', width: '100%', maxWidth: '1200px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
             
             {/* Scrollable Wrapper */}
             <div style={{ flex: 1, overflowY: 'auto', background: '#fafaf9' }}>
