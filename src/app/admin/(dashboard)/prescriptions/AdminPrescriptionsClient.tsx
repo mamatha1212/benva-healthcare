@@ -31,8 +31,10 @@ const getFormattedPrescription = (rawText: string) => {
 export default function AdminPrescriptionsClient({ initialPrescriptions }: { initialPrescriptions: any[] }) {
   const [prescriptions, setPrescriptions] = useState(initialPrescriptions);
   const [searchTerm, setSearchTerm] = useState('');
-  const [viewingFile, setViewingFile] = useState<{ text: string, fileInfo: any } | null>(null);
-  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [viewingFileText, setViewingFileText] = useState<string | null>(null);
+  const [editingFile, setEditingFile] = useState<any>(null);
+  const [editData, setEditData] = useState<any>(null);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
 
   const filteredPrescriptions = prescriptions.filter(p => 
     p.patient.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
@@ -67,6 +69,44 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
       console.error(err);
       alert('Error deleting prescription');
     }
+  };
+
+  const handleEditClick = (file: any) => {
+    if (file.fileUrl.startsWith('data:')) {
+      try {
+        const decodedText = atob(file.fileUrl.split(',')[1]);
+        const parsed = JSON.parse(decodedText);
+        setEditData(parsed);
+        setEditingFile(file);
+      } catch (e) {
+        alert('Cannot parse prescription data for editing. It might be corrupt.');
+      }
+    } else {
+      alert('Cannot edit external image/PDF prescriptions. Only digital prescriptions can be edited.');
+    }
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editData) return;
+    setIsSavingEdit(true);
+    try {
+      const encoded = 'data:text/plain;base64,' + btoa(JSON.stringify(editData));
+      const res = await fetch(`/api/admin/prescriptions/${editingFile.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileUrl: encoded })
+      });
+      if (res.ok) {
+        setPrescriptions(prev => prev.map(p => p.id === editingFile.id ? { ...p, fileUrl: encoded } : p));
+        setEditingFile(null);
+      } else {
+        alert('Failed to save changes');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error saving changes');
+    }
+    setIsSavingEdit(false);
   };
 
   return (
@@ -122,7 +162,13 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                       onClick={() => handleViewPrescription(file)}
                       style={{ background: '#3b82f6', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, color: 'white', cursor: 'pointer', transition: 'all 0.2s', marginRight: '8px' }}
                     >
-                      View Prescription
+                      View
+                    </button>
+                    <button 
+                      onClick={() => handleEditClick(file)}
+                      style={{ background: '#f59e0b', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, color: 'white', cursor: 'pointer', transition: 'all 0.2s', marginRight: '8px' }}
+                    >
+                      Edit
                     </button>
                     <button 
                       onClick={() => handleDeletePrescription(file.id)}
@@ -529,6 +575,141 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
           </div>
         </div>
       )}
+
+      {/* Edit Modal */}
+      {editingFile && editData && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(15, 23, 42, 0.6)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, padding: 'clamp(12px, 3vw, 24px)', animation: 'fadeIn 0.2s ease-out' }}>
+          <div style={{ background: 'white', padding: '0', borderRadius: '16px', width: '100%', maxWidth: '700px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+            
+            <div style={{ padding: '24px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc' }}>
+              <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 'bold', color: '#0f172a' }}>Edit Prescription</h2>
+              <button 
+                onClick={() => setEditingFile(null)}
+                style={{ background: '#e2e8f0', border: 'none', width: '32px', height: '32px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#475569', cursor: 'pointer' }}
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+
+            <div style={{ flex: 1, overflowY: 'auto', padding: '24px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                
+                {/* Clinical Summary */}
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '8px', fontSize: '14px' }}>Clinical Summary</label>
+                  <textarea 
+                    value={editData.clinicalSummary || ''} 
+                    onChange={e => setEditData({...editData, clinicalSummary: e.target.value})} 
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', minHeight: '80px', fontFamily: 'inherit', fontSize: '14px', resize: 'vertical' }} 
+                  />
+                </div>
+
+                {/* Medicines */}
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '8px', fontSize: '14px' }}>Medicines</label>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {editData.medicines?.map((med: any, idx: number) => (
+                      <div key={idx} style={{ display: 'flex', gap: '8px', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e2e8f0', width: '28px', height: '28px', borderRadius: '50%', fontSize: '13px', fontWeight: 'bold', color: '#475569', marginTop: '6px' }}>{idx + 1}</div>
+                        <div style={{ flex: 1, minWidth: '200px' }}>
+                          <input 
+                            value={med.name || ''} 
+                            onChange={e => {
+                              const newMeds = [...editData.medicines];
+                              newMeds[idx].name = e.target.value;
+                              setEditData({...editData, medicines: newMeds});
+                            }} 
+                            placeholder="Medicine Name" 
+                            style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '14px' }} 
+                          />
+                        </div>
+                        <div style={{ width: '100px' }}>
+                          <input 
+                            value={med.dosage || ''} 
+                            onChange={e => {
+                              const newMeds = [...editData.medicines];
+                              newMeds[idx].dosage = e.target.value;
+                              setEditData({...editData, medicines: newMeds});
+                            }} 
+                            placeholder="Dosage" 
+                            style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '14px' }} 
+                          />
+                        </div>
+                        <div style={{ width: '120px' }}>
+                          <input 
+                            value={med.frequency || ''} 
+                            onChange={e => {
+                              const newMeds = [...editData.medicines];
+                              newMeds[idx].frequency = e.target.value;
+                              setEditData({...editData, medicines: newMeds});
+                            }} 
+                            placeholder="Frequency" 
+                            style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '14px' }} 
+                          />
+                        </div>
+                        <button 
+                          onClick={() => {
+                            const newMeds = editData.medicines.filter((_:any, i:number) => i !== idx);
+                            setEditData({...editData, medicines: newMeds});
+                          }}
+                          style={{ background: '#fee2e2', color: '#ef4444', border: 'none', borderRadius: '6px', padding: '0 12px', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}
+                        >
+                          ✕
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                  <button 
+                    onClick={() => setEditData({...editData, medicines: [...(editData.medicines || []), { name: '', dosage: '', frequency: '', duration: '', instructions: '' }]})}
+                    style={{ marginTop: '12px', background: 'transparent', color: '#3b82f6', border: 'none', fontWeight: 600, fontSize: '14px', cursor: 'pointer', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                  >
+                    + Add Medicine
+                  </button>
+                </div>
+
+                {/* Investigations */}
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '8px', fontSize: '14px' }}>Investigations (Optional)</label>
+                  <input 
+                    type="text"
+                    value={editData.investigations || ''} 
+                    onChange={e => setEditData({...editData, investigations: e.target.value})} 
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontFamily: 'inherit', fontSize: '14px' }} 
+                  />
+                </div>
+
+                {/* Advice */}
+                <div>
+                  <label style={{ display: 'block', fontWeight: 600, color: '#334155', marginBottom: '8px', fontSize: '14px' }}>Advice (Optional)</label>
+                  <textarea 
+                    value={editData.advice || ''} 
+                    onChange={e => setEditData({...editData, advice: e.target.value})} 
+                    style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid #cbd5e1', minHeight: '80px', resize: 'vertical', fontFamily: 'inherit', fontSize: '14px' }} 
+                  />
+                </div>
+              </div>
+            </div>
+
+            <div style={{ padding: '20px 24px', borderTop: '1px solid #e2e8f0', background: '#f8fafc', display: 'flex', justifyContent: 'flex-end', gap: '12px' }}>
+              <button 
+                onClick={() => setEditingFile(null)} 
+                disabled={isSavingEdit}
+                style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={handleSaveEdit} 
+                disabled={isSavingEdit}
+                style={{ padding: '10px 24px', borderRadius: '8px', border: 'none', background: '#3b82f6', color: 'white', fontWeight: 600, cursor: isSavingEdit ? 'not-allowed' : 'pointer', opacity: isSavingEdit ? 0.7 : 1 }}
+              >
+                {isSavingEdit ? 'Saving...' : 'Save Changes'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }

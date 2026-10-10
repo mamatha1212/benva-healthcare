@@ -23,3 +23,32 @@ export async function DELETE(
     );
   }
 }
+
+export async function PUT(
+  request: Request,
+  { params }: { params: { id: string } }
+) {
+  try {
+    const { id } = params;
+    const body = await request.json();
+    const { fileUrl } = body;
+
+    if (!fileUrl) {
+      return NextResponse.json({ error: 'fileUrl is required' }, { status: 400 });
+    }
+
+    const updated = await prisma.patientFile.update({
+      where: { id: id },
+      data: { fileUrl }
+    });
+
+    return NextResponse.json(updated);
+  } catch (error) {
+    console.error('Error updating prescription:', error);
+    return NextResponse.json(
+      { error: 'Failed to update prescription' },
+      { status: 500 }
+    );
+  }
+}
+
