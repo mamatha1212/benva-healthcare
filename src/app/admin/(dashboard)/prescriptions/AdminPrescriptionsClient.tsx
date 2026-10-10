@@ -265,7 +265,7 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                 };
 
                 try {
-                  let parsed = {};
+                  let parsed: any = {};
                   try { parsed = JSON.parse(viewingFile?.text || '{}'); } catch(e) {}
                   const patient = viewingFile?.fileInfo?.patient || {};
                   
