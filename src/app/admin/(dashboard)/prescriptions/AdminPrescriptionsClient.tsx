@@ -35,6 +35,7 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
   const [editingFile, setEditingFile] = useState<any>(null);
   const [editData, setEditData] = useState<any>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
   const filteredPrescriptions = prescriptions.filter(p => 
     p.patient.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
