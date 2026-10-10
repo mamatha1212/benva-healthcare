@@ -12,7 +12,7 @@ export async function POST(request: Request) {
     
     const blob = await put(file.name, file, {
       access: 'public',
-      // Adding standard Next.js vercel blob configs
+      token: process.env.PUBLIC_BLOB_READ_WRITE_TOKEN || process.env.BLOB_READ_WRITE_TOKEN,
     });
     
     return NextResponse.json(blob);
