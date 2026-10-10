@@ -166,6 +166,21 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
           </svg>
           Prescriptions
         </Link>
+        <Link
+          href="/admin/medicines"
+          onClick={(e) => {
+            if (window.location.pathname === '/admin/medicines') {
+              e.preventDefault();
+              window.location.href = '/admin/medicines';
+            }
+          }}
+          className={`${styles.navItem} ${pathname.includes('/admin/medicines') ? styles.active : ''}`}
+        >
+          <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M10.5 20.5l-6-6M4.5 14.5l6-6M10.5 8.5l9-9a2.12 2.12 0 013 3l-9 9M16.5 11.5l6 6M10.5 14.5l6-6M4 22l4-4" />
+          </svg>
+          Medicines
+        </Link>
 
         <p className={styles.navHeader} style={{ marginTop: '24px' }}>REPORT MANAGEMENT</p>
         <Link
