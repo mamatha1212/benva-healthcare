@@ -123,40 +123,42 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
       });
     } else if (action === 'share') {
       html2pdf().set(opt).from(clone).output('blob').then(async (blob: Blob) => {
-        const pdfFile = new File([blob], filename, { type: 'application/pdf' });
-        const filesToShare = [pdfFile];
-        
-        if (reportUrls) {
-          try {
+        try {
+          const JSZip = (await import('jszip')).default;
+          const zip = new JSZip();
+          
+          zip.file(filename, blob);
+          
+          if (reportUrls) {
             const urls = reportUrls.split(',');
             for (let i = 0; i < urls.length; i++) {
               const url = urls[i].trim();
               if (!url) continue;
               
-              // Extract extension from URL, fallback to jpg
               let ext = url.split('.').pop() || 'jpg';
               if (ext.length > 4) ext = 'jpg';
               
               const fetchRes = await fetch(url);
               const attachmentBlob = await fetchRes.blob();
-              filesToShare.push(new File([attachmentBlob], `Attachment_${i + 1}.${ext}`, { type: attachmentBlob.type }));
+              zip.file(`Attachment_${i + 1}.${ext}`, attachmentBlob);
             }
-          } catch (e) {
-            console.error('Failed to fetch attachments for sharing', e);
           }
-        }
-        
-        if (navigator.canShare && navigator.canShare({ files: filesToShare })) {
-          try {
+          
+          const zipBlob = await zip.generateAsync({ type: 'blob' });
+          const zipFile = new File([zipBlob], `${viewingRequest.name.replace(/\s+/g, '_')}_Documents.zip`, { type: 'application/zip' });
+          const filesToShare = [zipFile];
+          
+          if (navigator.canShare && navigator.canShare({ files: filesToShare })) {
             await navigator.share({
               files: filesToShare,
-              title: 'Patient Consultation Record',
+              title: 'Patient Consultation Record & Reports',
             });
-          } catch (err) {
-            console.error('Error sharing:', err);
+          } else {
+            alert('Sharing zip files is not fully supported on this device/browser.');
           }
-        } else {
-          alert('Sharing multiple files is not fully supported on this device/browser.');
+        } catch (e) {
+          console.error('Failed to create and share zip', e);
+          alert('Failed to generate zip folder for sharing.');
         }
       });
     }
