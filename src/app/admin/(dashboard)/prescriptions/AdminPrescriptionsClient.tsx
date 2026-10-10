@@ -631,8 +631,9 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                               newMeds[idx].dosage = e.target.value;
                               setEditData({...editData, medicines: newMeds});
                             }} 
+                            disabled={!med.name?.trim()}
                             placeholder="Dosage" 
-                            style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '14px' }} 
+                            style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '14px', backgroundColor: !med.name?.trim() ? '#f1f5f9' : 'white', cursor: !med.name?.trim() ? 'not-allowed' : 'text' }} 
                           />
                         </div>
                         <div style={{ width: '120px' }}>
@@ -643,8 +644,9 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                               newMeds[idx].frequency = e.target.value;
                               setEditData({...editData, medicines: newMeds});
                             }} 
+                            disabled={!med.name?.trim()}
                             placeholder="Frequency" 
-                            style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '14px' }} 
+                            style={{ width: '100%', padding: '8px', border: '1px solid #cbd5e1', borderRadius: '6px', fontSize: '14px', backgroundColor: !med.name?.trim() ? '#f1f5f9' : 'white', cursor: !med.name?.trim() ? 'not-allowed' : 'text' }} 
                           />
                         </div>
                         <button 

@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import Link from 'next/link';
 
-const DurationSelector = ({ value, onChange }: { value: string, onChange: (v: string) => void }) => {
+const DurationSelector = ({ value, onChange, disabled }: { value: string, onChange: (v: string) => void, disabled?: boolean }) => {
   const [isOpen, setIsOpen] = useState(false);
   
   let currentNum = 1;
@@ -34,10 +34,11 @@ const DurationSelector = ({ value, onChange }: { value: string, onChange: (v: st
       <input 
         type="text"
         readOnly
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
         value={value}
         placeholder="Select"
-        style={{ width: '100%', minWidth: '90px', padding: '6px', border: '1px solid #e2e8f0', borderRadius: '4px', background: 'white', cursor: 'pointer', fontSize: '13px', color: '#0f172a' }}
+        disabled={disabled}
+        style={{ width: '100%', minWidth: '90px', padding: '6px', border: '1px solid #e2e8f0', borderRadius: '4px', background: disabled ? '#f1f5f9' : 'white', cursor: disabled ? 'not-allowed' : 'pointer', fontSize: '13px', color: '#0f172a' }}
       />
 
       {isOpen && (
@@ -93,7 +94,7 @@ const DurationSelector = ({ value, onChange }: { value: string, onChange: (v: st
   );
 };
 
-const FrequencySelector = ({ value, onChange }: { value: string, onChange: (v: string) => void }) => {
+const FrequencySelector = ({ value, onChange, disabled }: { value: string, onChange: (v: string) => void, disabled?: boolean }) => {
   const [isOpen, setIsOpen] = useState(false);
   const options = ['1-0-0', '0-1-0', '0-0-1', '1-0-1', '1-1-0', '0-1-1', '1-1-1', 'SOS'];
 
@@ -102,10 +103,11 @@ const FrequencySelector = ({ value, onChange }: { value: string, onChange: (v: s
       <input 
         type="text"
         readOnly
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
         value={value}
         placeholder="Select"
-        style={{ width: '100%', minWidth: '90px', padding: '6px', border: '1px solid #e2e8f0', borderRadius: '4px', background: 'white', cursor: 'pointer', fontSize: '13px', color: '#0f172a' }}
+        disabled={disabled}
+        style={{ width: '100%', minWidth: '90px', padding: '6px', border: '1px solid #e2e8f0', borderRadius: '4px', background: disabled ? '#f1f5f9' : 'white', cursor: disabled ? 'not-allowed' : 'pointer', fontSize: '13px', color: '#0f172a' }}
       />
       
       {isOpen && (
@@ -142,7 +144,7 @@ const FrequencySelector = ({ value, onChange }: { value: string, onChange: (v: s
   );
 };
 
-const InstructionsSelector = ({ value, onChange }: { value: string, onChange: (v: string) => void }) => {
+const InstructionsSelector = ({ value, onChange, disabled }: { value: string, onChange: (v: string) => void, disabled?: boolean }) => {
   const [isOpen, setIsOpen] = useState(false);
   const options = ['Before meal', 'After meal', 'Any time of day', 'Before lunch', 'After lunch', 'Empty stomach', 'Severe pain', 'At night', 'With food'];
 
@@ -163,10 +165,11 @@ const InstructionsSelector = ({ value, onChange }: { value: string, onChange: (v
       <input 
         type="text"
         readOnly
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={() => !disabled && setIsOpen(!isOpen)}
         value={value}
         placeholder="Select"
-        style={{ width: '100%', minWidth: '110px', padding: '6px', border: '1px solid #e2e8f0', borderRadius: '4px', background: 'white', cursor: 'pointer', fontSize: '13px', color: '#0f172a' }}
+        disabled={disabled}
+        style={{ width: '100%', minWidth: '110px', padding: '6px', border: '1px solid #e2e8f0', borderRadius: '4px', background: disabled ? '#f1f5f9' : 'white', cursor: disabled ? 'not-allowed' : 'pointer', fontSize: '13px', color: '#0f172a' }}
       />
       
       {isOpen && (
@@ -575,24 +578,27 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
                             <input type="text" value={med.name} onChange={(e) => updateMedicine(index, 'name', e.target.value)} style={{ width: '100%', padding: '6px', border: '1px solid #e2e8f0', borderRadius: '4px' }} placeholder="E.g. Paracetamol 650mg" />
                           </td>
                           <td data-label="Dosage" style={{ padding: '8px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'top' }}>
-                            <input type="text" value={med.dosage} onChange={(e) => updateMedicine(index, 'dosage', e.target.value)} style={{ width: '100%', padding: '6px', border: '1px solid #e2e8f0', borderRadius: '4px' }} placeholder="1 Tab" />
+                            <input type="text" value={med.dosage} disabled={!med.name?.trim()} onChange={(e) => updateMedicine(index, 'dosage', e.target.value)} style={{ width: '100%', padding: '6px', border: '1px solid #e2e8f0', borderRadius: '4px', background: !med.name?.trim() ? '#f1f5f9' : 'white', cursor: !med.name?.trim() ? 'not-allowed' : 'text' }} placeholder="1 Tab" />
                           </td>
                           <td data-label="Frequency" style={{ padding: '8px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'top' }}>
                             <FrequencySelector 
                               value={med.frequency}
                               onChange={(val) => updateMedicine(index, 'frequency', val)}
+                              disabled={!med.name?.trim()}
                             />
                           </td>
                           <td data-label="Duration" style={{ padding: '8px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'top' }}>
                             <DurationSelector 
                               value={med.duration} 
                               onChange={(val) => updateMedicine(index, 'duration', val)} 
+                              disabled={!med.name?.trim()}
                             />
                           </td>
                           <td data-label="Instructions" style={{ padding: '8px', borderBottom: '1px solid #e2e8f0', verticalAlign: 'top' }}>
                             <InstructionsSelector 
                               value={med.instructions}
                               onChange={(val) => updateMedicine(index, 'instructions', val)}
+                              disabled={!med.name?.trim()}
                             />
                           </td>
                           <td data-label="" className="remove-btn-td" style={{ padding: '8px', borderBottom: '1px solid #e2e8f0', textAlign: 'center' }}>
