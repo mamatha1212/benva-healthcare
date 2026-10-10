@@ -20,18 +20,32 @@ const processImageToCorrectOrientation = (file: File): Promise<File> => {
     img.onload = () => {
       URL.revokeObjectURL(url);
       const canvas = document.createElement('canvas');
-      canvas.width = img.width;
-      canvas.height = img.height;
+      
+      let width = img.width;
+      let height = img.height;
+      const MAX_DIMENSION = 1600; // Cap image dimensions to 1600px for speed
+      
+      if (width > height && width > MAX_DIMENSION) {
+        height = Math.round((height * MAX_DIMENSION) / width);
+        width = MAX_DIMENSION;
+      } else if (height > MAX_DIMENSION) {
+        width = Math.round((width * MAX_DIMENSION) / height);
+        height = MAX_DIMENSION;
+      }
+      
+      canvas.width = width;
+      canvas.height = height;
       const ctx = canvas.getContext('2d');
       if (ctx) {
-        ctx.drawImage(img, 0, 0);
+        ctx.drawImage(img, 0, 0, width, height);
         canvas.toBlob((blob) => {
           if (blob) {
-            resolve(new File([blob], file.name, { type: file.type, lastModified: Date.now() }));
+            const newName = file.name.replace(/\.[^/.]+$/, "") + ".jpg";
+            resolve(new File([blob], newName, { type: 'image/jpeg', lastModified: Date.now() }));
           } else {
             resolve(file);
           }
-        }, file.type, 0.9);
+        }, 'image/jpeg', 0.65); // Aggressive 0.65 compression for lightning fast uploads
       } else {
         resolve(file);
       }
