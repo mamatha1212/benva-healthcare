@@ -29,7 +29,7 @@ const getFormattedPrescription = (rawText: string) => {
 };
 
 export default function AdminPrescriptionsClient({ initialPrescriptions }: { initialPrescriptions: any[] }) {
-  const [prescriptions] = useState(initialPrescriptions);
+  const [prescriptions, setPrescriptions] = useState(initialPrescriptions);
   const [searchTerm, setSearchTerm] = useState('');
   const [viewingFile, setViewingFile] = useState<{ text: string, fileInfo: any } | null>(null);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
@@ -50,6 +50,22 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
       }
     } else {
       window.open(file.fileUrl, '_blank');
+    }
+  };
+
+  const handleDeletePrescription = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this prescription? This action cannot be undone.')) return;
+    
+    try {
+      const res = await fetch(`/api/admin/prescriptions/${id}`, { method: 'DELETE' });
+      if (res.ok) {
+        setPrescriptions(prev => prev.filter(p => p.id !== id));
+      } else {
+        alert('Failed to delete prescription');
+      }
+    } catch (err) {
+      console.error(err);
+      alert('Error deleting prescription');
     }
   };
 
@@ -101,12 +117,18 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                   <td suppressHydrationWarning style={{ padding: '16px 24px', color: '#475569', fontSize: '14px' }}>
                     {new Date(file.createdAt).toLocaleString()}
                   </td>
-                  <td style={{ padding: '16px 24px', textAlign: 'right' }}>
+                  <td style={{ padding: '16px 24px', textAlign: 'right', whiteSpace: 'nowrap' }}>
                     <button 
                       onClick={() => handleViewPrescription(file)}
-                      style={{ background: '#3b82f6', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, color: 'white', cursor: 'pointer', transition: 'all 0.2s' }}
+                      style={{ background: '#3b82f6', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, color: 'white', cursor: 'pointer', transition: 'all 0.2s', marginRight: '8px' }}
                     >
                       View Prescription
+                    </button>
+                    <button 
+                      onClick={() => handleDeletePrescription(file.id)}
+                      style={{ background: '#ef4444', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, color: 'white', cursor: 'pointer', transition: 'all 0.2s' }}
+                    >
+                      Delete
                     </button>
                   </td>
                 </tr>
