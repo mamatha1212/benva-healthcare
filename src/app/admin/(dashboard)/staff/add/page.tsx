@@ -25,11 +25,7 @@ export default function AddStaffPage() {
   const [permissions, setPermissions] = useState([
     {
       moduleName: 'PATIENTS',
-      canView: false,
-      canAdd: false,
-      canEdit: false,
-      canDelete: false,
-      canExport: false,
+      canView: false, canAdd: false, canEdit: false, canDelete: false, canExport: false,
       fieldAccess: {
         patientName: true,
         mobileNumber: true,
@@ -39,16 +35,15 @@ export default function AddStaffPage() {
         labReports: false
       }
     },
-    {
-      moduleName: 'APPOINTMENTS',
-      canView: false,
-      canAdd: false,
-      canEdit: false,
-      canDelete: false,
-      canExport: false,
-      fieldAccess: {}
-    }
-    // Add more modules here as needed
+    { moduleName: 'APPOINTMENTS', canView: false, canAdd: false, canEdit: false, canDelete: false, canExport: false, fieldAccess: {} },
+    { moduleName: 'ALL_LEADS', canView: false, canAdd: false, canEdit: false, canDelete: false, canExport: false, fieldAccess: {} },
+    { moduleName: 'MEMBERSHIPS', canView: false, canAdd: false, canEdit: false, canDelete: false, canExport: false, fieldAccess: {} },
+    { moduleName: 'CALLBACK_REQUESTS', canView: false, canAdd: false, canEdit: false, canDelete: false, canExport: false, fieldAccess: {} },
+    { moduleName: 'DOCTORS', canView: false, canAdd: false, canEdit: false, canDelete: false, canExport: false, fieldAccess: {} },
+    { moduleName: 'PAYOUTS', canView: false, canAdd: false, canEdit: false, canDelete: false, canExport: false, fieldAccess: {} },
+    { moduleName: 'PRESCRIPTIONS', canView: false, canAdd: false, canEdit: false, canDelete: false, canExport: false, fieldAccess: {} },
+    { moduleName: 'REPORTS', canView: false, canAdd: false, canEdit: false, canDelete: false, canExport: false, fieldAccess: {} },
+    { moduleName: 'CONTENT_MANAGEMENT', canView: false, canAdd: false, canEdit: false, canDelete: false, canExport: false, fieldAccess: {} }
   ]);
 
   const handleStaffChange = (e: any) => {
