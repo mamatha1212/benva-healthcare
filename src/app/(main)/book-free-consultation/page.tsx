@@ -642,6 +642,7 @@ export default function BookFreeConsultationPage() {
                         {isProcessingFiles ? 'Processing...' : 'Choose Files'}
                       </label>
                       <p style={{ margin: '10px 0 0 0', fontSize: '13px', color: '#94a3b8' }}>Upload PDF, JPG, or PNG (Max 10MB)</p>
+                      <p style={{ margin: '6px 0 0 0', fontSize: '12px', color: '#10b981', fontWeight: '500' }}>(Tip: Long-press photos to select multiple at once)</p>
                     </>
                   ) : (
                     <div style={{ fontSize: '14px', color: '#334155', textAlign: 'left', background: '#f8fafc', padding: '12px', borderRadius: '8px' }}>
