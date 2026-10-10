@@ -166,6 +166,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
           </svg>
           Prescriptions
         </Link>
+        <p className={styles.navHeader} style={{ marginTop: '24px' }}>PHARMACY & MEDICINES</p>
         <Link
           href="/admin/medicines"
           onClick={(e) => {
