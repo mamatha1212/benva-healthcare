@@ -11,7 +11,7 @@ export default async function StaffDashboard() {
   const staffAuthCookie = cookieStore.get('staffAuth')?.value;
 
   if (!staffAuthCookie) {
-    redirect('/staff/login');
+    return null; // layout.tsx will handle the redirect
   }
 
   const staff = await prisma.staff.findFirst({

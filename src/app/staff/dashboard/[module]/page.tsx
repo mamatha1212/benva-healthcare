@@ -13,7 +13,7 @@ export default async function GenericModulePage({ params }: { params: Promise<{ 
 
   const cookieStore = await cookies();
   const staffAuthCookie = cookieStore.get('staffAuth')?.value;
-  if (!staffAuthCookie) redirect('/staff/login');
+  if (!staffAuthCookie) return null;
 
   const staff = await prisma.staff.findFirst({
     where: { username: staffAuthCookie },

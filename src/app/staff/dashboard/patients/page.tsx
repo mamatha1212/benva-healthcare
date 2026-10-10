@@ -10,7 +10,7 @@ export default async function StaffPatientsModule() {
   // 1. Auth & Permission Check
   const cookieStore = await cookies();
   const staffAuthCookie = cookieStore.get('staffAuth')?.value;
-  if (!staffAuthCookie) redirect('/staff/login');
+  if (!staffAuthCookie) return null;
 
   const staff = await prisma.staff.findFirst({
     where: { username: staffAuthCookie },
