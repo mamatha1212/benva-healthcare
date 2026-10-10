@@ -27,10 +27,14 @@ export default function StaffLogin() {
     try {
       if (credentials.username && credentials.password) {
         // Call the server action to verify and set cookie
-        await loginStaff(credentials.username);
+        const result = await loginStaff(credentials.username);
         
-        // Redirect to dashboard without alert
-        router.push('/staff/dashboard');
+        if (result.error) {
+          setError(result.error);
+        } else {
+          // Redirect to dashboard without alert
+          router.push('/staff/dashboard');
+        }
       } else {
         setError('Please enter both username and password.');
       }
