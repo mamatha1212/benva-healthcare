@@ -67,6 +67,7 @@ export async function POST(req: NextRequest) {
           try {
             const blob = await put(`patients/${patient.id}/${file.name}`, file, {
               access: 'public',
+              addRandomSuffix: true,
             });
             fileUrl = blob.url;
           } catch (e) {
