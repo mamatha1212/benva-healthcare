@@ -150,8 +150,10 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         jsPDF:        { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const }
       };
 
-      await html2pdf().set(opt).from(element).save();
-      element.style.display = 'none'; // Hide it again
+      html2pdf().set(opt).from(element).output('bloburl').then((url: string) => {
+        window.open(url, '_blank');
+        element.style.display = 'none'; // Hide it again
+      });
     } catch (err) {
       console.error('PDF Generation failed', err);
       alert('Failed to generate PDF');
@@ -217,7 +219,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                 </td>
                 <td style={{ padding: '16px 12px', textAlign: 'right' }}>
                   <button onClick={() => handleEdit(order)} style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', marginRight: '8px', cursor: 'pointer' }}>Edit</button>
-                  <button onClick={() => generatePDF(order)} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', marginRight: '8px', cursor: 'pointer' }}>PDF</button>
+                  <button onClick={() => generatePDF(order)} style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', marginRight: '8px', cursor: 'pointer' }}>View PDF</button>
                   <button onClick={() => handleDelete(order.id)} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', cursor: 'pointer' }}>Delete</button>
 
                   {/* Hidden PDF Template */}
