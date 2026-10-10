@@ -142,8 +142,9 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
       const clone = element.cloneNode(true) as HTMLElement;
       clone.style.display = 'block';
       clone.style.position = 'absolute';
-      clone.style.left = '-9999px';
-      clone.style.top = '-9999px';
+      clone.style.left = '0px';
+      clone.style.top = '0px';
+      clone.style.zIndex = '-9999';
       document.body.appendChild(clone);
 
       const html2pdf = (await import('html2pdf.js')).default;
