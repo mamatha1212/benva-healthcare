@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { getPincodesForDistrict } from './actions';
 import { getLocationsHierarchy } from '@/components/DoorstepSection/actions';
+import { upload } from '@vercel/blob/client';
 import styles from './BookConsultation.module.css';
 
 export default function BookFreeConsultationPage() {
@@ -47,6 +48,7 @@ export default function BookFreeConsultationPage() {
     previousMedication: '',
     reportUrl: ''
   });
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
 
   // Handle state change
   const handleStateChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
@@ -149,8 +151,26 @@ export default function BookFreeConsultationPage() {
 
     setSubmitting(true);
     
+    let uploadedUrls: string[] = [];
+    if (selectedFiles.length > 0) {
+      try {
+        for (const file of selectedFiles) {
+          const blob = await upload(file.name, file, {
+            access: 'public',
+            handleUploadUrl: '/api/upload',
+          });
+          uploadedUrls.push(blob.url);
+        }
+      } catch (err) {
+        alert("Failed to upload one or more files. Please try again.");
+        setSubmitting(false);
+        return;
+      }
+    }
+
     const submitData = {
       ...formData,
+      reportUrl: uploadedUrls.length > 0 ? uploadedUrls.join(', ') : formData.reportUrl,
       type,
       employeeId: employeeData?.id || null,
       organizationName: employeeData?.organization?.companyName || null
@@ -479,9 +499,28 @@ export default function BookFreeConsultationPage() {
               <div className={styles.inputGroup}>
                 <label className={styles.label}>Medical Reports (Optional)</label>
                 <div className={styles.fileUpload}>
-                  <input type="file" id="reportFile" style={{ display: 'none' }} />
-                  <label htmlFor="reportFile" className={styles.fileUploadLabel}>Choose File</label>
+                  <input 
+                    type="file" 
+                    id="reportFile" 
+                    multiple 
+                    onChange={(e) => setSelectedFiles(Array.from(e.target.files || []))} 
+                    style={{ display: 'none' }} 
+                  />
+                  <label htmlFor="reportFile" className={styles.fileUploadLabel}>Choose Files</label>
                   <p style={{ margin: '10px 0 0 0', fontSize: '13px', color: '#94a3b8' }}>Upload PDF, JPG, or PNG (Max 5MB)</p>
+                  
+                  {selectedFiles.length > 0 && (
+                    <div style={{ marginTop: '15px', fontSize: '14px', color: '#334155', textAlign: 'left', background: '#f8fafc', padding: '10px', borderRadius: '8px' }}>
+                      <strong>Selected ({selectedFiles.length}):</strong>
+                      <ul style={{ margin: '8px 0 0 0', paddingLeft: '20px', listStyleType: 'disc' }}>
+                        {selectedFiles.map((file, idx) => (
+                          <li key={idx} style={{ marginBottom: '4px' }}>
+                            {file.name} ({(file.size / 1024 / 1024).toFixed(2)} MB)
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
                 </div>
               </div>
 
