@@ -497,6 +497,9 @@ model MedicineOrder {
   address           String?
   medicines         Json      @default("[]") 
   prescriptionUrls  String[]  @default([])
+  totalMrp          Float     @default(0)
+  discount          Float     @default(0)
+  finalAmount       Float     @default(0)
   lastGivenDate     DateTime?
   nextDueDate       DateTime?
   status            String    @default("ACTIVE")
