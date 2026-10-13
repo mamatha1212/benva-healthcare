@@ -230,24 +230,49 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
         // Add PDF to zip
         zip.file(filename, pdfBlob);
         
-        // Add client uploaded files if any
+        // Add client uploaded files as PDFs
         if (reportUrls) {
-          const urls = reportUrls.split(',');
+          const urls = reportUrls.split(',').map((u: string) => u.trim()).filter(Boolean);
+          const imageUrls: string[] = [];
+
           for (let i = 0; i < urls.length; i++) {
-            const url = urls[i].trim();
-            if (!url) continue;
-            
-            let ext = url.split('.').pop()?.split('?')[0] || 'jpg';
-            if (ext.length > 5 || ext.includes('/')) ext = 'jpg';
-            
-            try {
-              const fetchRes = await fetch(url);
-              if (fetchRes.ok) {
-                const attachmentBlob = await fetchRes.blob();
-                zip.file(`Attachment_${i + 1}.${ext}`, attachmentBlob);
+            const url = urls[i];
+            const ext = url.split('.').pop()?.split('?')[0]?.toLowerCase();
+
+            if (ext === 'pdf') {
+              try {
+                const fetchRes = await fetch(url);
+                if (fetchRes.ok) {
+                  const attachmentBlob = await fetchRes.blob();
+                  zip.file(`Attachment_${i + 1}.pdf`, attachmentBlob);
+                }
+              } catch (fetchErr) {
+                console.warn(`Failed to fetch attachment ${i + 1}`, fetchErr);
               }
-            } catch (fetchErr) {
-              console.warn(`Failed to fetch attachment ${i + 1}`, fetchErr);
+            } else {
+              imageUrls.push(url);
+              try {
+                // Convert individual image to PDF
+                const singleImagePdf = await convertImagesToPDF([url]);
+                if (singleImagePdf) {
+                  zip.file(`Attachment_${i + 1}.pdf`, singleImagePdf);
+                }
+              } catch (imgErr) {
+                console.warn(`Failed to convert image ${i + 1} to PDF`, imgErr);
+              }
+            }
+          }
+
+          // Also compile all images together into a single multi-page PDF document
+          if (imageUrls.length > 0) {
+            try {
+              const allImagesPdf = await convertImagesToPDF(imageUrls);
+              if (allImagesPdf) {
+                const patientName = viewingRequest?.name ? viewingRequest.name.replace(/\s+/g, '_') : 'Patient';
+                zip.file(`${patientName}_Medical_Reports.pdf`, allImagesPdf);
+              }
+            } catch (err) {
+              console.warn('Failed to compile all images to PDF for zip', err);
             }
           }
         }
