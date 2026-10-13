@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendAdminEmail, sendUserEmail } from '@/lib/mailer';
+import { getOrCreateUhidForPatient } from '@/lib/uhid';
 
 export async function POST(req: Request) {
   try {
@@ -12,8 +13,11 @@ export async function POST(req: Request) {
 
     const finalServiceType = `${selectedPlan || 'Diet Plan - PCOD/PCOS (6 Months)'} | Weight: ${weight || 'N/A'}, Height: ${height || 'N/A'}`;
 
+    const uhid = await getOrCreateUhidForPatient(mobile || whatsapp, fullName);
+
     const lead = await prisma.lead.create({
       data: {
+        uhid,
         enquiryType: "DIET_PLAN",
         fullName,
         mobile,
@@ -32,6 +36,7 @@ export async function POST(req: Request) {
 
     const adminHtml = `
       <h2>New Diet Plan Enquiry</h2>
+      <p><strong>UHID:</strong> ${uhid}</p>
       <p><strong>Name:</strong> ${fullName}</p>
       <p><strong>Mobile:</strong> ${mobile}</p>
       <p><strong>WhatsApp:</strong> ${whatsapp}</p>

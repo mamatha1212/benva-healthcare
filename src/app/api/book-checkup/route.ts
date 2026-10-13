@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { sendAdminEmail, sendUserEmail } from '@/lib/mailer';
+import { getOrCreateUhidForPatient } from '@/lib/uhid';
 
 export async function POST(req: Request) {
   try {
@@ -10,9 +11,12 @@ export async function POST(req: Request) {
       area, pincode, age, gender, packageTitle, packagePrice, selectedOffice
     } = body;
 
+    const uhid = await getOrCreateUhidForPatient(mobile || whatsapp, fullName);
+
     // 1. Save Lead to Database
     const lead = await prisma.lead.create({
       data: {
+        uhid,
         fullName,
         mobile,
         whatsapp,
@@ -31,6 +35,7 @@ export async function POST(req: Request) {
     // 2. Setup Nodemailer and send email asynchronously (don't await)
     const adminHtml = `
       <h2>New Health Checkup Enquiry</h2>
+      <p><strong>UHID:</strong> ${uhid}</p>
       <p><strong>Name:</strong> ${fullName}</p>
       <p><strong>Mobile:</strong> ${mobile}</p>
       <p><strong>WhatsApp:</strong> ${whatsapp}</p>

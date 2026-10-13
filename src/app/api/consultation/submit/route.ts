@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getOrCreateUhidForPatient } from '@/lib/uhid';
 
 export async function POST(req: NextRequest) {
   try {
@@ -67,8 +68,14 @@ export async function POST(req: NextRequest) {
       }
     }
 
+    let uhid: string | null = null;
+    if (data.phone) {
+      uhid = await getOrCreateUhidForPatient(data.phone, data.name || undefined);
+    }
+
     const request = await prisma.freeConsultationRequest.create({
       data: {
+        uhid,
         type: data.type,
         name: data.name,
         phone: data.phone,

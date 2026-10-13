@@ -498,8 +498,15 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
                   {new Date(req.createdAt).toLocaleDateString()}
                 </td>
                 <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0' }}>
-                  <div style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>{req.name}</div>
-                  <div style={{ fontSize: '12px', color: '#64748b' }}>{req.phone} | {req.email || 'N/A'}</div>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 600, color: '#0f172a' }}>{req.name}</span>
+                    {req.uhid && (
+                      <span style={{ fontSize: '11px', background: '#e0f2fe', color: '#0369a1', padding: '1px 6px', borderRadius: '4px', fontWeight: 700, border: '1px solid #bae6fd' }}>
+                        🆔 {req.uhid}
+                      </span>
+                    )}
+                  </div>
+                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>{req.phone} | {req.email || 'N/A'}</div>
                   <div style={{ fontSize: '11px', color: '#94a3b8' }}>Age: {req.age || 'N/A'} | Gender: {req.gender || 'N/A'}</div>
                 </td>
                 <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0' }}>

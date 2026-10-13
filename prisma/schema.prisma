@@ -10,6 +10,7 @@ datasource db {
 
 model Lead {
   id             String   @id @default(cuid())
+  uhid           String?
   enquiryType    String   @default("HEALTH_CHECKUP")
   fullName       String
   mobile         String
@@ -394,6 +395,7 @@ model CorporateConsultation {
 
 model FreeConsultationRequest {
   id   String @id @default(cuid())
+  uhid String?
   type String // "GENERAL" or "CORPORATE"
 
   // General Fields
@@ -492,6 +494,7 @@ model AuditLog {
 
 model MedicineOrder {
   id                String    @id @default(cuid())
+  uhid              String?
   patientName       String
   mobile            String
   address           String?

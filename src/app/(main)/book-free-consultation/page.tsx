@@ -123,7 +123,7 @@ export default function BookFreeConsultationPage() {
     }
 
     setIsProcessingFiles(true);
-    const processedFiles = [];
+    const processedFiles: File[] = [];
     for (const file of files) {
       processedFiles.push(await processImageToCorrectOrientation(file));
     }

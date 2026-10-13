@@ -31,18 +31,104 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     lastGivenDate: '',
     nextDueDate: '',
     notes: '',
-    status: 'ACTIVE'
+    status: 'ACTIVE',
+    uhid: ''
   });
+
+  // Mobile-first patient lookup states
+  const [isSearchingPhone, setIsSearchingPhone] = useState(false);
+  const [foundFamilyMembers, setFoundFamilyMembers] = useState<any[]>([]);
+  const [hasSearched, setHasSearched] = useState(false);
+  const [isNewMemberMode, setIsNewMemberMode] = useState(false);
+  const [isPatientConfirmed, setIsPatientConfirmed] = useState(false);
+  const [selectedMember, setSelectedMember] = useState<any | null>(null);
 
   const resetForm = () => {
     setFormData({
       patientName: '', mobile: '', address: '',
       prescriptionUrls: [], medicines: [],
       totalMrp: '', discount: '', finalAmount: '',
-      lastGivenDate: '', nextDueDate: '', notes: '', status: 'ACTIVE'
+      lastGivenDate: '', nextDueDate: '', notes: '', status: 'ACTIVE',
+      uhid: ''
     });
     setUploadSuccessMessage(null);
     setEditingOrder(null);
+    setIsSearchingPhone(false);
+    setFoundFamilyMembers([]);
+    setHasSearched(false);
+    setIsNewMemberMode(false);
+    setIsPatientConfirmed(false);
+    setSelectedMember(null);
+  };
+
+  const handlePhoneLookup = async (rawPhone: string) => {
+    const clean = rawPhone.replace(/\D/g, '');
+    if (clean.length < 10) {
+      setFoundFamilyMembers([]);
+      setHasSearched(false);
+      return;
+    }
+    setIsSearchingPhone(true);
+    try {
+      const res = await fetch(`/api/patients/by-phone?phone=${encodeURIComponent(clean)}`);
+      if (res.ok) {
+        const data = await res.json();
+        setFoundFamilyMembers(Array.isArray(data) ? data : []);
+      } else {
+        setFoundFamilyMembers([]);
+      }
+    } catch (err) {
+      console.error('Failed to lookup phone:', err);
+      setFoundFamilyMembers([]);
+    } finally {
+      setIsSearchingPhone(false);
+      setHasSearched(true);
+    }
+  };
+
+  const handlePhoneInputChange = (val: string) => {
+    setFormData(prev => ({ ...prev, mobile: val }));
+    setIsPatientConfirmed(false);
+    setSelectedMember(null);
+    const clean = val.replace(/\D/g, '');
+    if (clean.length >= 10) {
+      handlePhoneLookup(clean);
+    } else {
+      setFoundFamilyMembers([]);
+      setHasSearched(false);
+      setIsNewMemberMode(false);
+    }
+  };
+
+  const handleSelectFamilyMember = (member: any) => {
+    setSelectedMember(member);
+    setIsNewMemberMode(false);
+    setIsPatientConfirmed(true);
+    setFormData(prev => ({
+      ...prev,
+      patientName: member.name,
+      mobile: prev.mobile || member.phone,
+      uhid: member.uhid || '',
+      address: member.address || prev.address,
+    }));
+  };
+
+  const handleStartNewMember = () => {
+    setIsNewMemberMode(true);
+    setSelectedMember(null);
+    setFormData(prev => ({
+      ...prev,
+      patientName: '',
+      uhid: '',
+    }));
+  };
+
+  const handleConfirmNewMember = () => {
+    if (!formData.patientName.trim()) {
+      alert('Please enter patient name');
+      return;
+    }
+    setIsPatientConfirmed(true);
   };
 
   const handleMrpChange = (val: string) => {
@@ -218,8 +304,10 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
       lastGivenDate: order.lastGivenDate ? new Date(order.lastGivenDate).toISOString().split('T')[0] : '',
       nextDueDate: order.nextDueDate ? new Date(order.nextDueDate).toISOString().split('T')[0] : '',
       notes: order.notes || '',
-      status: order.status || 'ACTIVE'
+      status: order.status || 'ACTIVE',
+      uhid: order.uhid || ''
     });
+    setIsPatientConfirmed(true);
     setIsAddModalOpen(true);
   };
 
@@ -348,10 +436,10 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8.5);
         doc.setTextColor(brandMuted[0], brandMuted[1], brandMuted[2]);
-        doc.text('Order Ref ID:', margin + 8, y + 15.5);
+        doc.text(order.uhid ? 'Patient UHID:' : 'Order Ref ID:', margin + 8, y + 15.5);
         doc.setFont('helvetica', 'bold');
         doc.setTextColor(brandDark[0], brandDark[1], brandDark[2]);
-        doc.text('#' + (order.id ? order.id.slice(-8).toUpperCase() : 'N/A'), margin + 34, y + 15.5);
+        doc.text(order.uhid || ('#' + (order.id ? order.id.slice(-8).toUpperCase() : 'N/A')), margin + 34, y + 15.5);
 
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(brandMuted[0], brandMuted[1], brandMuted[2]);
@@ -387,7 +475,8 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(13);
         doc.setTextColor(brandDark[0], brandDark[1], brandDark[2]);
-        doc.text(order.patientName || 'Patient Order', margin + 8, y + 8);
+        const pTitle = order.patientName ? (order.uhid ? `${order.patientName} (${order.uhid})` : order.patientName) : 'Patient Order';
+        doc.text(pTitle, margin + 8, y + 8);
 
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8.5);
@@ -636,11 +725,11 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
           try {
             doc.addPage();
             // Accent bar on attachment page
-            doc.setFillColor(primaryRgb[0], primaryRgb[1], primaryRgb[2]);
+            doc.setFillColor(brandPrimary[0], brandPrimary[1], brandPrimary[2]);
             doc.rect(0, 0, pageWidth, 5, 'F');
 
             // Header Banner
-            doc.setFillColor(primaryRgb[0], primaryRgb[1], primaryRgb[2]);
+            doc.setFillColor(brandPrimary[0], brandPrimary[1], brandPrimary[2]);
             doc.roundedRect(margin, 10, contentWidth, 12, 2, 2, 'F');
             doc.setTextColor(255, 255, 255);
             doc.setFontSize(9.5);
@@ -739,6 +828,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
       'S.No',
       'Order Date',
       'Patient Name',
+      'UHID',
       'Mobile',
       'Address',
       'Medicines Given',
@@ -770,6 +860,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         idx + 1,
         `"${orderDate}"`,
         `"${(o.patientName || '').replace(/"/g, '""')}"`,
+        `"${(o.uhid || '').replace(/"/g, '""')}"`,
         `"${o.mobile || ''}"`,
         `"${(o.address || '').replace(/"/g, '""')}"`,
         `"${medsString.replace(/"/g, '""')}"`,
@@ -945,7 +1036,8 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
   const filteredOrders = orders.filter(o => {
     const matchesSearch = 
       o.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      o.mobile.includes(searchTerm);
+      o.mobile.includes(searchTerm) ||
+      (o.uhid && o.uhid.toLowerCase().includes(searchTerm.toLowerCase()));
     if (!matchesSearch) return false;
 
     const orderDate = new Date(o.createdAt || o.lastGivenDate || 0);
@@ -1161,7 +1253,14 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                         {index + 1}
                       </td>
                       <td style={{ padding: '16px 14px' }}>
-                        <div style={{ fontWeight: 700, color: '#0f274a', fontSize: '15px' }}>{order.patientName}</div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                          <span style={{ fontWeight: 700, color: '#0f274a', fontSize: '15px' }}>{order.patientName}</span>
+                          {order.uhid && (
+                            <span style={{ fontSize: '11px', background: '#e0f2fe', color: '#0369a1', padding: '2px 7px', borderRadius: '4px', fontWeight: 700, letterSpacing: '0.3px', border: '1px solid #bae6fd' }}>
+                              🆔 {order.uhid}
+                            </span>
+                          )}
+                        </div>
                         <div style={{ fontSize: '13px', color: '#64748b', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                           <span>📞</span> {order.mobile}
                         </div>
@@ -1310,16 +1409,280 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
             
             <div style={{ padding: '20px', overflowY: 'auto', flex: 1 }}>
               <form id="med-form" onSubmit={handleSubmit}>
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
-                  <div>
-                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, color: '#334155' }}>Patient Name *</label>
-                    <input required type="text" value={formData.patientName} onChange={e => setFormData({...formData, patientName: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                {/* ── STEP 1: MOBILE NUMBER & PATIENT / FAMILY LOOKUP ── */}
+                {!isPatientConfirmed ? (
+                  <div style={{ background: '#f8fafc', border: '1.5px solid #cbd5e1', borderRadius: '12px', padding: '20px', marginBottom: '24px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px' }}>
+                      <span style={{ fontSize: '20px' }}>📱</span>
+                      <div>
+                        <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: '#0f274a' }}>Step 1: Enter Mobile Number</h3>
+                        <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: '#64748b' }}>
+                          We will instantly search health checkups, patient records, consultations, and prior orders for existing family members and UHIDs.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                      <div style={{ position: 'relative', flex: '1 1 260px' }}>
+                        <input 
+                          type="tel" 
+                          placeholder="Enter 10-digit mobile number..." 
+                          value={formData.mobile} 
+                          onChange={e => handlePhoneInputChange(e.target.value)}
+                          maxLength={15}
+                          autoFocus
+                          style={{ 
+                            width: '100%', 
+                            padding: '12px 14px 12px 40px', 
+                            borderRadius: '8px', 
+                            border: '2px solid #0284c7', 
+                            fontSize: '16px', 
+                            fontWeight: 700, 
+                            letterSpacing: '0.5px',
+                            color: '#0f172a',
+                            outline: 'none',
+                            boxShadow: '0 0 0 3px rgba(2,132,199,0.15)'
+                          }} 
+                        />
+                        <span style={{ position: 'absolute', left: '14px', top: '50%', transform: 'translateY(-50%)', fontSize: '16px', color: '#64748b' }}>📞</span>
+                      </div>
+
+                      <button 
+                        type="button" 
+                        onClick={() => handlePhoneLookup(formData.mobile)}
+                        disabled={isSearchingPhone || formData.mobile.replace(/\D/g, '').length < 10}
+                        style={{
+                          background: '#0284c7',
+                          color: 'white',
+                          border: 'none',
+                          padding: '12px 20px',
+                          borderRadius: '8px',
+                          fontWeight: 700,
+                          fontSize: '14px',
+                          cursor: isSearchingPhone || formData.mobile.replace(/\D/g, '').length < 10 ? 'not-allowed' : 'pointer',
+                          opacity: isSearchingPhone || formData.mobile.replace(/\D/g, '').length < 10 ? 0.6 : 1,
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px'
+                        }}
+                      >
+                        {isSearchingPhone ? 'Searching...' : '🔍 Search Number'}
+                      </button>
+                    </div>
+
+                    {/* Searching indicator */}
+                    {isSearchingPhone && (
+                      <div style={{ marginTop: '16px', padding: '12px', background: '#eff6ff', borderRadius: '8px', color: '#1d4ed8', fontSize: '13px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span>⏳</span> Searching for registered patients & family members under this phone number...
+                      </div>
+                    )}
+
+                    {/* If family members found */}
+                    {!isSearchingPhone && hasSearched && foundFamilyMembers.length > 0 && !isNewMemberMode && (
+                      <div style={{ marginTop: '18px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
+                          <span style={{ fontSize: '14px', fontWeight: 700, color: '#0f274a' }}>
+                            👥 Registered Patients / Family Members Found ({foundFamilyMembers.length})
+                          </span>
+                          <span style={{ fontSize: '12px', color: '#64748b' }}>Select who this order is for:</span>
+                        </div>
+
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          {foundFamilyMembers.map((member, mIdx) => (
+                            <div 
+                              key={mIdx}
+                              onClick={() => handleSelectFamilyMember(member)}
+                              style={{
+                                background: 'white',
+                                border: '1.5px solid #cbd5e1',
+                                borderRadius: '10px',
+                                padding: '14px 16px',
+                                cursor: 'pointer',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                alignItems: 'center',
+                                flexWrap: 'wrap',
+                                gap: '12px',
+                                transition: 'all 0.15s ease',
+                                boxShadow: '0 1px 3px rgba(0,0,0,0.05)'
+                              }}
+                              onMouseEnter={e => { e.currentTarget.style.borderColor = '#0284c7'; e.currentTarget.style.background = '#f0f9ff'; }}
+                              onMouseLeave={e => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.background = 'white'; }}
+                            >
+                              <div style={{ flex: '1 1 240px' }}>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                                  <span style={{ fontSize: '16px', fontWeight: 800, color: '#0f274a' }}>{member.name}</span>
+                                  {member.uhid ? (
+                                    <span style={{ fontSize: '12px', background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '5px', fontWeight: 800, border: '1px solid #bae6fd' }}>
+                                      🆔 {member.uhid}
+                                    </span>
+                                  ) : (
+                                    <span style={{ fontSize: '11px', background: '#fef3c7', color: '#92400e', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                                      UHID will be assigned
+                                    </span>
+                                  )}
+                                  {(member.age || member.gender) && (
+                                    <span style={{ fontSize: '12px', color: '#64748b', background: '#f1f5f9', padding: '2px 8px', borderRadius: '4px' }}>
+                                      {member.age ? `Age: ${member.age}` : ''} {member.age && member.gender ? '•' : ''} {member.gender || ''}
+                                    </span>
+                                  )}
+                                </div>
+
+                                {member.address && (
+                                  <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+                                    📍 {member.address}
+                                  </div>
+                                )}
+
+                                {member.sources && member.sources.length > 0 && (
+                                  <div style={{ display: 'flex', gap: '5px', marginTop: '6px', flexWrap: 'wrap' }}>
+                                    {member.sources.map((s: string, sIdx: number) => (
+                                      <span key={sIdx} style={{ fontSize: '11px', background: '#f1f5f9', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontWeight: 600 }}>
+                                        ✓ {s}
+                                      </span>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+
+                              <div>
+                                <button
+                                  type="button"
+                                  onClick={(e) => { e.stopPropagation(); handleSelectFamilyMember(member); }}
+                                  style={{
+                                    background: '#0284c7',
+                                    color: 'white',
+                                    border: 'none',
+                                    padding: '8px 16px',
+                                    borderRadius: '6px',
+                                    fontWeight: 700,
+                                    fontSize: '13px',
+                                    cursor: 'pointer'
+                                  }}
+                                >
+                                  ✓ Select This Patient
+                                </button>
+                              </div>
+                            </div>
+                          ))}
+
+                          {/* Option to add new family member under this number */}
+                          <button
+                            type="button"
+                            onClick={handleStartNewMember}
+                            style={{
+                              background: '#f8fafc',
+                              border: '2px dashed #94a3b8',
+                              borderRadius: '10px',
+                              padding: '12px',
+                              textAlign: 'center',
+                              color: '#0284c7',
+                              fontWeight: 700,
+                              fontSize: '14px',
+                              cursor: 'pointer',
+                              marginTop: '4px'
+                            }}
+                          >
+                            + Add New Family Member / Patient Under This Number
+                          </button>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Input for new family member or when no prior records found */}
+                    {!isSearchingPhone && hasSearched && (foundFamilyMembers.length === 0 || isNewMemberMode) && (
+                      <div style={{ marginTop: '16px', background: 'white', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px' }}>
+                        <div style={{ fontSize: '13px', color: '#0369a1', fontWeight: 600, marginBottom: '10px' }}>
+                          {foundFamilyMembers.length === 0 
+                            ? 'ℹ️ No existing records found for this phone number. Please enter patient name:' 
+                            : `➕ Adding new family member under mobile number ${formData.mobile}:`}
+                        </div>
+                        <div style={{ display: 'flex', gap: '12px', alignItems: 'center', flexWrap: 'wrap' }}>
+                          <div style={{ flex: '1 1 240px' }}>
+                            <input 
+                              type="text"
+                              placeholder="Enter Patient Full Name *"
+                              value={formData.patientName}
+                              onChange={e => setFormData({ ...formData, patientName: e.target.value })}
+                              autoFocus
+                              style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '14px', fontWeight: 600 }}
+                            />
+                          </div>
+                          <button
+                            type="button"
+                            onClick={handleConfirmNewMember}
+                            disabled={!formData.patientName.trim()}
+                            style={{
+                              background: '#16a34a',
+                              color: 'white',
+                              border: 'none',
+                              padding: '10px 18px',
+                              borderRadius: '6px',
+                              fontWeight: 700,
+                              fontSize: '13px',
+                              cursor: !formData.patientName.trim() ? 'not-allowed' : 'pointer',
+                              opacity: !formData.patientName.trim() ? 0.6 : 1
+                            }}
+                          >
+                            ✓ Confirm Patient & Proceed
+                          </button>
+                          {foundFamilyMembers.length > 0 && isNewMemberMode && (
+                            <button
+                              type="button"
+                              onClick={() => setIsNewMemberMode(false)}
+                              style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '10px 14px', borderRadius: '6px', fontSize: '13px', cursor: 'pointer' }}
+                            >
+                              Back to Existing Members
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    )}
                   </div>
-                  <div>
-                    <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, color: '#334155' }}>Mobile Number *</label>
-                    <input required type="text" value={formData.mobile} onChange={e => setFormData({...formData, mobile: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                ) : (
+                  /* CONFIRMED PATIENT BANNER */
+                  <div style={{ background: '#ecfdf5', border: '1.5px solid #10b981', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px' }}>
+                    <div>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                        <span style={{ fontSize: '14px', color: '#065f46', fontWeight: 700 }}>✓ Selected Patient:</span>
+                        <span style={{ fontSize: '16px', fontWeight: 800, color: '#0f274a' }}>{formData.patientName}</span>
+                        {formData.uhid ? (
+                          <span style={{ fontSize: '12px', background: '#0284c7', color: 'white', padding: '2px 8px', borderRadius: '5px', fontWeight: 800 }}>
+                            🆔 {formData.uhid}
+                          </span>
+                        ) : (
+                          <span style={{ fontSize: '12px', background: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: '5px', fontWeight: 700, border: '1px solid #86efac' }}>
+                            🆔 UHID will be assigned upon save
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ fontSize: '13px', color: '#047857', marginTop: '4px', display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
+                        <span>📞 <strong>Mobile:</strong> {formData.mobile}</span>
+                        {formData.address && <span>📍 <strong>Address:</strong> {formData.address.slice(0, 40)}...</span>}
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsPatientConfirmed(false)}
+                      style={{
+                        background: 'white',
+                        color: '#0f274a',
+                        border: '1px solid #cbd5e1',
+                        padding: '7px 14px',
+                        borderRadius: '6px',
+                        fontWeight: 600,
+                        fontSize: '12px',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      ✏️ Change / Re-select Patient
+                    </button>
                   </div>
-                </div>
+                )}
+
+                {/* ── STEP 2: REMAINING DETAILS (REVEALED ONLY AFTER PATIENT CONFIRMED) ── */}
+                {isPatientConfirmed ? (
+                  <div>
 
                 <div style={{ marginBottom: '20px' }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, color: '#334155' }}>Delivery Address</label>
@@ -1564,14 +1927,28 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                   ))}
                   {formData.medicines.length === 0 && <p style={{ color: '#94a3b8', fontStyle: 'italic', margin: 0 }}>Click "Add Medicine Row" to type out medicines from the prescription.</p>}
                 </div>
+                </div>
+              ) : (
+                <div style={{ textAlign: 'center', padding: '36px 20px', color: '#64748b', background: '#f8fafc', borderRadius: '10px', border: '2px dashed #cbd5e1', marginTop: '10px' }}>
+                  <div style={{ fontSize: '32px', marginBottom: '8px' }}>👆</div>
+                  <div style={{ fontWeight: 700, fontSize: '15px', color: '#1e293b' }}>
+                    Select a patient or confirm a new patient name above to proceed
+                  </div>
+                  <div style={{ fontSize: '13px', marginTop: '4px', color: '#64748b' }}>
+                    Address, order dates, billing breakdown, prescriptions, and pharmacy medicines table will appear here.
+                  </div>
+                </div>
+              )}
 
-              </form>
-            </div>
-            
-            <div style={{ padding: '20px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
-              <button onClick={() => setIsAddModalOpen(false)} style={{ background: '#f1f5f9', color: '#475569', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
-              <button type="submit" form="med-form" style={{ background: '#3b82f6', color: 'white', border: 'none', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Save Order</button>
-            </div>
+            </form>
+          </div>
+          
+          <div style={{ padding: '20px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'flex-end', gap: '10px', background: '#f8fafc' }}>
+            <button onClick={() => setIsAddModalOpen(false)} style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
+            {isPatientConfirmed && (
+              <button type="submit" form="med-form" style={{ background: '#0284c7', color: 'white', border: 'none', padding: '10px 24px', borderRadius: '8px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 6px rgba(2,132,199,0.35)' }}>Save Order</button>
+            )}
+          </div>
           </div>
         </div>
       )}

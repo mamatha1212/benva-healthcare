@@ -9,6 +9,7 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     const order = await prisma.medicineOrder.update({
       where: { id },
       data: {
+        uhid: data.uhid !== undefined ? (data.uhid ? data.uhid.trim() : null) : undefined,
         patientName: data.patientName,
         mobile: data.mobile,
         address: data.address,

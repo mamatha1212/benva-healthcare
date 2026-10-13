@@ -221,7 +221,15 @@ export default function LeadsTableClient({
                   {tab === 'checkups' ? (
                     <>
                       <td className={styles.td}>
-                        <strong>{lead.fullName}</strong><br />
+                        <strong>{lead.fullName}</strong>
+                        {lead.uhid && (
+                          <div style={{ marginTop: '2px' }}>
+                            <span style={{ fontSize: '11px', background: '#e0f2fe', color: '#0369a1', padding: '1px 6px', borderRadius: '4px', fontWeight: 700, border: '1px solid #bae6fd' }}>
+                              🆔 {lead.uhid}
+                            </span>
+                          </div>
+                        )}
+                        <br />
                         <span style={{ fontSize: '12px', color: '#718096' }}>Age: {lead.age || 'N/A'} | {lead.gender || 'N/A'}</span>
                       </td>
                       <td className={styles.td}>
@@ -247,6 +255,13 @@ export default function LeadsTableClient({
                     <>
                       <td className={styles.td}>
                         <strong>{lead.fullName}</strong>
+                        {lead.uhid && (
+                          <div style={{ marginTop: '2px' }}>
+                            <span style={{ fontSize: '11px', background: '#e0f2fe', color: '#0369a1', padding: '1px 6px', borderRadius: '4px', fontWeight: 700, border: '1px solid #bae6fd' }}>
+                              🆔 {lead.uhid}
+                            </span>
+                          </div>
+                        )}
                         {lead.enquiryType === 'DIET_PLAN' && (
                           <><br /><span style={{ fontSize: '12px', color: '#718096' }}>Age: {lead.age || 'N/A'} | {lead.gender || 'N/A'}</span></>
                         )}

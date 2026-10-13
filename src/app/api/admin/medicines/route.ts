@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { getOrCreateUhidForPatient } from '@/lib/uhid';
 
 export async function GET() {
   try {
@@ -18,8 +19,14 @@ export async function POST(request: Request) {
   try {
     const data = await request.json();
 
+    let uhid = data.uhid ? data.uhid.trim() : null;
+    if (!uhid && data.mobile) {
+      uhid = await getOrCreateUhidForPatient(data.mobile, data.patientName);
+    }
+
     const order = await prisma.medicineOrder.create({
       data: {
+        uhid,
         patientName: data.patientName,
         mobile: data.mobile,
         address: data.address,
