@@ -2,9 +2,27 @@
 
 import React from 'react';
 
-export default function InvoiceView({ invoice, patient, onClose }: { invoice: any, patient: any, onClose: () => void }) {
+export default function InvoiceView({ invoice, patient, onClose, onDeleted }: { invoice: any, patient: any, onClose: () => void, onDeleted?: (invoiceId: string) => void }) {
+  const [isDeleting, setIsDeleting] = React.useState(false);
+
   const handlePrint = () => {
     window.print();
+  };
+
+  const handleDelete = async () => {
+    if (!confirm(`Are you sure you want to delete invoice ${invoice.invoiceNo}? This cannot be undone.`)) {
+      return;
+    }
+    setIsDeleting(true);
+    try {
+      const res = await fetch(`/api/admin/invoices?id=${invoice.id}`, { method: 'DELETE' });
+      if (!res.ok) throw new Error('Failed to delete invoice');
+      if (onDeleted) onDeleted(invoice.id);
+      onClose();
+    } catch (err: any) {
+      alert(err.message || 'Error deleting invoice');
+      setIsDeleting(false);
+    }
   };
 
   return (
@@ -23,6 +41,14 @@ export default function InvoiceView({ invoice, patient, onClose }: { invoice: an
             <button onClick={handlePrint} style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white', color: '#334155', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 auto', justifyContent: 'center', maxWidth: '200px' }}>
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"></polyline><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"></path><rect x="6" y="14" width="12" height="8"></rect></svg>
               Print / PDF
+            </button>
+            <button 
+              onClick={handleDelete} 
+              disabled={isDeleting}
+              style={{ padding: '8px 16px', borderRadius: '6px', border: '1px solid #fecdd3', background: '#fff1f2', color: '#e11d48', fontWeight: 600, cursor: isDeleting ? 'not-allowed' : 'pointer', display: 'flex', alignItems: 'center', gap: '8px', flex: '1 1 auto', justifyContent: 'center', maxWidth: '200px' }}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+              {isDeleting ? 'Deleting...' : 'Delete Invoice'}
             </button>
           </div>
         </div>

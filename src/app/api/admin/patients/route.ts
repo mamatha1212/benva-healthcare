@@ -134,3 +134,53 @@ export async function PUT(req: NextRequest) {
     return NextResponse.json({ error: 'Failed to update patient' }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest) {
+  try {
+    const url = new URL(req.url);
+    const id = url.searchParams.get('id');
+    const fileId = url.searchParams.get('fileId');
+
+    if (fileId) {
+      await prisma.patientFile.delete({
+        where: { id: fileId }
+      });
+      return NextResponse.json({ success: true, message: 'File deleted successfully' });
+    }
+
+    if (!id) {
+      return NextResponse.json({ error: 'Patient ID or File ID is required' }, { status: 400 });
+    }
+
+    // Cascade delete items, invoices, files, then patient
+    await prisma.$transaction([
+      prisma.invoiceItem.deleteMany({
+        where: {
+          invoice: {
+            patientId: id
+          }
+        }
+      }),
+      prisma.invoice.deleteMany({
+        where: {
+          patientId: id
+        }
+      }),
+      prisma.patientFile.deleteMany({
+        where: {
+          patientId: id
+        }
+      }),
+      prisma.patientRecord.delete({
+        where: {
+          id
+        }
+      }),
+    ]);
+
+    return NextResponse.json({ success: true, message: 'Patient record deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting patient:', error);
+    return NextResponse.json({ error: 'Failed to delete patient' }, { status: 500 });
+  }
+}

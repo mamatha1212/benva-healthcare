@@ -11,6 +11,56 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [invoiceModalPatient, setInvoiceModalPatient] = useState<any>(null);
   const [viewInvoice, setViewInvoice] = useState<any>(null);
+  const [deletingPatientId, setDeletingPatientId] = useState<string | null>(null);
+  const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
+
+  const handleDeletePatient = async (patient: any) => {
+    const confirmMsg = `Are you sure you want to delete patient "${patient.name}" (${patient.uhid || patient.phone})?\n\nThis will permanently delete this patient record along with all attached files and invoices.`;
+    if (!window.confirm(confirmMsg)) return;
+
+    setDeletingPatientId(patient.id);
+    try {
+      const res = await fetch(`/api/admin/patients?id=${patient.id}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to delete patient');
+      setPatients(prev => prev.filter(p => p.id !== patient.id));
+    } catch (err: any) {
+      alert(err.message || 'Error deleting patient');
+    } finally {
+      setDeletingPatientId(null);
+    }
+  };
+
+  const handleDeleteFile = async (patientId: string, fileId: string, fileName: string) => {
+    if (!window.confirm(`Are you sure you want to delete file "${fileName}"?`)) return;
+
+    setDeletingFileId(fileId);
+    try {
+      const res = await fetch(`/api/admin/patients?fileId=${fileId}`, { method: 'DELETE' });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to delete file');
+      setPatients(prev => prev.map(p => {
+        if (p.id === patientId) {
+          return {
+            ...p,
+            files: (p.files || []).filter((f: any) => f.id !== fileId)
+          };
+        }
+        return p;
+      }));
+    } catch (err: any) {
+      alert(err.message || 'Error deleting file');
+    } finally {
+      setDeletingFileId(null);
+    }
+  };
+
+  const handleInvoiceDeleted = (deletedInvoiceId: string) => {
+    setPatients(prev => prev.map(p => ({
+      ...p,
+      invoices: (p.invoices || []).filter((inv: any) => inv.id !== deletedInvoiceId)
+    })));
+  };
 
   const handlePatientAdded = (newPatient: any, action: 'save' | 'save-and-add' = 'save') => {
     setPatients(prev => [newPatient, ...prev]);
@@ -104,6 +154,20 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
         .action-btn.prescribe:hover {
           background: #bae6fd;
           color: #0284c7;
+        }
+        .action-btn.delete-btn {
+          background: #fef2f2;
+          color: #dc2626;
+          border: 1px solid #fee2e2;
+        }
+        .action-btn.delete-btn:hover:not(:disabled) {
+          background: #fee2e2;
+          color: #b91c1c;
+          border-color: #fca5a5;
+        }
+        .action-btn:disabled {
+          opacity: 0.6;
+          cursor: not-allowed;
         }
         .search-container:focus-within svg {
           color: #2563eb !important;
@@ -235,9 +299,51 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
                     {patient.files && patient.files.length > 0 ? (
                       <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
                         {patient.files.map((file: any) => (
-                          <a key={file.id} href={file.fileUrl} download={file.fileName} target="_blank" rel="noreferrer" style={{ fontSize: '13px', color: '#0284c7', textDecoration: 'underline', background: '#f0f9ff', padding: '4px 8px', borderRadius: '4px' }}>
-                            {file.fileName}
-                          </a>
+                          <div
+                            key={file.id}
+                            style={{
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              background: '#f0f9ff',
+                              borderRadius: '6px',
+                              border: '1px solid #bae6fd',
+                              overflow: 'hidden'
+                            }}
+                          >
+                            <a
+                              href={file.fileUrl}
+                              download={file.fileName}
+                              target="_blank"
+                              rel="noreferrer"
+                              style={{ fontSize: '13px', color: '#0284c7', textDecoration: 'underline', padding: '4px 8px' }}
+                            >
+                              {file.fileName}
+                            </a>
+                            <button
+                              type="button"
+                              onClick={() => handleDeleteFile(patient.id, file.id, file.fileName)}
+                              disabled={deletingFileId === file.id}
+                              title={`Delete file ${file.fileName}`}
+                              style={{
+                                background: 'transparent',
+                                border: 'none',
+                                borderLeft: '1px solid #bae6fd',
+                                color: '#ef4444',
+                                cursor: 'pointer',
+                                padding: '4px 6px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                justifyContent: 'center'
+                              }}
+                              onMouseOver={(e) => e.currentTarget.style.background = '#fee2e2'}
+                              onMouseOut={(e) => e.currentTarget.style.background = 'transparent'}
+                            >
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                                <line x1="18" y1="6" x2="6" y2="18"></line>
+                                <line x1="6" y1="6" x2="18" y2="18"></line>
+                              </svg>
+                            </button>
+                          </div>
                         ))}
                       </div>
                     ) : (
@@ -277,14 +383,26 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
                     )}
                   </td>
                   <td style={{ textAlign: 'right' }}>
-                    <button
-                      onClick={() => setInvoiceModalPatient(patient)}
-                      className="action-btn prescribe"
-                      style={{ background: '#ecfdf5', color: '#059669' }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', marginRight: '6px', verticalAlign: 'middle' }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                      Generate Invoice
-                    </button>
+                    <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end', alignItems: 'center' }}>
+                      <button
+                        onClick={() => setInvoiceModalPatient(patient)}
+                        className="action-btn prescribe"
+                        style={{ background: '#ecfdf5', color: '#059669', display: 'inline-flex', alignItems: 'center' }}
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', marginRight: '6px', verticalAlign: 'middle' }}><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                        Generate Invoice
+                      </button>
+                      <button
+                        onClick={() => handleDeletePatient(patient)}
+                        disabled={deletingPatientId === patient.id}
+                        className="action-btn delete-btn"
+                        style={{ display: 'inline-flex', alignItems: 'center' }}
+                        title="Delete Patient Record"
+                      >
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ display: 'inline-block', marginRight: '6px', verticalAlign: 'middle' }}><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        {deletingPatientId === patient.id ? 'Deleting...' : 'Delete'}
+                      </button>
+                    </div>
                   </td>
                 </tr>
                 );
@@ -315,6 +433,7 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
           invoice={viewInvoice.invoice}
           patient={viewInvoice.patient}
           onClose={() => setViewInvoice(null)}
+          onDeleted={handleInvoiceDeleted}
         />
       )}
     </div>
