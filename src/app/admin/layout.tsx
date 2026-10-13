@@ -24,6 +24,15 @@ export default function AdminRootLayout({
               });
             });
           }
+          if ('caches' in window) {
+            caches.keys().then(function(names) {
+              for (var i = 0; i < names.length; i++) {
+                if (names[i].indexOf('next-static-js-assets') !== -1 || names[i].indexOf('pages') !== -1) {
+                  caches.delete(names[i]);
+                }
+              }
+            });
+          }
         `}
       </Script>
       {children}
