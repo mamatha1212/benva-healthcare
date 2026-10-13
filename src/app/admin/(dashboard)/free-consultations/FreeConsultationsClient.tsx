@@ -29,6 +29,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
   const [requests, setRequests] = useState(initialRequests);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [viewingRequest, setViewingRequest] = useState<any>(null);
+  const [actionLoading, setActionLoading] = useState<'view' | 'share' | 'zip' | 'download' | null>(null);
 
   // Filters
   const [fromDate, setFromDate] = useState('');
@@ -56,7 +57,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
     return true;
   });
 
-  const handleDownloadPDF = async (targetId: string, filename: string, action: 'download' | 'view' | 'share' = 'download', reportUrls?: string) => {
+  const handleDownloadPDF = async (targetId: string, filename: string, action: 'download' | 'view' | 'share' | 'zip' = 'download', reportUrls?: string) => {
     const element = document.getElementById(targetId);
     if (!element) return;
     
@@ -83,14 +84,17 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
       jsPDF:        { unit: 'in', format: 'letter', orientation: (targetId === 'consultations-table' ? 'landscape' : 'portrait') as 'landscape' | 'portrait' }
     };
     
-    // Dynamically import to avoid SSR 'window is not defined' error
-    // @ts-ignore
-    const html2pdf = (await import('html2pdf.js')).default;
-    
-    if (action === 'download') {
-      html2pdf().set(opt).from(clone).save();
-    } else if (action === 'view') {
-      html2pdf().set(opt).from(clone).output('bloburl').then((url: string) => {
+    setActionLoading(action);
+
+    try {
+      // Dynamically import to avoid SSR 'window is not defined' error
+      // @ts-ignore
+      const html2pdf = (await import('html2pdf.js')).default;
+      
+      if (action === 'download') {
+        await html2pdf().set(opt).from(clone).save();
+      } else if (action === 'view') {
+        const url = await html2pdf().set(opt).from(clone).output('bloburl');
         const win = window.open('', '_blank');
         if (win) {
           win.document.write(`
@@ -120,61 +124,119 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
         } else {
           window.open(url, '_blank');
         }
-      });
-    } else if (action === 'share') {
-      html2pdf().set(opt).from(clone).output('blob').then(async (blob: Blob) => {
+      } else if (action === 'zip') {
+        const pdfBlob: Blob = await html2pdf().set(opt).from(clone).output('blob');
+        
+        // Dynamic import JSZip with fallback
+        let JSZip;
         try {
-          // Dynamic import with fallback
-          let JSZip;
-          try {
-            JSZip = (await import('jszip')).default;
-          } catch (importErr) {
-            console.error('Failed to import jszip, trying require', importErr);
-            JSZip = require('jszip');
-          }
-          const zip = new JSZip();
-          
-          zip.file(filename, blob);
-          
-          if (reportUrls) {
-            const urls = reportUrls.split(',');
-            for (let i = 0; i < urls.length; i++) {
-              const url = urls[i].trim();
-              if (!url) continue;
-              
-              let ext = url.split('.').pop() || 'jpg';
-              if (ext.length > 4) ext = 'jpg';
-              
-              try {
-                const fetchRes = await fetch(url);
-                if (fetchRes.ok) {
-                  const attachmentBlob = await fetchRes.blob();
-                  zip.file(`Attachment_${i + 1}.${ext}`, attachmentBlob);
-                }
-              } catch (fetchErr) {
-                console.warn(`Failed to fetch attachment ${i+1}`, fetchErr);
+          JSZip = (await import('jszip')).default;
+        } catch (importErr) {
+          console.error('Failed to import jszip, trying require', importErr);
+          JSZip = require('jszip');
+        }
+        const zip = new JSZip();
+        
+        // Add PDF to zip
+        zip.file(filename, pdfBlob);
+        
+        // Add client uploaded files if any
+        if (reportUrls) {
+          const urls = reportUrls.split(',');
+          for (let i = 0; i < urls.length; i++) {
+            const url = urls[i].trim();
+            if (!url) continue;
+            
+            let ext = url.split('.').pop()?.split('?')[0] || 'jpg';
+            if (ext.length > 5 || ext.includes('/')) ext = 'jpg';
+            
+            try {
+              const fetchRes = await fetch(url);
+              if (fetchRes.ok) {
+                const attachmentBlob = await fetchRes.blob();
+                zip.file(`Attachment_${i + 1}.${ext}`, attachmentBlob);
               }
+            } catch (fetchErr) {
+              console.warn(`Failed to fetch attachment ${i + 1}`, fetchErr);
             }
           }
-          
-          const zipBlob = await zip.generateAsync({ type: 'blob' });
-          const zipFilename = `${viewingRequest.name.replace(/\s+/g, '_')}_Documents.zip`;
-          
-          // Force download on all devices instead of Web Share API to ensure reliability
-          const url = URL.createObjectURL(zipBlob);
-          const a = document.createElement('a');
-          a.href = url;
-          a.download = zipFilename;
-          document.body.appendChild(a);
-          a.click();
-          document.body.removeChild(a);
-          setTimeout(() => URL.revokeObjectURL(url), 1000);
-          
-        } catch (e: any) {
-          console.error('Failed to create zip', e);
-          alert('Failed to generate zip folder. Error: ' + (e.message || 'Unknown error'));
         }
-      });
+        
+        const zipBlob = await zip.generateAsync({ type: 'blob' });
+        const patientName = viewingRequest?.name ? viewingRequest.name.replace(/\s+/g, '_') : 'Patient';
+        const zipFilename = `${patientName}_Documents.zip`;
+        
+        const url = URL.createObjectURL(zipBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = zipFilename;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } else if (action === 'share') {
+        const pdfBlob: Blob = await html2pdf().set(opt).from(clone).output('blob');
+        const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
+        const shareFiles: File[] = [pdfFile];
+
+        if (reportUrls) {
+          const urls = reportUrls.split(',');
+          for (let i = 0; i < urls.length; i++) {
+            const url = urls[i].trim();
+            if (!url) continue;
+
+            let ext = url.split('.').pop()?.split('?')[0] || 'jpg';
+            if (ext.length > 5 || ext.includes('/')) ext = 'jpg';
+
+            try {
+              const fetchRes = await fetch(url);
+              if (fetchRes.ok) {
+                const attachmentBlob = await fetchRes.blob();
+                const mimeType = attachmentBlob.type || (ext === 'pdf' ? 'application/pdf' : 'image/jpeg');
+                shareFiles.push(new File([attachmentBlob], `Attachment_${i + 1}.${ext}`, { type: mimeType }));
+              }
+            } catch (fetchErr) {
+              console.warn(`Failed to fetch attachment ${i + 1} for share`, fetchErr);
+            }
+          }
+        }
+
+        const patientName = viewingRequest?.name || 'Patient';
+        const patientPhone = viewingRequest?.phone || '';
+        const shareData = {
+          title: `${patientName} - Consultation Record`,
+          text: `Benva Healthcare Patient Consultation Record for ${patientName} (${patientPhone})`
+        };
+
+        if (navigator.canShare && navigator.canShare({ files: shareFiles })) {
+          await navigator.share({
+            ...shareData,
+            files: shareFiles
+          });
+        } else if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+          await navigator.share({
+            ...shareData,
+            files: [pdfFile]
+          });
+        } else if (navigator.share) {
+          await navigator.share({
+            ...shareData,
+            text: `Benva Healthcare Consultation Record\nPatient: ${patientName}\nPhone: ${patientPhone}\nProblem: ${viewingRequest?.problem || 'N/A'}`
+          });
+        } else {
+          // Fallback if Web Share API is not supported
+          const message = `*Benva Healthcare Consultation Record*\n*Patient:* ${patientName}\n*Phone:* ${patientPhone}\n*Problem:* ${viewingRequest?.problem || 'N/A'}`;
+          const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
+          window.open(waUrl, '_blank');
+        }
+      }
+    } catch (e: any) {
+      if (e.name !== 'AbortError') {
+        console.error('Action failed:', e);
+        alert(`Failed to complete action: ${e.message || 'Unknown error'}`);
+      }
+    } finally {
+      setActionLoading(null);
     }
   };
 
@@ -351,7 +413,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
 
       {viewingRequest && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '600px', color: '#0f172a', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}>
+          <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '680px', color: '#0f172a', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 style={{ margin: 0, fontSize: '20px' }}>Consultation Request Details</h2>
               <button onClick={() => setViewingRequest(null)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#64748b' }}>&times;</button>
@@ -387,9 +449,12 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
               .view-grid > div {
                 padding: 16px;
               }
-              .modal-actions { margin-top: 24px; display: flex; justify-content: flex-end; gap: 12px; }
-              .modal-action-btn { padding: 10px 20px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 14px; border: none; }
-              @media (max-width: 600px) {
+              .modal-actions { margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
+              .modal-action-btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; border: none; transition: opacity 0.2s, transform 0.1s; }
+              .modal-action-btn:hover:not(:disabled) { opacity: 0.92; }
+              .modal-action-btn:active:not(:disabled) { transform: scale(0.98); }
+              .modal-action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+              @media (max-width: 640px) {
                 .view-grid {
                   grid-template-columns: 1fr;
                 }
@@ -397,17 +462,18 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
                   flex-direction: column;
                 }
                 .modal-actions {
-                  justify-content: space-between;
-                  gap: 6px;
+                  display: grid;
+                  grid-template-columns: 1fr 1fr;
+                  gap: 8px;
                 }
                 .modal-action-btn {
-                  flex: 1;
-                  padding: 10px 2px;
-                  font-size: 11px;
+                  width: 100%;
+                  padding: 10px 6px;
+                  font-size: 12px;
                 }
                 .modal-action-btn svg {
-                  width: 14px;
-                  height: 14px;
+                  width: 15px;
+                  height: 15px;
                 }
               }
             `}</style>
@@ -604,26 +670,39 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
               <button 
                 onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'view')}
                 className="modal-action-btn"
+                disabled={actionLoading !== null}
                 style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1' }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                View
+                {actionLoading === 'view' ? 'Opening...' : 'View'}
               </button>
               <button 
                 onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'share', viewingRequest.reportUrl)}
                 className="modal-action-btn"
+                disabled={actionLoading !== null}
                 style={{ background: '#10b981', color: 'white' }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-                Share
+                {actionLoading === 'share' ? 'Sharing...' : 'Share'}
+              </button>
+              <button 
+                onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'zip', viewingRequest.reportUrl)}
+                className="modal-action-btn"
+                disabled={actionLoading !== null}
+                style={{ background: '#6366f1', color: 'white' }}
+                title="Download ZIP with consultation PDF and attached client files"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><polyline points="8 14 12 18 16 14"></polyline><line x1="12" y1="10" x2="12" y2="18"></line></svg>
+                {actionLoading === 'zip' ? 'Creating ZIP...' : 'Download ZIP'}
               </button>
               <button 
                 onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'download')}
                 className="modal-action-btn"
+                disabled={actionLoading !== null}
                 style={{ background: '#3b82f6', color: 'white' }}
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                Download PDF
+                {actionLoading === 'download' ? 'Downloading...' : 'Download PDF'}
               </button>
             </div>
           </div>
