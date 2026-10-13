@@ -25,6 +25,97 @@ const RemarkInput = ({ req, onSave }: { req: any, onSave: (id: string, text: str
   );
 };
 
+const loadImageElement = (blob: Blob): Promise<HTMLImageElement> => {
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(blob);
+    img.onload = () => {
+      URL.revokeObjectURL(url);
+      resolve(img);
+    };
+    img.onerror = () => {
+      URL.revokeObjectURL(url);
+      reject(new Error('Failed to load image'));
+    };
+    img.src = url;
+  });
+};
+
+const convertImagesToPDF = async (imageUrls: string[]): Promise<Blob | null> => {
+  if (!imageUrls || imageUrls.length === 0) return null;
+
+  try {
+    const { jsPDF } = await import('jspdf');
+    const doc = new jsPDF({
+      orientation: 'portrait',
+      unit: 'mm',
+      format: 'a4'
+    });
+
+    const pageWidth = doc.internal.pageSize.getWidth();
+    const pageHeight = doc.internal.pageSize.getHeight();
+    const margin = 10;
+    const maxW = pageWidth - margin * 2;
+    const maxH = pageHeight - margin * 2;
+
+    let pagesAdded = 0;
+
+    for (let i = 0; i < imageUrls.length; i++) {
+      const url = imageUrls[i];
+      try {
+        const res = await fetch(url);
+        if (!res.ok) continue;
+        const blob = await res.blob();
+
+        if (!blob.type.startsWith('image/')) continue;
+
+        const img = await loadImageElement(blob);
+        const naturalW = img.naturalWidth || img.width;
+        const naturalH = img.naturalHeight || img.height;
+        if (!naturalW || !naturalH) continue;
+
+        const canvas = document.createElement('canvas');
+        canvas.width = naturalW;
+        canvas.height = naturalH;
+        const ctx = canvas.getContext('2d');
+        if (!ctx) continue;
+        ctx.drawImage(img, 0, 0);
+        const dataUrl = canvas.toDataURL('image/jpeg', 0.92);
+
+        if (pagesAdded > 0) {
+          doc.addPage();
+        }
+
+        const imgRatio = naturalW / naturalH;
+        const pageRatio = maxW / maxH;
+        let renderW = maxW;
+        let renderH = maxH;
+        if (imgRatio > pageRatio) {
+          renderW = maxW;
+          renderH = maxW / imgRatio;
+        } else {
+          renderH = maxH;
+          renderW = maxH * imgRatio;
+        }
+
+        const posX = margin + (maxW - renderW) / 2;
+        const posY = margin + (maxH - renderH) / 2;
+
+        doc.addImage(dataUrl, 'JPEG', posX, posY, renderW, renderH);
+        pagesAdded++;
+      } catch (imgErr) {
+        console.warn(`Failed to process image ${i + 1} for PDF:`, imgErr);
+      }
+    }
+
+    if (pagesAdded === 0) return null;
+    return doc.output('blob');
+  } catch (err) {
+    console.error('convertImagesToPDF error:', err);
+    return null;
+  }
+};
+
 export default function FreeConsultationsClient({ initialRequests }: { initialRequests: any[] }) {
   const [requests, setRequests] = useState(initialRequests);
   const [loadingId, setLoadingId] = useState<string | null>(null);
@@ -175,46 +266,66 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       } else if (action === 'share') {
         const pdfBlob: Blob = await html2pdf().set(opt).from(clone).output('blob');
-        const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
-        const shareFiles: File[] = [pdfFile];
+        const patientName = viewingRequest?.name ? viewingRequest.name.replace(/\s+/g, '_') : 'Patient';
+        const patientPhone = viewingRequest?.phone || '';
+
+        const consultationFile = new File([pdfBlob], `${patientName}_Consultation.pdf`, { type: 'application/pdf' });
+        const shareFiles: File[] = [consultationFile];
 
         if (reportUrls) {
-          const urls = reportUrls.split(',');
-          for (let i = 0; i < urls.length; i++) {
-            const url = urls[i].trim();
-            if (!url) continue;
+          const urls = reportUrls.split(',').map((u: string) => u.trim()).filter(Boolean);
+          const imageUrls: string[] = [];
+          const existingPdfUrls: string[] = [];
 
-            let ext = url.split('.').pop()?.split('?')[0] || 'jpg';
-            if (ext.length > 5 || ext.includes('/')) ext = 'jpg';
+          for (const u of urls) {
+            const ext = u.split('.').pop()?.split('?')[0]?.toLowerCase();
+            if (ext === 'pdf') {
+              existingPdfUrls.push(u);
+            } else {
+              imageUrls.push(u);
+            }
+          }
 
+          // Convert all uploaded images into a single multi-page PDF document
+          if (imageUrls.length > 0) {
+            const imagesPdfBlob = await convertImagesToPDF(imageUrls);
+            if (imagesPdfBlob) {
+              const reportsPdfFile = new File(
+                [imagesPdfBlob],
+                `${patientName}_Medical_Reports.pdf`,
+                { type: 'application/pdf' }
+              );
+              shareFiles.push(reportsPdfFile);
+            }
+          }
+
+          // Also include any files client uploaded that were already PDFs
+          for (let i = 0; i < existingPdfUrls.length; i++) {
             try {
-              const fetchRes = await fetch(url);
-              if (fetchRes.ok) {
-                const attachmentBlob = await fetchRes.blob();
-                const mimeType = attachmentBlob.type || (ext === 'pdf' ? 'application/pdf' : 'image/jpeg');
-                shareFiles.push(new File([attachmentBlob], `Attachment_${i + 1}.${ext}`, { type: mimeType }));
+              const res = await fetch(existingPdfUrls[i]);
+              if (res.ok) {
+                const blob = await res.blob();
+                shareFiles.push(new File([blob], `Uploaded_Report_${i + 1}.pdf`, { type: 'application/pdf' }));
               }
-            } catch (fetchErr) {
-              console.warn(`Failed to fetch attachment ${i + 1} for share`, fetchErr);
+            } catch (err) {
+              console.warn('Failed to fetch existing PDF report', err);
             }
           }
         }
 
-        const patientName = viewingRequest?.name || 'Patient';
-        const patientPhone = viewingRequest?.phone || '';
         const shareData = {
-          title: `${patientName} - Consultation Record`,
-          text: `Benva Healthcare Patient Consultation Record for ${patientName} (${patientPhone})`,
+          title: `${patientName} - Consultation & Reports`,
+          text: `Benva Healthcare Patient Consultation & Medical Reports for ${patientName} (${patientPhone})`,
           files: shareFiles
         };
 
         if (navigator.canShare && navigator.canShare(shareData)) {
           await navigator.share(shareData);
-        } else if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
+        } else if (navigator.canShare && navigator.canShare({ files: [consultationFile] })) {
           await navigator.share({
             title: `${patientName} - Consultation Record`,
             text: `Benva Healthcare Patient Consultation Record for ${patientName}`,
-            files: [pdfFile]
+            files: [consultationFile]
           });
         } else if (navigator.share) {
           await navigator.share({
