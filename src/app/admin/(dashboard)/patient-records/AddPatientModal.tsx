@@ -189,6 +189,17 @@ export default function AddPatientModal({ onClose, onAdded, doctors = [] }: { on
             </select>
           </div>
 
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Consignment Number (Optional)</label>
+              <input type="text" name="consignmentNo" placeholder="e.g. DTDC123456789" style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+            </div>
+            <div>
+              <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Consignment Image / Slip (Optional)</label>
+              <input type="file" name="consignmentImageFile" accept="image/*" style={{ width: '100%', padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc' }} />
+            </div>
+          </div>
+
           <div>
             <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Upload Prescriptions / Bills (Optional)</label>
             <input type="file" name="files" multiple onChange={(e) => {

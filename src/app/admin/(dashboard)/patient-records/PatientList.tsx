@@ -15,6 +15,35 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
   const [deletingPatientId, setDeletingPatientId] = useState<string | null>(null);
   const [deletingFileId, setDeletingFileId] = useState<string | null>(null);
 
+  // Consignment States
+  const [editingConsignmentPatient, setEditingConsignmentPatient] = useState<any>(null);
+  const [isSavingConsignment, setIsSavingConsignment] = useState(false);
+
+  const handleSaveConsignment = async (e: React.FormEvent<HTMLFormElement>) => {
+    e.preventDefault();
+    if (!editingConsignmentPatient) return;
+    setIsSavingConsignment(true);
+    try {
+      const form = e.currentTarget;
+      const formData = new FormData(form);
+      formData.set('id', editingConsignmentPatient.id);
+
+      const res = await fetch('/api/admin/patients', {
+        method: 'PUT',
+        body: formData
+      });
+      if (!res.ok) throw new Error('Failed to update consignment details');
+      const updated = await res.json();
+
+      setPatients(prev => prev.map(p => p.id === updated.id ? { ...p, consignmentNo: updated.consignmentNo, consignmentImage: updated.consignmentImage } : p));
+      setEditingConsignmentPatient(null);
+    } catch (err: any) {
+      alert(err.message || 'Error updating consignment');
+    } finally {
+      setIsSavingConsignment(false);
+    }
+  };
+
   // Date Filter & Statement States
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
@@ -92,6 +121,7 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
           patientName: patient.name,
           uhid: patient.uhid || 'N/A',
           phone: patient.phone,
+          consignmentNo: patient.consignmentNo,
           invoiceNo: inv.invoiceNo,
           payMode: inv.payMode || 'UPI',
           grossAmount: gross,
@@ -663,6 +693,52 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
                       {patient.uhid && <span style={{ fontSize: '12px', color: '#64748b', background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontWeight: 500 }}>{patient.uhid}</span>}
                       <span style={{ fontSize: '13px', color: '#64748b' }}>{patient.age ? `${patient.age} Y` : ''} {patient.gender ? `/ ${patient.gender}` : ''}</span>
                     </div>
+
+                    {/* Consignment Tracking & Slip */}
+                    <div style={{ marginTop: '8px', display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      {patient.consignmentNo ? (
+                        <span style={{ fontSize: '12px', color: '#1e40af', background: '#dbeafe', border: '1px solid #bfdbfe', padding: '2px 8px', borderRadius: '6px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                          📦 Track: {patient.consignmentNo}
+                        </span>
+                      ) : (
+                        <span style={{ fontSize: '11px', color: '#94a3b8', fontStyle: 'italic' }}>
+                          No Consignment
+                        </span>
+                      )}
+
+                      {patient.consignmentImage && (
+                        <a
+                          href={patient.consignmentImage}
+                          target="_blank"
+                          rel="noreferrer"
+                          style={{ fontSize: '12px', color: '#047857', background: '#dcfce7', border: '1px solid #86efac', padding: '2px 8px', borderRadius: '6px', fontWeight: 600, textDecoration: 'none', display: 'inline-flex', alignItems: 'center', gap: '4px' }}
+                          title="Click to view consignment receipt slip"
+                        >
+                          📷 View Slip
+                        </a>
+                      )}
+
+                      <button
+                        onClick={() => setEditingConsignmentPatient(patient)}
+                        title="Update Consignment Number or Slip"
+                        style={{
+                          background: '#f8fafc',
+                          border: '1px solid #cbd5e1',
+                          borderRadius: '4px',
+                          padding: '2px 6px',
+                          fontSize: '11px',
+                          color: '#334155',
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '3px',
+                          fontWeight: 500
+                        }}
+                      >
+                        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                        {patient.consignmentNo || patient.consignmentImage ? 'Edit' : '+ Consignment'}
+                      </button>
+                    </div>
                   </td>
                   <td>
                     <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -856,6 +932,95 @@ export default function PatientList({ initialPatients, doctors }: { initialPatie
             label: getDateRangeLabel()
           }}
         />
+      )}
+
+      {/* Edit / Add Consignment Details Modal */}
+      {editingConsignmentPatient && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2100, padding: '20px' }}>
+          <div style={{ background: 'white', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '480px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>
+                  Consignment & Dispatch Details
+                </h3>
+                <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: '#64748b' }}>
+                  Patient: <span style={{ fontWeight: 600, color: '#0284c7' }}>{editingConsignmentPatient.name}</span> ({editingConsignmentPatient.uhid || editingConsignmentPatient.phone})
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingConsignmentPatient(null)}
+                style={{ background: 'transparent', border: 'none', cursor: 'pointer', color: '#64748b', padding: '4px' }}
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveConsignment}>
+              <div style={{ marginBottom: '16px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  Consignment / Tracking Number
+                </label>
+                <input
+                  type="text"
+                  name="consignmentNo"
+                  defaultValue={editingConsignmentPatient.consignmentNo || ''}
+                  placeholder="e.g. DTDC123456789 / SPEEDPOST123"
+                  style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px' }}
+                />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                  Consignment Image / Slip Photo
+                </label>
+                {editingConsignmentPatient.consignmentImage && (
+                  <div style={{ marginBottom: '10px', display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <img
+                      src={editingConsignmentPatient.consignmentImage}
+                      alt="Consignment Slip"
+                      style={{ width: '60px', height: '60px', objectFit: 'cover', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                    />
+                    <a
+                      href={editingConsignmentPatient.consignmentImage}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={{ fontSize: '12px', color: '#0284c7', textDecoration: 'underline' }}
+                    >
+                      View Current Slip
+                    </a>
+                  </div>
+                )}
+                <input
+                  type="file"
+                  name="consignmentImageFile"
+                  accept="image/*"
+                  style={{ width: '100%', padding: '8px', borderRadius: '8px', border: '1px dashed #cbd5e1', background: '#f8fafc', fontSize: '13px' }}
+                />
+                <span style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', display: 'block' }}>
+                  Upload photo of courier receipt, parcel label, or consignment slip.
+                </span>
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+                <button
+                  type="button"
+                  onClick={() => setEditingConsignmentPatient(null)}
+                  style={{ padding: '8px 16px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', fontWeight: 600, cursor: 'pointer', fontSize: '13px' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  disabled={isSavingConsignment}
+                  style={{ padding: '8px 18px', borderRadius: '8px', border: 'none', background: '#02559d', color: 'white', fontWeight: 600, cursor: isSavingConsignment ? 'not-allowed' : 'pointer', fontSize: '13px', opacity: isSavingConsignment ? 0.7 : 1 }}
+                >
+                  {isSavingConsignment ? 'Saving...' : 'Save Consignment'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
     </div>
   );

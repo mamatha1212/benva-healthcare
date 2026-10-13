@@ -28,6 +28,27 @@ export async function POST(req: NextRequest) {
     const gender = formData.get('gender') as string;
     const address = formData.get('address') as string;
     const consultant = formData.get('consultant') as string;
+    const consignmentNo = (formData.get('consignmentNo') as string)?.trim() || null;
+    const consignmentImageFile = formData.get('consignmentImageFile');
+    let consignmentImage = (formData.get('consignmentImage') as string)?.trim() || null;
+    
+    // Handle consignment image file if uploaded
+    if (consignmentImageFile instanceof File && consignmentImageFile.size > 0) {
+      if (process.env.BLOB_READ_WRITE_TOKEN) {
+        try {
+          const blob = await put(`patients/consignments/${Date.now()}_${consignmentImageFile.name}`, consignmentImageFile, {
+            access: 'public',
+            addRandomSuffix: true,
+          });
+          consignmentImage = blob.url;
+        } catch (e) {
+          console.warn("Blob upload error for consignment image:", e);
+          consignmentImage = `/mock-uploads/${consignmentImageFile.name}`;
+        }
+      } else {
+        consignmentImage = `/mock-uploads/${consignmentImageFile.name}`;
+      }
+    }
     
     let patient = await prisma.patientRecord.findFirst({
       where: { 
@@ -44,13 +65,31 @@ export async function POST(req: NextRequest) {
         const nextUhid = await generateNextUhid();
         patient = await prisma.patientRecord.update({
           where: { id: patient.id },
-          data: { uhid: nextUhid, age: age || patient.age, gender: gender || patient.gender, address: address || patient.address, consultant: consultant || patient.consultant }
+          data: { 
+            uhid: nextUhid, 
+            age: age || patient.age, 
+            gender: gender || patient.gender, 
+            address: address || patient.address, 
+            consultant: consultant || patient.consultant,
+            consignmentNo: consignmentNo || patient.consignmentNo,
+            consignmentImage: consignmentImage || patient.consignmentImage
+          }
         });
       }
     } else {
       const nextUhid = await generateNextUhid();
       patient = await prisma.patientRecord.create({
-        data: { name, phone, age, gender, address, consultant, uhid: nextUhid }
+        data: { 
+          name, 
+          phone, 
+          age, 
+          gender, 
+          address, 
+          consultant, 
+          uhid: nextUhid,
+          consignmentNo,
+          consignmentImage
+        }
       });
     }
 
@@ -111,8 +150,51 @@ export async function POST(req: NextRequest) {
 
 export async function PUT(req: NextRequest) {
   try {
-    const data = await req.json();
-    const { id, name, phone, address, medicalHistory } = data;
+    const contentType = req.headers.get('content-type') || '';
+    let id = '';
+    let name: string | undefined;
+    let phone: string | undefined;
+    let address: string | undefined;
+    let medicalHistory: string | undefined;
+    let consignmentNo: string | null | undefined;
+    let consignmentImage: string | null | undefined;
+
+    if (contentType.includes('multipart/form-data')) {
+      const formData = await req.formData();
+      id = (formData.get('id') as string)?.trim();
+      name = formData.get('name') as string || undefined;
+      phone = formData.get('phone') as string || undefined;
+      address = formData.get('address') as string || undefined;
+      consignmentNo = (formData.get('consignmentNo') as string) || undefined;
+      
+      const consignmentImageFile = formData.get('consignmentImageFile');
+      if (consignmentImageFile instanceof File && consignmentImageFile.size > 0) {
+        if (process.env.BLOB_READ_WRITE_TOKEN) {
+          try {
+            const blob = await put(`patients/consignments/${Date.now()}_${consignmentImageFile.name}`, consignmentImageFile, {
+              access: 'public',
+              addRandomSuffix: true,
+            });
+            consignmentImage = blob.url;
+          } catch (e) {
+            consignmentImage = `/mock-uploads/${consignmentImageFile.name}`;
+          }
+        } else {
+          consignmentImage = `/mock-uploads/${consignmentImageFile.name}`;
+        }
+      } else if (formData.has('consignmentImage')) {
+        consignmentImage = (formData.get('consignmentImage') as string) || undefined;
+      }
+    } else {
+      const data = await req.json();
+      id = data.id;
+      name = data.name;
+      phone = data.phone;
+      address = data.address;
+      medicalHistory = data.medicalHistory;
+      consignmentNo = data.consignmentNo;
+      consignmentImage = data.consignmentImage;
+    }
     
     if (!id) {
       return NextResponse.json({ error: 'Patient ID is required' }, { status: 400 });
@@ -124,7 +206,13 @@ export async function PUT(req: NextRequest) {
         ...(name !== undefined && { name }),
         ...(phone !== undefined && { phone }),
         ...(address !== undefined && { address }),
-        ...(medicalHistory !== undefined && { medicalHistory })
+        ...(medicalHistory !== undefined && { medicalHistory }),
+        ...(consignmentNo !== undefined && { consignmentNo }),
+        ...(consignmentImage !== undefined && { consignmentImage })
+      },
+      include: {
+        files: true,
+        invoices: true
       }
     });
 

@@ -8,6 +8,7 @@ interface InvoiceTransaction {
   patientName: string;
   uhid: string;
   phone: string;
+  consignmentNo?: string;
   invoiceNo: string;
   payMode: string;
   grossAmount: number;
@@ -55,6 +56,7 @@ export default function RevenueStatementModal({
       'Patient Name',
       'UHID',
       'Phone',
+      'Consignment No',
       'Invoice No',
       'Pay Mode',
       'Gross Amount (INR)',
@@ -70,6 +72,7 @@ export default function RevenueStatementModal({
       `"${t.patientName.replace(/"/g, '""')}"`,
       `"${t.uhid}"`,
       `"${t.phone}"`,
+      `"${t.consignmentNo || ''}"`,
       `"${t.invoiceNo}"`,
       `"${t.payMode || 'N/A'}"`,
       t.grossAmount,
@@ -82,6 +85,7 @@ export default function RevenueStatementModal({
     // Summary row
     rows.push([
       'TOTAL',
+      '',
       '',
       '',
       '',
@@ -467,6 +471,7 @@ export default function RevenueStatementModal({
                           <div style={{ fontWeight: 600, color: '#0f172a' }}>{tx.patientName}</div>
                           <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
                             {tx.uhid ? `${tx.uhid} • ` : ''}{tx.phone}
+                            {tx.consignmentNo && <span style={{ marginLeft: '6px', color: '#1e40af', fontWeight: 600 }}>• 📦 {tx.consignmentNo}</span>}
                           </div>
                         </td>
                         <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontWeight: 600, color: '#0284c7' }}>
