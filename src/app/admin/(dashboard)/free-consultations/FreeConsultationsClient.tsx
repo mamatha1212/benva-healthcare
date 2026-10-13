@@ -124,7 +124,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
         } else {
           window.open(url, '_blank');
         }
-      } else if (action === 'zip') {
+      } else if (action === 'zip' || action === 'share') {
         const pdfBlob: Blob = await html2pdf().set(opt).from(clone).output('blob');
         
         // Dynamic import JSZip with fallback
@@ -165,69 +165,49 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
         const zipBlob = await zip.generateAsync({ type: 'blob' });
         const patientName = viewingRequest?.name ? viewingRequest.name.replace(/\s+/g, '_') : 'Patient';
         const zipFilename = `${patientName}_Documents.zip`;
-        
-        const url = URL.createObjectURL(zipBlob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = zipFilename;
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        setTimeout(() => URL.revokeObjectURL(url), 1000);
-      } else if (action === 'share') {
-        const pdfBlob: Blob = await html2pdf().set(opt).from(clone).output('blob');
-        const pdfFile = new File([pdfBlob], filename, { type: 'application/pdf' });
-        const shareFiles: File[] = [pdfFile];
+        const zipFile = new File([zipBlob], zipFilename, { type: 'application/zip' });
 
-        if (reportUrls) {
-          const urls = reportUrls.split(',');
-          for (let i = 0; i < urls.length; i++) {
-            const url = urls[i].trim();
-            if (!url) continue;
-
-            let ext = url.split('.').pop()?.split('?')[0] || 'jpg';
-            if (ext.length > 5 || ext.includes('/')) ext = 'jpg';
-
+        if (action === 'share') {
+          let sharedSuccessfully = false;
+          if (navigator.canShare && navigator.canShare({ files: [zipFile] })) {
             try {
-              const fetchRes = await fetch(url);
-              if (fetchRes.ok) {
-                const attachmentBlob = await fetchRes.blob();
-                const mimeType = attachmentBlob.type || (ext === 'pdf' ? 'application/pdf' : 'image/jpeg');
-                shareFiles.push(new File([attachmentBlob], `Attachment_${i + 1}.${ext}`, { type: mimeType }));
+              await navigator.share({
+                title: `${viewingRequest?.name || 'Patient'} Documents`,
+                text: `Patient consultation record and attachments for ${viewingRequest?.name || 'Patient'}`,
+                files: [zipFile]
+              });
+              sharedSuccessfully = true;
+            } catch (shareErr: any) {
+              if (shareErr.name === 'AbortError') {
+                return; // User cancelled share sheet
               }
-            } catch (fetchErr) {
-              console.warn(`Failed to fetch attachment ${i + 1} for share`, fetchErr);
+              console.warn('Direct ZIP share error:', shareErr);
             }
           }
-        }
 
-        const patientName = viewingRequest?.name || 'Patient';
-        const patientPhone = viewingRequest?.phone || '';
-        const shareData = {
-          title: `${patientName} - Consultation Record`,
-          text: `Benva Healthcare Patient Consultation Record for ${patientName} (${patientPhone})`
-        };
+          if (!sharedSuccessfully) {
+            // If Web Share API does not support sharing ZIP files on this browser/environment, download the zip
+            const url = URL.createObjectURL(zipBlob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = zipFilename;
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            setTimeout(() => URL.revokeObjectURL(url), 1000);
 
-        if (navigator.canShare && navigator.canShare({ files: shareFiles })) {
-          await navigator.share({
-            ...shareData,
-            files: shareFiles
-          });
-        } else if (navigator.canShare && navigator.canShare({ files: [pdfFile] })) {
-          await navigator.share({
-            ...shareData,
-            files: [pdfFile]
-          });
-        } else if (navigator.share) {
-          await navigator.share({
-            ...shareData,
-            text: `Benva Healthcare Consultation Record\nPatient: ${patientName}\nPhone: ${patientPhone}\nProblem: ${viewingRequest?.problem || 'N/A'}`
-          });
+            alert(`The ZIP folder "${zipFilename}" has been downloaded to your device so you can share it directly.`);
+          }
         } else {
-          // Fallback if Web Share API is not supported
-          const message = `*Benva Healthcare Consultation Record*\n*Patient:* ${patientName}\n*Phone:* ${patientPhone}\n*Problem:* ${viewingRequest?.problem || 'N/A'}`;
-          const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
-          window.open(waUrl, '_blank');
+          // action === 'zip': direct download
+          const url = URL.createObjectURL(zipBlob);
+          const a = document.createElement('a');
+          a.href = url;
+          a.download = zipFilename;
+          document.body.appendChild(a);
+          a.click();
+          document.body.removeChild(a);
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
         }
       }
     } catch (e: any) {
