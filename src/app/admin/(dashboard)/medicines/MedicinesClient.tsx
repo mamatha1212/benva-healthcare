@@ -1331,7 +1331,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     const endItem = Math.min(currentPage * pageSize, totalItems);
 
     return (
-      <div style={{
+      <div className="pagination-container" style={{
         display: 'flex',
         justifyContent: 'space-between',
         alignItems: 'center',
@@ -1369,6 +1369,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
           <button
             type="button"
+            className="pagination-btn"
             onClick={() => onPageChange(Math.max(1, currentPage - 1))}
             disabled={currentPage <= 1}
             style={{
@@ -1391,6 +1392,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
 
           <button
             type="button"
+            className="pagination-btn"
             onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
             disabled={currentPage >= totalPages}
             style={{
@@ -1724,6 +1726,54 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
             border-radius: 6px !important;
             gap: 4px !important;
           }
+          .reminder-banner-highlight {
+            padding: 10px !important;
+            gap: 8px !important;
+            border-radius: 10px !important;
+          }
+          .reminder-banner-highlight h3 {
+            font-size: 14px !important;
+          }
+          .reminder-banner-highlight p {
+            font-size: 11px !important;
+            line-height: 1.4 !important;
+          }
+          .reminder-filter-btn {
+            padding: 5px 8px !important;
+            font-size: 11px !important;
+            border-radius: 6px !important;
+          }
+          .reminder-count-badge {
+            padding: 4px 8px !important;
+            font-size: 11px !important;
+          }
+          .preset-filter-btn {
+            padding: 5px 8px !important;
+            font-size: 11px !important;
+            border-radius: 6px !important;
+          }
+          .date-filter-input {
+            padding: 5px 8px !important;
+            font-size: 11px !important;
+          }
+          .med-search-input {
+            padding: 8px 10px 8px 32px !important;
+            font-size: 12px !important;
+          }
+          .pagination-container {
+            padding: 8px 10px !important;
+            margin-top: 14px !important;
+            gap: 8px !important;
+          }
+          .pagination-btn {
+            padding: 5px 10px !important;
+            font-size: 11px !important;
+            border-radius: 6px !important;
+          }
+          .reminder-card-action-btn {
+            padding: 6px 8px !important;
+            font-size: 11px !important;
+          }
         }
       `}</style>
 
@@ -1892,24 +1942,32 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
             {/* Quick Month Presets */}
             <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
               <button
+                type="button"
+                className="preset-filter-btn"
                 onClick={() => handleSelectPreset('all')}
                 style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', border: '1px solid #cbd5e1', background: selectedPreset === 'all' && !fromDate && !toDate ? '#02559d' : 'white', color: selectedPreset === 'all' && !fromDate && !toDate ? 'white' : '#475569' }}
               >
                 All Time
               </button>
               <button
+                type="button"
+                className="preset-filter-btn"
                 onClick={() => handleSelectPreset('this_month')}
                 style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', border: '1px solid #cbd5e1', background: selectedPreset === 'this_month' ? '#02559d' : 'white', color: selectedPreset === 'this_month' ? 'white' : '#475569' }}
               >
                 This Month
               </button>
               <button
+                type="button"
+                className="preset-filter-btn"
                 onClick={() => handleSelectPreset('last_month')}
                 style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', border: '1px solid #cbd5e1', background: selectedPreset === 'last_month' ? '#02559d' : 'white', color: selectedPreset === 'last_month' ? 'white' : '#475569' }}
               >
                 Last Month
               </button>
               <button
+                type="button"
+                className="preset-filter-btn"
                 onClick={() => handleSelectPreset('last_30_days')}
                 style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', border: '1px solid #cbd5e1', background: selectedPreset === 'last_30_days' ? '#02559d' : 'white', color: selectedPreset === 'last_30_days' ? 'white' : '#475569' }}
               >
@@ -1921,6 +1979,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
               <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>From:</span>
               <input 
                 type="date" 
+                className="date-filter-input"
                 value={fromDate} 
                 onChange={e => { setFromDate(e.target.value); setSelectedPreset('all'); }} 
                 style={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: 'white', color: '#1e293b' }} 
@@ -1930,6 +1989,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
               <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>To:</span>
               <input 
                 type="date" 
+                className="date-filter-input"
                 value={toDate} 
                 onChange={e => { setToDate(e.target.value); setSelectedPreset('all'); }} 
                 style={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: 'white', color: '#1e293b' }} 
@@ -1937,6 +1997,8 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
             </div>
             {(fromDate || toDate) && (
               <button 
+                type="button"
+                className="preset-filter-btn"
                 onClick={() => handleSelectPreset('all')} 
                 style={{ background: '#e2e8f0', color: '#475569', border: 'none', padding: '7px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}
               >
@@ -2020,7 +2082,8 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
           <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontSize: '15px' }}>🔍</span>
           <input 
             type="text" 
-            placeholder="Search patient name, mobile number, UHID, or consignment number..."
+            className="med-search-input"
+            placeholder="Search patient, mobile, UHID, or consignment..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             style={{ width: '100%', padding: '11px 12px 11px 38px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none' }}
@@ -2475,7 +2538,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     {currentTab === 'upcoming' && (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Header Highlight Banner for Next Month */}
-        <div style={{ background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)', border: '1.5px solid #f59e0b', borderRadius: '12px', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+        <div className="reminder-banner-highlight" style={{ background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)', border: '1.5px solid #f59e0b', borderRadius: '12px', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
             <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: '#f59e0b', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>
               🔔
@@ -2570,6 +2633,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
               <button
                 type="button"
+                className="reminder-filter-btn"
                 onClick={() => setReminderFilter('next_month')}
                 style={{
                   padding: '8px 14px',
@@ -2589,6 +2653,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
 
               <button
                 type="button"
+                className="reminder-filter-btn"
                 onClick={() => setReminderFilter('next_30_days')}
                 style={{
                   padding: '8px 14px',
@@ -2608,6 +2673,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
 
               <button
                 type="button"
+                className="reminder-filter-btn"
                 onClick={() => setReminderFilter('next_60_days')}
                 style={{
                   padding: '8px 14px',
@@ -2626,6 +2692,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
 
               <button
                 type="button"
+                className="reminder-filter-btn"
                 onClick={() => setReminderFilter('all_upcoming')}
                 style={{
                   padding: '8px 14px',
@@ -2644,6 +2711,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
 
               <button
                 type="button"
+                className="reminder-filter-btn"
                 onClick={() => setReminderFilter('overdue')}
                 style={{
                   padding: '8px 14px',
@@ -2661,7 +2729,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
               </button>
             </div>
 
-            <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600, background: '#e2e8f0', padding: '5px 12px', borderRadius: '20px' }}>
+            <span className="reminder-count-badge" style={{ fontSize: '13px', color: '#64748b', fontWeight: 600, background: '#e2e8f0', padding: '5px 12px', borderRadius: '20px' }}>
               {filteredReminders.length} reminder{filteredReminders.length === 1 ? '' : 's'} found
             </span>
           </div>
@@ -2671,7 +2739,8 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
             <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontSize: '15px' }}>🔍</span>
             <input 
               type="text" 
-              placeholder="Search patient name, mobile number, UHID, or medicine name..."
+              className="med-search-input"
+              placeholder="Search patient, mobile, UHID, or medicine..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               style={{ width: '100%', padding: '11px 12px 11px 38px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none' }}
@@ -3015,6 +3084,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                         href={getWhatsAppReminderUrl(order)}
                         target="_blank"
                         rel="noopener noreferrer"
+                        className="reminder-card-action-btn"
                         style={{
                           background: '#25D366',
                           color: 'white',
@@ -3036,6 +3106,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                       <button
                         type="button"
                         onClick={() => handleQuickRefill(order)}
+                        className="reminder-card-action-btn"
                         style={{
                           background: '#0284c7',
                           color: 'white',
@@ -3057,6 +3128,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
 
                       <a
                         href={`tel:${order.mobile}`}
+                        className="reminder-card-action-btn"
                         style={{
                           background: '#f1f5f9',
                           color: '#0369a1',
@@ -3078,6 +3150,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                       <button
                         type="button"
                         onClick={() => handleOpenDueDateModal(order)}
+                        className="reminder-card-action-btn"
                         style={{
                           background: '#fff',
                           color: '#475569',
