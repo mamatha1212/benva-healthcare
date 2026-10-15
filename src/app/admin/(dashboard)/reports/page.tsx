@@ -372,14 +372,61 @@ function ReportsManagementContent() {
   };
 
   const handleDeleteReport = async (id: string, isFromSearch = false) => {
-    if (!confirm('Delete this report?')) return;
+    if (!confirm('Are you sure you want to delete this report file?')) return;
     try {
       const res = await fetch(`/api/admin/reports/${id}`, { method: 'DELETE' });
       if (res.ok) {
+        setSelectedReportIds(prev => {
+          const next = new Set(prev);
+          next.delete(id);
+          return next;
+        });
         if (isFromSearch) handleSearch();
         else if (selectedDate) fetchReportsForDate(selectedDate);
       }
     } catch (error) { console.error(error); }
+  };
+
+  const handleDeleteGroup = async (group: any[], isFromSearch = false) => {
+    const patientName = group[0]?.patientName || 'this patient';
+    const fileCount = group.length;
+    if (!confirm(`Are you sure you want to delete the report for "${patientName}" (${fileCount} file${fileCount > 1 ? 's' : ''})?\nThis action cannot be undone.`)) {
+      return;
+    }
+    try {
+      for (const r of group) {
+        await fetch(`/api/admin/reports/${r.id}`, { method: 'DELETE' });
+        setSelectedReportIds(prev => {
+          const next = new Set(prev);
+          next.delete(r.id);
+          return next;
+        });
+      }
+      if (isFromSearch) handleSearch();
+      else if (selectedDate) fetchReportsForDate(selectedDate);
+    } catch (error) {
+      console.error('Error deleting report group:', error);
+      alert('Failed to delete report');
+    }
+  };
+
+  const handleDeleteSelected = async (isFromSearch = false) => {
+    if (selectedReportIds.size === 0) return;
+    if (!confirm(`Are you sure you want to delete ${selectedReportIds.size} selected report file(s)?\nThis action cannot be undone.`)) {
+      return;
+    }
+    try {
+      const idsToDelete = Array.from(selectedReportIds);
+      for (const id of idsToDelete) {
+        await fetch(`/api/admin/reports/${id}`, { method: 'DELETE' });
+      }
+      setSelectedReportIds(new Set());
+      if (isFromSearch) handleSearch();
+      else if (selectedDate) fetchReportsForDate(selectedDate);
+    } catch (error) {
+      console.error('Error deleting selected reports:', error);
+      alert('Failed to delete some reports');
+    }
   };
 
   const downloadBackup = async (type: 'year' | 'month' | 'day') => {
@@ -863,6 +910,13 @@ function ReportsManagementContent() {
                     >
                       {isBackingUp ? `Zipping... ${zipProgress}%` : `📥 Save Selected (${selectedReportIds.size})`}
                     </button>
+                    <button 
+                      onClick={() => handleDeleteSelected(view === 'SEARCH')} 
+                      style={{ background: '#ef4444', color: 'white', padding: '10px 20px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', border: 'none' }}
+                      title="Delete all selected report files"
+                    >
+                      🗑️ Delete Selected ({selectedReportIds.size})
+                    </button>
                   </>
                 )}
                 {view === 'REPORTS' && (
@@ -939,31 +993,56 @@ function ReportsManagementContent() {
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                     <div style={{ fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>Attached Files ({group.length}):</div>
                     {group.map((report: any) => (
-                      <div key={report.id} style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', color: '#64748b', wordBreak: 'break-all' }}>
-                        <input 
-                          type="checkbox" 
-                          checked={selectedReportIds.has(report.id)} 
-                          onChange={() => toggleReportSelection(report.id)}
-                          style={{ width: '13px', height: '13px', cursor: 'pointer' }} 
-                        />
-                        📄 <a href={report.fileUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'none' }}>{report.fileName}</a>
+                      <div key={report.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', fontSize: '13px', color: '#64748b', wordBreak: 'break-all' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', minWidth: 0 }}>
+                          <input 
+                            type="checkbox" 
+                            checked={selectedReportIds.has(report.id)} 
+                            onChange={() => toggleReportSelection(report.id)}
+                            style={{ width: '13px', height: '13px', cursor: 'pointer', flexShrink: 0 }} 
+                          />
+                          📄 <a href={report.fileUrl} target="_blank" rel="noopener noreferrer" style={{ color: '#2563eb', textDecoration: 'none' }}>{report.fileName}</a>
+                        </div>
+                        {group.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteReport(report.id, view === 'SEARCH')}
+                            style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '2px 6px', fontSize: '12px', fontWeight: 700 }}
+                            title="Delete this file"
+                          >
+                            ✕
+                          </button>
+                        )}
                       </div>
                     ))}
                   </div>
                   
                   <div style={{ display: 'flex', gap: '8px', marginTop: 'auto', paddingTop: '8px', flexWrap: 'wrap' }}>
-                    <button onClick={() => handleCopyReport(mainReport)} style={{ flex: 1, background: '#fef3c7', color: '#d97706', padding: '8px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
+                    <button onClick={() => handleCopyReport(mainReport)} style={{ flex: 1, minWidth: '70px', background: '#fef3c7', color: '#d97706', padding: '8px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
                       Copy
                     </button>
                     {hasInvoice ? (
-                      <button onClick={() => setViewInvoice(mainReport.invoices[0])} style={{ flex: 1, textAlign: 'center', background: '#dcfce7', color: '#16a34a', padding: '8px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
+                      <button onClick={() => setViewInvoice(mainReport.invoices[0])} style={{ flex: 1, minWidth: '110px', textAlign: 'center', background: '#dcfce7', color: '#16a34a', padding: '8px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
                         Download Invoice
                       </button>
                     ) : (
-                      <button onClick={() => setInvoiceModalPatient({ id: mainReport.patientId || `TEMP-${mainReport.id}`, name: mainReport.patientName || 'Unknown', phone: mainReport.mobileNumber || 'Unknown' })} style={{ flex: 1, textAlign: 'center', background: '#f1f5f9', color: '#2563eb', padding: '8px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
+                      <button onClick={() => setInvoiceModalPatient({ id: mainReport.patientId || `TEMP-${mainReport.id}`, name: mainReport.patientName || 'Unknown', phone: mainReport.mobileNumber || 'Unknown' })} style={{ flex: 1, minWidth: '110px', textAlign: 'center', background: '#f1f5f9', color: '#2563eb', padding: '8px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, border: 'none', cursor: 'pointer' }}>
                         Generate Invoice
                       </button>
                     )}
+                    <button 
+                      onClick={() => handleDeleteGroup(group, view === 'SEARCH')} 
+                      style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', padding: '8px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px' }}
+                      title="Delete report"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                      </svg>
+                      Delete
+                    </button>
                   </div>
                 </div>
               )})}
