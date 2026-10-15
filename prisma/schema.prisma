@@ -509,6 +509,9 @@ model MedicineOrder {
   nextDueDate       DateTime?
   status            String    @default("ACTIVE")
   notes             String?   
+  consignmentNo     String?
+  consignmentImage  String?
   createdAt         DateTime  @default(now())
   updatedAt         DateTime  @updatedAt
 }
+

@@ -2,36 +2,33 @@
 
 import React from 'react';
 
-interface InvoiceTransaction {
+export interface MedicineOrderTransaction {
   sNo: number;
   date: string;
   patientName: string;
   uhid: string;
   phone: string;
   consignmentNo?: string;
-  invoiceNo: string;
-  payMode: string;
-  grossAmount: number;
+  consignmentImage?: string;
+  medicinesList: string;
+  grossMrp: number;
   discount: number;
   netRevenue: number;
-  paidAmount: number;
-  dueAmount: number;
+  status: string;
 }
 
-interface RevenueSummary {
-  totalGross: number;
+export interface MedicineRevenueSummary {
+  totalGrossMrp: number;
   totalDiscount: number;
   totalNetRevenue: number;
-  totalPaid: number;
-  totalDue: number;
-  invoiceCount: number;
-  patientCount: number;
+  ordersCount: number;
+  activeCount: number;
 }
 
-interface RevenueStatementModalProps {
+interface MedicineRevenueStatementModalProps {
   onClose: () => void;
-  transactions: InvoiceTransaction[];
-  summary: RevenueSummary;
+  transactions: MedicineOrderTransaction[];
+  summary: MedicineRevenueSummary;
   dateRange: {
     from: string;
     to: string;
@@ -39,12 +36,12 @@ interface RevenueStatementModalProps {
   };
 }
 
-export default function RevenueStatementModal({
+export default function MedicineRevenueStatementModal({
   onClose,
   transactions,
   summary,
   dateRange
-}: RevenueStatementModalProps) {
+}: MedicineRevenueStatementModalProps) {
   const handlePrint = () => {
     window.print();
   };
@@ -52,57 +49,51 @@ export default function RevenueStatementModal({
   const handleDownloadCSV = () => {
     const headers = [
       'S.No',
-      'Date',
+      'Order Date',
       'Patient Name',
       'UHID',
-      'Phone',
+      'Mobile Number',
       'Consignment No',
-      'Invoice No',
-      'Pay Mode',
-      'Gross Amount (INR)',
-      'Deductions/Discount (INR)',
-      'Net Benva Revenue (INR)',
-      'Paid Amount (INR)',
-      'Due Amount (INR)'
+      'Medicines Prescribed / Dispatched',
+      'Gross MRP (INR)',
+      'Discounts / Deductions (INR)',
+      'Benva Net Revenue - Anni Ponu (INR)',
+      'Status'
     ];
 
     const rows = transactions.map(t => [
       t.sNo,
       `"${t.date}"`,
-      `"${t.patientName.replace(/"/g, '""')}"`,
-      `"${t.uhid}"`,
-      `"${t.phone}"`,
-      `"${t.consignmentNo || ''}"`,
-      `"${t.invoiceNo}"`,
-      `"${t.payMode || 'N/A'}"`,
-      t.grossAmount,
-      t.discount,
-      t.netRevenue,
-      t.paidAmount,
-      t.dueAmount
+      `"${(t.patientName || '').replace(/"/g, '""')}"`,
+      `"${t.uhid || ''}"`,
+      `"${t.phone || ''}"`,
+      `"${t.consignmentNo || 'N/A'}"`,
+      `"${(t.medicinesList || '').replace(/"/g, '""')}"`,
+      t.grossMrp.toFixed(2),
+      t.discount.toFixed(2),
+      t.netRevenue.toFixed(2),
+      `"${t.status || 'ACTIVE'}"`
     ]);
 
     // Summary row
     rows.push([
-      'TOTAL',
+      'TOTAL (ANNI PONU REVENUE)',
       '',
       '',
       '',
       '',
       '',
       '',
-      '',
-      summary.totalGross,
-      summary.totalDiscount,
-      summary.totalNetRevenue,
-      summary.totalPaid,
-      summary.totalDue
+      summary.totalGrossMrp.toFixed(2),
+      summary.totalDiscount.toFixed(2),
+      summary.totalNetRevenue.toFixed(2),
+      `${summary.ordersCount} Orders`
     ]);
 
     const csvContent =
-      'data:text/csv;charset=utf-8,' +
+      'data:text/csv;charset=utf-8,\uFEFF' +
       [
-        `"BENVA HEALTHCARE - OFFICIAL REVENUE STATEMENT"`,
+        `"BENVA HEALTHCARE - MEDICINE ORDERS FINANCIAL STATEMENT"`,
         `"Statement Period: ${dateRange.label} (${dateRange.from || 'Beginning'} to ${dateRange.to || 'Present'})"`,
         `"Generated On: ${new Date().toLocaleString('en-IN')}"`,
         '',
@@ -115,7 +106,7 @@ export default function RevenueStatementModal({
     link.setAttribute('href', encodedUri);
     link.setAttribute(
       'download',
-      `Benva_Revenue_Statement_${dateRange.from || 'Start'}_to_${dateRange.to || 'Now'}.csv`
+      `Benva_Medicine_Revenue_Statement_${dateRange.from || 'Start'}_to_${dateRange.to || 'Now'}.csv`
     );
     document.body.appendChild(link);
     link.click();
@@ -182,7 +173,7 @@ export default function RevenueStatementModal({
           background: '#ffffff',
           borderRadius: '16px',
           width: '100%',
-          maxWidth: '1100px',
+          maxWidth: '1150px',
           maxHeight: '94vh',
           display: 'flex',
           flexDirection: 'column',
@@ -203,8 +194,8 @@ export default function RevenueStatementModal({
           }}
         >
           <div>
-            <h2 style={{ margin: 0, fontSize: '18px', color: '#0f172a', fontWeight: 700 }}>
-              Benva Healthcare — Revenue Statement
+            <h2 style={{ margin: 0, fontSize: '18px', color: '#0f172a', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span>💊</span> Benva Healthcare — Medicines Revenue Statement
             </h2>
             <p style={{ margin: '2px 0 0 0', fontSize: '13px', color: '#64748b' }}>
               Period: <span style={{ fontWeight: 600, color: '#0284c7' }}>{dateRange.label}</span> ({dateRange.from || 'Start'} to {dateRange.to || 'Today'})
@@ -226,7 +217,8 @@ export default function RevenueStatementModal({
                 fontWeight: 600,
                 fontSize: '13px',
                 cursor: 'pointer',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                boxShadow: '0 2px 4px rgba(2, 85, 157, 0.2)'
               }}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -251,7 +243,8 @@ export default function RevenueStatementModal({
                 fontWeight: 600,
                 fontSize: '13px',
                 cursor: 'pointer',
-                transition: 'all 0.2s'
+                transition: 'all 0.2s',
+                boxShadow: '0 2px 4px rgba(5, 150, 105, 0.2)'
               }}
             >
               <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -311,7 +304,7 @@ export default function RevenueStatementModal({
                   BENVA HEALTHCARE
                 </h1>
                 <p style={{ margin: '3px 0 0 0', fontSize: '12px', color: '#64748b' }}>
-                  Official Financial Revenue Statement & Account Summary
+                  Pharmacy Dispatch & Medicine Orders Financial Statement
                 </p>
                 <p style={{ margin: '2px 0 0 0', fontSize: '11px', color: '#94a3b8' }}>
                   Website: www.benvahealthcare.in | Support: +91 97059 51369
@@ -338,11 +331,11 @@ export default function RevenueStatementModal({
           {/* Account Summary Cards - Bank Statement Style */}
           <div style={{ marginBottom: '28px' }}>
             <div style={{ fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', color: '#02559d', letterSpacing: '0.05em', marginBottom: '12px' }}>
-              Account Summary (Paina vachey options / Overall Totals)
+              Financial Summary (Paina vachey options / Overall Totals)
             </div>
             
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))', gap: '12px' }}>
-              {/* Benva Net Revenue (Highlighted) */}
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '12px' }}>
+              {/* Benva Net Revenue (Highlighted Anni Ponu) */}
               <div style={{ background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', padding: '16px', borderRadius: '10px', boxShadow: '0 4px 6px -1px rgba(5, 150, 105, 0.2)' }}>
                 <div style={{ fontSize: '11px', textTransform: 'uppercase', opacity: 0.9, fontWeight: 600, letterSpacing: '0.5px' }}>
                   ★ Benva Net Revenue (Anni Ponu)
@@ -351,20 +344,20 @@ export default function RevenueStatementModal({
                   {formatCurrency(summary.totalNetRevenue)}
                 </div>
                 <div style={{ fontSize: '11px', opacity: 0.85, marginTop: '4px' }}>
-                  Net earnings after discounts & deductions
+                  Total net collected from medicines
                 </div>
               </div>
 
-              {/* Total Gross Billed */}
+              {/* Total Gross MRP Billed */}
               <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '16px', borderRadius: '10px' }}>
                 <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 600 }}>
-                  Total Gross Billed
+                  Total Gross MRP Billed
                 </div>
                 <div style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a', marginTop: '6px' }}>
-                  {formatCurrency(summary.totalGross)}
+                  {formatCurrency(summary.totalGrossMrp)}
                 </div>
                 <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
-                  Total invoice billing value
+                  Medicine MRP catalog total
                 </div>
               </div>
 
@@ -374,170 +367,155 @@ export default function RevenueStatementModal({
                   Total Deductions / Discounts
                 </div>
                 <div style={{ fontSize: '20px', fontWeight: 700, color: '#dc2626', marginTop: '6px' }}>
-                  {formatCurrency(summary.totalDiscount)}
+                  -{formatCurrency(summary.totalDiscount)}
                 </div>
                 <div style={{ fontSize: '11px', color: '#991b1b', marginTop: '4px' }}>
-                  Total discounts given
+                  Discounts deducted from MRP
                 </div>
               </div>
 
-              {/* Total Paid / Received */}
-              <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', padding: '16px', borderRadius: '10px' }}>
-                <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#166534', fontWeight: 600 }}>
-                  Total Amount Received
+              {/* Total Orders Dispatched */}
+              <div style={{ background: '#f0f9ff', border: '1px solid #bae6fd', padding: '16px', borderRadius: '10px' }}>
+                <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#0369a1', fontWeight: 600 }}>
+                  Orders & Dispatch Count
                 </div>
-                <div style={{ fontSize: '20px', fontWeight: 700, color: '#15803d', marginTop: '6px' }}>
-                  {formatCurrency(summary.totalPaid)}
+                <div style={{ fontSize: '20px', fontWeight: 700, color: '#0284c7', marginTop: '6px' }}>
+                  {summary.ordersCount} Orders
                 </div>
-                <div style={{ fontSize: '11px', color: '#166534', marginTop: '4px' }}>
-                  Collected via UPI / Cash / Online
-                </div>
-              </div>
-
-              {/* Balance Due */}
-              <div style={{ background: '#fffbeb', border: '1px solid #fef3c7', padding: '16px', borderRadius: '10px' }}>
-                <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#92400e', fontWeight: 600 }}>
-                  Balance Due / Pending
-                </div>
-                <div style={{ fontSize: '20px', fontWeight: 700, color: '#d97706', marginTop: '6px' }}>
-                  {formatCurrency(summary.totalDue)}
-                </div>
-                <div style={{ fontSize: '11px', color: '#92400e', marginTop: '4px' }}>
-                  Pending from patients
-                </div>
-              </div>
-
-              {/* Records count */}
-              <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', padding: '16px', borderRadius: '10px' }}>
-                <div style={{ fontSize: '11px', textTransform: 'uppercase', color: '#64748b', fontWeight: 600 }}>
-                  Total Transactions
-                </div>
-                <div style={{ fontSize: '20px', fontWeight: 700, color: '#0f172a', marginTop: '6px' }}>
-                  {summary.invoiceCount} Invoices
-                </div>
-                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
-                  Across {summary.patientCount} Patients
+                <div style={{ fontSize: '11px', color: '#0369a1', marginTop: '4px' }}>
+                  {summary.activeCount} active patients fulfillment
                 </div>
               </div>
             </div>
           </div>
 
-          {/* Itemized Transactions Table */}
+          {/* Itemized Medicine Orders Ledger */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-              <div style={{ fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', color: '#02559d', letterSpacing: '0.05em' }}>
-                Itemized Statement of Patient Invoices
+              <div style={{ fontSize: '13px', fontWeight: 700, textTransform: 'uppercase', color: '#0f172a', letterSpacing: '0.05em' }}>
+                Medicine Orders Ledger ({transactions.length} Records)
               </div>
               <div style={{ fontSize: '12px', color: '#64748b' }}>
-                Showing {transactions.length} record{transactions.length === 1 ? '' : 's'}
+                Anni Ponu (Each User Dantlo) itemized statement
               </div>
             </div>
 
             <div style={{ overflowX: 'auto', border: '1px solid #cbd5e1', borderRadius: '8px' }}>
-              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', textAlign: 'left' }}>
+              <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
                 <thead>
                   <tr style={{ background: '#02559d', color: 'white' }}>
-                    <th style={{ padding: '10px 12px', fontWeight: 600 }}>S.No</th>
-                    <th style={{ padding: '10px 12px', fontWeight: 600 }}>Date</th>
-                    <th style={{ padding: '10px 12px', fontWeight: 600 }}>Patient Details</th>
-                    <th style={{ padding: '10px 12px', fontWeight: 600 }}>Invoice No.</th>
-                    <th style={{ padding: '10px 12px', fontWeight: 600 }}>Mode</th>
-                    <th style={{ padding: '10px 12px', fontWeight: 600, textAlign: 'right' }}>Gross (₹)</th>
-                    <th style={{ padding: '10px 12px', fontWeight: 600, textAlign: 'right' }}>Deduction (₹)</th>
-                    <th style={{ padding: '10px 12px', fontWeight: 600, textAlign: 'right', background: '#034177' }}>Net Revenue (₹)</th>
-                    <th style={{ padding: '10px 12px', fontWeight: 600, textAlign: 'right' }}>Paid (₹)</th>
-                    <th style={{ padding: '10px 12px', fontWeight: 600, textAlign: 'right' }}>Due (₹)</th>
+                    <th style={{ padding: '10px 8px', textAlign: 'left', borderRight: '1px solid #03447d', width: '35px' }}>#</th>
+                    <th style={{ padding: '10px 8px', textAlign: 'left', borderRight: '1px solid #03447d', minWidth: '75px' }}>Date</th>
+                    <th style={{ padding: '10px 10px', textAlign: 'left', borderRight: '1px solid #03447d', minWidth: '130px' }}>Patient & UHID</th>
+                    <th style={{ padding: '10px 8px', textAlign: 'left', borderRight: '1px solid #03447d', minWidth: '95px' }}>Mobile</th>
+                    <th style={{ padding: '10px 8px', textAlign: 'left', borderRight: '1px solid #03447d', minWidth: '105px' }}>Consignment No</th>
+                    <th style={{ padding: '10px 10px', textAlign: 'left', borderRight: '1px solid #03447d', minWidth: '140px' }}>Medicines Given</th>
+                    <th style={{ padding: '10px 8px', textAlign: 'right', borderRight: '1px solid #03447d', minWidth: '85px' }}>Gross MRP</th>
+                    <th style={{ padding: '10px 8px', textAlign: 'right', borderRight: '1px solid #03447d', minWidth: '75px' }}>Discount</th>
+                    <th style={{ padding: '10px 8px', textAlign: 'right', borderRight: '1px solid #03447d', minWidth: '105px', background: '#047857' }}>★ Anni Ponu (Net)</th>
+                    <th style={{ padding: '10px 8px', textAlign: 'center', minWidth: '70px' }}>Status</th>
                   </tr>
                 </thead>
                 <tbody>
                   {transactions.length === 0 ? (
                     <tr>
-                      <td colSpan={10} style={{ padding: '32px', textAlign: 'center', color: '#64748b', fontStyle: 'italic' }}>
-                        No transactions recorded for the selected date range.
+                      <td colSpan={10} style={{ textAlign: 'center', padding: '30px', color: '#94a3b8' }}>
+                        No medicine orders found for the selected period.
                       </td>
                     </tr>
                   ) : (
-                    transactions.map((tx, idx) => (
+                    transactions.map((t, idx) => (
                       <tr
-                        key={tx.invoiceNo + idx}
+                        key={idx}
                         style={{
-                          borderBottom: '1px solid #e2e8f0',
-                          background: idx % 2 === 0 ? '#ffffff' : '#f8fafc'
+                          background: idx % 2 === 0 ? '#ffffff' : '#f8fafc',
+                          borderBottom: '1px solid #e2e8f0'
                         }}
                       >
-                        <td style={{ padding: '10px 12px', color: '#64748b' }}>{tx.sNo}</td>
-                        <td style={{ padding: '10px 12px', whiteSpace: 'nowrap', color: '#334155' }}>{tx.date}</td>
-                        <td style={{ padding: '10px 12px' }}>
-                          <div style={{ fontWeight: 600, color: '#0f172a' }}>{tx.patientName}</div>
-                          <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
-                            {tx.uhid ? `${tx.uhid} • ` : ''}{tx.phone}
-                            {tx.consignmentNo && <span style={{ marginLeft: '6px', color: '#1e40af', fontWeight: 600 }}>• 📦 {tx.consignmentNo}</span>}
-                          </div>
+                        <td style={{ padding: '9px 8px', borderRight: '1px solid #e2e8f0', color: '#64748b', fontWeight: 600 }}>
+                          {t.sNo}
                         </td>
-                        <td style={{ padding: '10px 12px', fontFamily: 'monospace', fontWeight: 600, color: '#0284c7' }}>
-                          {tx.invoiceNo}
+                        <td style={{ padding: '9px 8px', borderRight: '1px solid #e2e8f0', whiteSpace: 'nowrap' }}>
+                          {t.date}
                         </td>
-                        <td style={{ padding: '10px 12px', color: '#475569' }}>
-                          <span style={{ background: '#f1f5f9', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 500 }}>
-                            {tx.payMode || 'UPI'}
+                        <td style={{ padding: '9px 10px', borderRight: '1px solid #e2e8f0' }}>
+                          <div style={{ fontWeight: 700, color: '#0f172a' }}>{t.patientName}</div>
+                          {t.uhid && (
+                            <div style={{ fontSize: '10px', color: '#0284c7', fontWeight: 600, marginTop: '1px' }}>
+                              🆔 {t.uhid}
+                            </div>
+                          )}
+                        </td>
+                        <td style={{ padding: '9px 8px', borderRight: '1px solid #e2e8f0', whiteSpace: 'nowrap', color: '#475569' }}>
+                          {t.phone}
+                        </td>
+                        <td style={{ padding: '9px 8px', borderRight: '1px solid #e2e8f0' }}>
+                          {t.consignmentNo ? (
+                            <span style={{ fontWeight: 700, color: '#0369a1', background: '#e0f2fe', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', display: 'inline-block' }}>
+                              📦 {t.consignmentNo}
+                            </span>
+                          ) : (
+                            <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '11px' }}>Not assigned</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '9px 10px', borderRight: '1px solid #e2e8f0', maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={t.medicinesList}>
+                          <span style={{ color: '#334155' }}>{t.medicinesList || '-'}</span>
+                        </td>
+                        <td style={{ padding: '9px 8px', textAlign: 'right', borderRight: '1px solid #e2e8f0', color: '#475569' }}>
+                          {formatCurrency(t.grossMrp)}
+                        </td>
+                        <td style={{ padding: '9px 8px', textAlign: 'right', borderRight: '1px solid #e2e8f0', color: '#dc2626' }}>
+                          -{formatCurrency(t.discount)}
+                        </td>
+                        <td style={{ padding: '9px 8px', textAlign: 'right', borderRight: '1px solid #e2e8f0', fontWeight: 800, color: '#047857', background: idx % 2 === 0 ? '#f0fdf4' : '#e6f9ed' }}>
+                          {formatCurrency(t.netRevenue)}
+                        </td>
+                        <td style={{ padding: '9px 8px', textAlign: 'center', whiteSpace: 'nowrap' }}>
+                          <span style={{ 
+                            fontSize: '10px', 
+                            padding: '2px 6px', 
+                            borderRadius: '4px', 
+                            fontWeight: 700,
+                            background: t.status === 'ACTIVE' ? '#dcfce7' : '#f1f5f9',
+                            color: t.status === 'ACTIVE' ? '#166534' : '#475569'
+                          }}>
+                            {t.status}
                           </span>
-                        </td>
-                        <td style={{ padding: '10px 12px', textAlign: 'right', color: '#475569' }}>
-                          {tx.grossAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </td>
-                        <td style={{ padding: '10px 12px', textAlign: 'right', color: tx.discount > 0 ? '#dc2626' : '#94a3b8' }}>
-                          {tx.discount > 0 ? `-${tx.discount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : '0.00'}
-                        </td>
-                        <td style={{ padding: '10px 12px', textAlign: 'right', fontWeight: 700, color: '#047857', background: '#f0fdf4' }}>
-                          {tx.netRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </td>
-                        <td style={{ padding: '10px 12px', textAlign: 'right', color: '#166534', fontWeight: 600 }}>
-                          {tx.paidAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                        </td>
-                        <td style={{ padding: '10px 12px', textAlign: 'right', color: tx.dueAmount > 0 ? '#d97706' : '#94a3b8', fontWeight: tx.dueAmount > 0 ? 600 : 400 }}>
-                          {tx.dueAmount.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                         </td>
                       </tr>
                     ))
                   )}
                 </tbody>
-                {transactions.length > 0 && (
-                  <tfoot>
-                    <tr style={{ background: '#f1f5f9', borderTop: '2px solid #02559d', fontWeight: 700, color: '#0f172a' }}>
-                      <td colSpan={5} style={{ padding: '12px', textAlign: 'right', textTransform: 'uppercase', fontSize: '11px', letterSpacing: '0.5px' }}>
-                        Total Summary:
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'right' }}>
-                        {formatCurrency(summary.totalGross)}
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'right', color: '#dc2626' }}>
-                        {formatCurrency(summary.totalDiscount)}
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'right', color: '#047857', background: '#dcfce7', fontSize: '13px' }}>
-                        {formatCurrency(summary.totalNetRevenue)}
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'right', color: '#15803d' }}>
-                        {formatCurrency(summary.totalPaid)}
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'right', color: '#d97706' }}>
-                        {formatCurrency(summary.totalDue)}
-                      </td>
-                    </tr>
-                  </tfoot>
-                )}
+                <tfoot>
+                  <tr style={{ background: '#f1f5f9', fontWeight: 800, borderTop: '2px solid #02559d' }}>
+                    <td colSpan={6} style={{ padding: '12px 10px', textAlign: 'right', borderRight: '1px solid #cbd5e1', color: '#0f172a', fontSize: '12px' }}>
+                      TOTAL OVERALL (ANNI PONU REVENUE):
+                    </td>
+                    <td style={{ padding: '12px 8px', textAlign: 'right', borderRight: '1px solid #cbd5e1', color: '#0f172a', fontSize: '12px' }}>
+                      {formatCurrency(summary.totalGrossMrp)}
+                    </td>
+                    <td style={{ padding: '12px 8px', textAlign: 'right', borderRight: '1px solid #cbd5e1', color: '#dc2626', fontSize: '12px' }}>
+                      -{formatCurrency(summary.totalDiscount)}
+                    </td>
+                    <td style={{ padding: '12px 8px', textAlign: 'right', borderRight: '1px solid #cbd5e1', color: '#047857', background: '#dcfce7', fontSize: '13px', fontWeight: 800 }}>
+                      {formatCurrency(summary.totalNetRevenue)}
+                    </td>
+                    <td style={{ padding: '12px 8px', textAlign: 'center', color: '#64748b', fontSize: '11px' }}>
+                      {summary.ordersCount} Orders
+                    </td>
+                  </tr>
+                </tfoot>
               </table>
             </div>
           </div>
 
-          {/* Statement Footer */}
-          <div style={{ marginTop: '36px', borderTop: '1px solid #e2e8f0', paddingTop: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', fontSize: '11px', color: '#94a3b8' }}>
+          {/* Statement Footer Note */}
+          <div style={{ marginTop: '28px', paddingTop: '16px', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: '#64748b' }}>
             <div>
-              <div>This is a computer-generated official revenue statement issued by Benva Healthcare.</div>
-              <div>No physical signature is required. For discrepancies, contact finance@benvahealthcare.in.</div>
+              <span>• This is a computer-generated official revenue statement issued by Benva Healthcare.</span>
             </div>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontWeight: 600, color: '#02559d', fontSize: '12px' }}>BENV HEALTHCARE PVT LTD</div>
-              <div>Authorized Administrative Ledger</div>
+              <span>Verified by Benva Accounts & Pharmacy Billing System</span>
             </div>
           </div>
         </div>

@@ -6,23 +6,26 @@ export async function PUT(request: Request, context: { params: Promise<{ id: str
     const { id } = await context.params;
     const data = await request.json();
 
+    const updateData: any = {};
+    if (data.uhid !== undefined) updateData.uhid = data.uhid ? data.uhid.trim() : null;
+    if (data.patientName !== undefined) updateData.patientName = data.patientName;
+    if (data.mobile !== undefined) updateData.mobile = data.mobile;
+    if (data.address !== undefined) updateData.address = data.address;
+    if (data.prescriptionUrls !== undefined) updateData.prescriptionUrls = data.prescriptionUrls;
+    if (data.medicines !== undefined) updateData.medicines = data.medicines;
+    if (data.totalMrp !== undefined) updateData.totalMrp = Number(data.totalMrp) || 0;
+    if (data.discount !== undefined) updateData.discount = Number(data.discount) || 0;
+    if (data.finalAmount !== undefined) updateData.finalAmount = Number(data.finalAmount) || 0;
+    if (data.status !== undefined) updateData.status = data.status;
+    if (data.lastGivenDate !== undefined) updateData.lastGivenDate = data.lastGivenDate ? new Date(data.lastGivenDate) : null;
+    if (data.nextDueDate !== undefined) updateData.nextDueDate = data.nextDueDate ? new Date(data.nextDueDate) : null;
+    if (data.notes !== undefined) updateData.notes = data.notes;
+    if (data.consignmentNo !== undefined) updateData.consignmentNo = data.consignmentNo ? data.consignmentNo.trim() : null;
+    if (data.consignmentImage !== undefined) updateData.consignmentImage = data.consignmentImage || null;
+
     const order = await prisma.medicineOrder.update({
       where: { id },
-      data: {
-        uhid: data.uhid !== undefined ? (data.uhid ? data.uhid.trim() : null) : undefined,
-        patientName: data.patientName,
-        mobile: data.mobile,
-        address: data.address,
-        prescriptionUrls: data.prescriptionUrls,
-        medicines: data.medicines,
-        totalMrp: Number(data.totalMrp) || 0,
-        discount: Number(data.discount) || 0,
-        finalAmount: Number(data.finalAmount) || 0,
-        status: data.status,
-        lastGivenDate: data.lastGivenDate ? new Date(data.lastGivenDate) : null,
-        nextDueDate: data.nextDueDate ? new Date(data.nextDueDate) : null,
-        notes: data.notes,
-      },
+      data: updateData,
     });
 
     return NextResponse.json(order);

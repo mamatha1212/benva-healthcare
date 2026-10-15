@@ -21,3 +21,16 @@ export async function PUT(req: NextRequest, { params }: { params: Promise<{ id: 
     return NextResponse.json({ error: 'Failed to update' }, { status: 500 });
   }
 }
+
+export async function DELETE(req: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  try {
+    const { id } = await params;
+    await prisma.freeConsultationRequest.delete({
+      where: { id }
+    });
+    return NextResponse.json({ success: true });
+  } catch (error) {
+    console.error('Error deleting consultation request:', error);
+    return NextResponse.json({ error: 'Failed to delete consultation request' }, { status: 500 });
+  }
+}

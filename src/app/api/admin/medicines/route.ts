@@ -39,6 +39,8 @@ export async function POST(request: Request) {
         lastGivenDate: data.lastGivenDate ? new Date(data.lastGivenDate) : null,
         nextDueDate: data.nextDueDate ? new Date(data.nextDueDate) : null,
         notes: data.notes,
+        consignmentNo: data.consignmentNo ? data.consignmentNo.trim() : null,
+        consignmentImage: data.consignmentImage || null,
       },
     });
 

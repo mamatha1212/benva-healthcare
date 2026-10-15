@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import MedicineRevenueStatementModal, { MedicineOrderTransaction, MedicineRevenueSummary } from './MedicineRevenueStatementModal';
 
 export default function MedicinesClient({ initialOrders }: { initialOrders: any[] }) {
   const [orders, setOrders] = useState(initialOrders);
@@ -16,6 +17,12 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
   const [uploadSuccessMessage, setUploadSuccessMessage] = useState<string | null>(null);
   const [fromDate, setFromDate] = useState('');
   const [toDate, setToDate] = useState('');
+  const [selectedPreset, setSelectedPreset] = useState<'all' | 'this_month' | 'last_month' | 'last_30_days'>('all');
+  const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
+  const [editingConsignmentOrder, setEditingConsignmentOrder] = useState<any | null>(null);
+  const [consignmentForm, setConsignmentForm] = useState({ consignmentNo: '', consignmentImage: '' });
+  const [isUploadingConsignmentSlip, setIsUploadingConsignmentSlip] = useState(false);
+  const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
   
   // Form states
@@ -32,7 +39,9 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     nextDueDate: '',
     notes: '',
     status: 'ACTIVE',
-    uhid: ''
+    uhid: '',
+    consignmentNo: '',
+    consignmentImage: ''
   });
 
   // Mobile-first patient lookup states
@@ -49,7 +58,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
       prescriptionUrls: [], medicines: [],
       totalMrp: '', discount: '', finalAmount: '',
       lastGivenDate: '', nextDueDate: '', notes: '', status: 'ACTIVE',
-      uhid: ''
+      uhid: '', consignmentNo: '', consignmentImage: ''
     });
     setUploadSuccessMessage(null);
     setEditingOrder(null);
@@ -264,15 +273,116 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     }
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this order?')) return;
+  const handleSelectPreset = (preset: 'all' | 'this_month' | 'last_month' | 'last_30_days') => {
+    setSelectedPreset(preset);
+    const now = new Date();
+    if (preset === 'all') {
+      setFromDate('');
+      setToDate('');
+    } else if (preset === 'this_month') {
+      const firstDay = new Date(now.getFullYear(), now.getMonth(), 1);
+      const lastDay = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+      setFromDate(firstDay.toISOString().split('T')[0]);
+      setToDate(lastDay.toISOString().split('T')[0]);
+    } else if (preset === 'last_month') {
+      const firstDay = new Date(now.getFullYear(), now.getMonth() - 1, 1);
+      const lastDay = new Date(now.getFullYear(), now.getMonth(), 0);
+      setFromDate(firstDay.toISOString().split('T')[0]);
+      setToDate(lastDay.toISOString().split('T')[0]);
+    } else if (preset === 'last_30_days') {
+      const past = new Date();
+      past.setDate(past.getDate() - 30);
+      setFromDate(past.toISOString().split('T')[0]);
+      setToDate(now.toISOString().split('T')[0]);
+    }
+  };
+
+  const getDateRangeLabel = () => {
+    if (selectedPreset === 'this_month') return 'This Month';
+    if (selectedPreset === 'last_month') return 'Last Month';
+    if (selectedPreset === 'last_30_days') return 'Last 30 Days';
+    if (fromDate || toDate) return 'Custom Date Range';
+    return 'All Time';
+  };
+
+  const handleOpenConsignmentModal = (order: any) => {
+    setEditingConsignmentOrder(order);
+    setConsignmentForm({
+      consignmentNo: order.consignmentNo || '',
+      consignmentImage: order.consignmentImage || ''
+    });
+  };
+
+  const handleUploadConsignmentSlip = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setIsUploadingConsignmentSlip(true);
+    try {
+      const uploadFormData = new FormData();
+      uploadFormData.append('file', file);
+      const res = await fetch('/api/upload-direct', {
+        method: 'POST',
+        body: uploadFormData
+      });
+      if (res.ok) {
+        const data = await res.json();
+        const url = data.url || data.fileUrl;
+        if (url) {
+          setConsignmentForm(prev => ({ ...prev, consignmentImage: url }));
+        }
+      } else {
+        alert('Failed to upload consignment image');
+      }
+    } catch (err) {
+      console.error('Error uploading consignment slip:', err);
+      alert('Upload failed');
+    } finally {
+      setIsUploadingConsignmentSlip(false);
+      e.target.value = '';
+    }
+  };
+
+  const handleSaveConsignment = async () => {
+    if (!editingConsignmentOrder) return;
+    try {
+      const res = await fetch(`/api/admin/medicines/${editingConsignmentOrder.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          consignmentNo: consignmentForm.consignmentNo,
+          consignmentImage: consignmentForm.consignmentImage
+        })
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setOrders(prev => prev.map(o => o.id === updated.id ? { ...o, consignmentNo: updated.consignmentNo, consignmentImage: updated.consignmentImage } : o));
+        setEditingConsignmentOrder(null);
+      } else {
+        alert('Failed to save consignment info');
+      }
+    } catch (err) {
+      console.error('Save consignment error:', err);
+      alert('Error updating consignment');
+    }
+  };
+
+  const handleDelete = async (id: string, name?: string) => {
+    if (!confirm(`Are you sure you want to delete medicine order for ${name || 'this patient'}?\nThis action cannot be undone.`)) {
+      return;
+    }
+    setDeletingOrderId(id);
     try {
       const res = await fetch(`/api/admin/medicines/${id}`, { method: 'DELETE' });
       if (res.ok) {
-        setOrders(orders.filter(o => o.id !== id));
+        setOrders(prev => prev.filter(o => o.id !== id));
+      } else {
+        alert('Failed to delete order from server');
       }
     } catch (err) {
       console.error(err);
+      alert('Error deleting order');
+    } finally {
+      setDeletingOrderId(null);
     }
   };
 
@@ -305,7 +415,9 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
       nextDueDate: order.nextDueDate ? new Date(order.nextDueDate).toISOString().split('T')[0] : '',
       notes: order.notes || '',
       status: order.status || 'ACTIVE',
-      uhid: order.uhid || ''
+      uhid: order.uhid || '',
+      consignmentNo: order.consignmentNo || '',
+      consignmentImage: order.consignmentImage || ''
     });
     setIsPatientConfirmed(true);
     setIsAddModalOpen(true);
@@ -1037,7 +1149,8 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     const matchesSearch = 
       o.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       o.mobile.includes(searchTerm) ||
-      (o.uhid && o.uhid.toLowerCase().includes(searchTerm.toLowerCase()));
+      (o.uhid && o.uhid.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (o.consignmentNo && o.consignmentNo.toLowerCase().includes(searchTerm.toLowerCase()));
     if (!matchesSearch) return false;
 
     const orderDate = new Date(o.createdAt || o.lastGivenDate || 0);
@@ -1054,66 +1167,167 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     return true;
   });
 
+  // Calculate Revenue Metrics (Paina vachey options / Overall Totals)
+  const totalNetRevenue = filteredOrders.reduce((sum, o) => sum + (Number(o.finalAmount) || 0), 0);
+  const totalGrossMrp = filteredOrders.reduce((sum, o) => sum + (Number(o.totalMrp) || 0), 0);
+  const totalDiscount = filteredOrders.reduce((sum, o) => sum + (Number(o.discount) || 0), 0);
+  const totalOrdersCount = filteredOrders.length;
+  const activeOrdersCount = filteredOrders.filter(o => o.status === 'ACTIVE').length;
+
+  const revenueSummary: MedicineRevenueSummary = {
+    totalGrossMrp,
+    totalDiscount,
+    totalNetRevenue,
+    ordersCount: totalOrdersCount,
+    activeCount: activeOrdersCount
+  };
+
+  const statementTransactions: MedicineOrderTransaction[] = filteredOrders.map((o, idx) => {
+    let medList: any[] = [];
+    try {
+      if (typeof o.medicines === 'string') medList = JSON.parse(o.medicines);
+      else if (Array.isArray(o.medicines)) medList = o.medicines;
+    } catch (e) {}
+
+    const medsString = medList
+      .filter((m: any) => m.isSelected !== false)
+      .map((m: any) => `${m.name || 'Medicine'} (${m.type || 'Tab'}: ${m.quantity || '1'})`)
+      .join(', ');
+
+    const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-GB') : (o.lastGivenDate ? new Date(o.lastGivenDate).toLocaleDateString('en-GB') : '-');
+
+    return {
+      sNo: idx + 1,
+      date: dateStr,
+      patientName: o.patientName || '',
+      uhid: o.uhid || '',
+      phone: o.mobile || '',
+      consignmentNo: o.consignmentNo || '',
+      consignmentImage: o.consignmentImage || '',
+      medicinesList: medsString || '-',
+      grossMrp: Number(o.totalMrp) || 0,
+      discount: Number(o.discount) || 0,
+      netRevenue: Number(o.finalAmount) || 0,
+      status: o.status || 'ACTIVE'
+    };
+  });
+
   return (
     <div style={{ padding: '24px', maxWidth: '1360px', margin: '0 auto', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
       {/* Header with Title & Action */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
-          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f274a', margin: 0, letterSpacing: '-0.5px' }}>Medicine Orders & Pharmacy Dispatch</h1>
-          <p style={{ color: '#64748b', margin: '6px 0 0 0', fontSize: '14px' }}>Track patient prescriptions, WhatsApp medicine strip scans, and pharmacy dispatch fulfillment.</p>
+          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f274a', margin: 0, letterSpacing: '-0.5px' }}>
+            Medicine Orders & Benva Revenue
+          </h1>
+          <p style={{ color: '#64748b', margin: '6px 0 0 0', fontSize: '14px' }}>
+            Track patient prescriptions, WhatsApp medicine strip scans, pharmacy dispatch fulfillment, and download bank statements.
+          </p>
         </div>
-        <button 
-          onClick={() => { resetForm(); setIsAddModalOpen(true); }}
-          style={{ 
-            background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', 
-            color: 'white', 
-            border: 'none', 
-            padding: '11px 22px', 
-            borderRadius: '10px', 
-            fontWeight: 700, 
-            fontSize: '14px',
-            cursor: 'pointer', 
-            boxShadow: '0 4px 12px rgba(2, 132, 199, 0.35)',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: 'transform 0.15s ease'
-          }}
-        >
-          <span style={{ fontSize: '18px', lineHeight: 1 }}>+</span> Add New Order
-        </button>
+        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+          <button 
+            onClick={() => setIsStatementModalOpen(true)}
+            style={{ 
+              background: '#047857', 
+              color: 'white', 
+              border: 'none', 
+              padding: '11px 20px', 
+              borderRadius: '10px', 
+              fontWeight: 700, 
+              fontSize: '14px',
+              cursor: 'pointer', 
+              boxShadow: '0 4px 12px rgba(4, 120, 87, 0.3)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'transform 0.15s ease'
+            }}
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
+              <polyline points="14 2 14 8 20 8"></polyline>
+              <line x1="16" y1="13" x2="8" y2="13"></line>
+              <line x1="16" y1="17" x2="8" y2="17"></line>
+              <polyline points="10 9 9 9 8 9"></polyline>
+            </svg>
+            Download Bank Statement
+          </button>
+
+          <button 
+            onClick={() => { resetForm(); setIsAddModalOpen(true); }}
+            style={{ 
+              background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', 
+              color: 'white', 
+              border: 'none', 
+              padding: '11px 22px', 
+              borderRadius: '10px', 
+              fontWeight: 700, 
+              fontSize: '14px',
+              cursor: 'pointer', 
+              boxShadow: '0 4px 12px rgba(2, 132, 199, 0.35)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              transition: 'transform 0.15s ease'
+            }}
+          >
+            <span style={{ fontSize: '18px', lineHeight: 1 }}>+</span> Add New Order
+          </button>
+        </div>
       </div>
 
-      {/* Summary KPI Cards */}
+      {/* Benva Revenue Summary Cards (Paina vachey options / Overall Totals) */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Active Orders</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f274a', marginTop: '6px' }}>{orders.length}</div>
-          <div style={{ fontSize: '12px', color: '#0284c7', marginTop: '4px', fontWeight: 500 }}>📦 Patients under pharmacy delivery</div>
+        {/* 1. Benva Net Revenue (Featured Card - Anni Ponu) */}
+        <div style={{ background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: '1px solid #059669', borderRadius: '12px', padding: '18px 20px', boxShadow: '0 4px 14px rgba(4, 120, 87, 0.25)' }}>
+          <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.6px', opacity: 0.9 }}>
+            ★ Benva Net Revenue (Anni Ponu)
+          </div>
+          <div style={{ fontSize: '26px', fontWeight: 800, marginTop: '4px' }}>
+            ₹{totalNetRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+          <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '4px', fontWeight: 500 }}>
+            Total net realized amount after all discounts
+          </div>
         </div>
 
-        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total MRP Billed</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f274a', marginTop: '6px' }}>
-            ₹{orders.reduce((sum, o) => sum + (Number(o.totalMrp) || 0), 0).toLocaleString('en-IN')}
+        {/* 2. Total Gross MRP Billed */}
+        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Total Gross MRP Billed
           </div>
-          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', fontWeight: 500 }}>Catalog value before discount</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f274a', marginTop: '4px' }}>
+            ₹{totalGrossMrp.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', fontWeight: 500 }}>
+            Medicine MRP catalog value before discounts
+          </div>
         </div>
 
-        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Total Discounts Given</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#16a34a', marginTop: '6px' }}>
-            -₹{orders.reduce((sum, o) => sum + (Number(o.discount) || 0), 0).toLocaleString('en-IN')}
+        {/* 3. Total Discounts Given */}
+        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #ef4444', borderRadius: '12px', padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Total Deductions / Discounts
           </div>
-          <div style={{ fontSize: '12px', color: '#16a34a', marginTop: '4px', fontWeight: 500 }}>Benefit passed to patients</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: '#dc2626', marginTop: '4px' }}>
+            -₹{totalDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+          <div style={{ fontSize: '12px', color: '#dc2626', marginTop: '4px', fontWeight: 500 }}>
+            Discounts deducted from MRP
+          </div>
         </div>
 
-        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '16px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <div style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>Net Paid Collection</div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f3162', marginTop: '6px' }}>
-            ₹{orders.reduce((sum, o) => sum + (Number(o.finalAmount) || 0), 0).toLocaleString('en-IN')}
+        {/* 4. Total Orders & Fulfillment */}
+        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #0284c7', borderRadius: '12px', padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+          <div style={{ fontSize: '11px', fontWeight: 700, color: '#0369a1', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+            Orders & Dispatch Fulfillment
           </div>
-          <div style={{ fontSize: '12px', color: '#0f3162', marginTop: '4px', fontWeight: 600 }}>Total realized amount</div>
+          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f274a', marginTop: '4px' }}>
+            {totalOrdersCount} Orders
+          </div>
+          <div style={{ fontSize: '12px', color: '#0284c7', marginTop: '4px', fontWeight: 600 }}>
+            📦 {activeOrdersCount} Active pharmacy deliveries
+          </div>
         </div>
       </div>
 
@@ -1121,12 +1335,40 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         {/* Date Filter & Export Toolbar */}
         <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px', display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
+            {/* Quick Month Presets */}
+            <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button
+                onClick={() => handleSelectPreset('all')}
+                style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', border: '1px solid #cbd5e1', background: selectedPreset === 'all' && !fromDate && !toDate ? '#02559d' : 'white', color: selectedPreset === 'all' && !fromDate && !toDate ? 'white' : '#475569' }}
+              >
+                All Time
+              </button>
+              <button
+                onClick={() => handleSelectPreset('this_month')}
+                style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', border: '1px solid #cbd5e1', background: selectedPreset === 'this_month' ? '#02559d' : 'white', color: selectedPreset === 'this_month' ? 'white' : '#475569' }}
+              >
+                This Month
+              </button>
+              <button
+                onClick={() => handleSelectPreset('last_month')}
+                style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', border: '1px solid #cbd5e1', background: selectedPreset === 'last_month' ? '#02559d' : 'white', color: selectedPreset === 'last_month' ? 'white' : '#475569' }}
+              >
+                Last Month
+              </button>
+              <button
+                onClick={() => handleSelectPreset('last_30_days')}
+                style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '12px', fontWeight: 600, cursor: 'pointer', border: '1px solid #cbd5e1', background: selectedPreset === 'last_30_days' ? '#02559d' : 'white', color: selectedPreset === 'last_30_days' ? 'white' : '#475569' }}
+              >
+                Last 30 Days
+              </button>
+            </div>
+
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>From:</span>
               <input 
                 type="date" 
                 value={fromDate} 
-                onChange={e => setFromDate(e.target.value)} 
+                onChange={e => { setFromDate(e.target.value); setSelectedPreset('all'); }} 
                 style={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: 'white', color: '#1e293b' }} 
               />
             </div>
@@ -1135,13 +1377,13 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
               <input 
                 type="date" 
                 value={toDate} 
-                onChange={e => setToDate(e.target.value)} 
+                onChange={e => { setToDate(e.target.value); setSelectedPreset('all'); }} 
                 style={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: 'white', color: '#1e293b' }} 
               />
             </div>
             {(fromDate || toDate) && (
               <button 
-                onClick={() => { setFromDate(''); setToDate(''); }} 
+                onClick={() => handleSelectPreset('all')} 
                 style={{ background: '#e2e8f0', color: '#475569', border: 'none', padding: '7px 12px', borderRadius: '6px', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}
               >
                 Clear Dates
@@ -1152,12 +1394,32 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button 
+              onClick={() => setIsStatementModalOpen(true)}
+              title="Download official Bank Statement with Anni Ponu revenue" 
+              style={{ 
+                background: '#047857', 
+                color: 'white', 
+                border: 'none', 
+                padding: '9px 15px', 
+                borderRadius: '7px', 
+                fontSize: '13px', 
+                fontWeight: 700, 
+                cursor: 'pointer', 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: '6px',
+                boxShadow: '0 2px 6px rgba(4,120,87,0.25)'
+              }}
+            >
+              📄 Bank Statement
+            </button>
             <button 
               onClick={exportHistoryCSV} 
               title="Download full history as Excel/CSV" 
               style={{ 
-                background: '#047857', 
+                background: '#0284c7', 
                 color: 'white', 
                 border: 'none', 
                 padding: '9px 15px', 
@@ -1168,7 +1430,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                 display: 'inline-flex', 
                 alignItems: 'center', 
                 gap: '6px',
-                boxShadow: '0 1px 3px rgba(4,120,87,0.2)'
+                boxShadow: '0 1px 3px rgba(2,132,199,0.2)'
               }}
             >
               📊 Export CSV / Excel
@@ -1191,7 +1453,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                 boxShadow: '0 1px 3px rgba(15,49,98,0.2)'
               }}
             >
-              📄 Statement PDF
+              📄 PDF Ledger
             </button>
           </div>
         </div>
@@ -1201,7 +1463,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
           <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontSize: '15px' }}>🔍</span>
           <input 
             type="text" 
-            placeholder="Search patient name, mobile number, or medicine..."
+            placeholder="Search patient name, mobile number, UHID, or consignment number..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             style={{ width: '100%', padding: '11px 12px 11px 38px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none' }}
@@ -1213,13 +1475,13 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
           <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0', color: '#0f172a' }}>
             <thead>
               <tr style={{ background: '#f8fafc', textAlign: 'left' }}>
-                <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', width: '50px' }}>#</th>
-                <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0' }}>Patient Details</th>
-                <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0' }}>Billing Breakdown</th>
-                <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0' }}>Last Given</th>
-                <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0' }}>Next Due</th>
-                <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0' }}>Status</th>
-                <th style={{ padding: '12px 14px', textAlign: 'right', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', minWidth: '220px' }}>Dispatch & PDF Actions</th>
+                <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', width: '45px' }}>#</th>
+                <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', minWidth: '180px' }}>Patient Details</th>
+                <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', minWidth: '160px' }}>Consignment & Tracking</th>
+                <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', minWidth: '190px' }}>Billing (Anni Ponu)</th>
+                <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', minWidth: '110px' }}>Order & Due</th>
+                <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', width: '80px' }}>Status</th>
+                <th style={{ padding: '12px 14px', textAlign: 'right', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', minWidth: '230px' }}>Actions & Slips</th>
               </tr>
             </thead>
             <tbody>
@@ -1287,34 +1549,96 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                           </div>
                         )}
                       </td>
+
+                      {/* Consignment & Tracking Field */}
                       <td style={{ padding: '16px 14px' }}>
-                        <div style={{ fontSize: '13px', color: '#64748b' }}>
+                        {order.consignmentNo ? (
+                          <div>
+                            <span style={{ fontWeight: 700, color: '#0369a1', background: '#e0f2fe', padding: '3px 8px', borderRadius: '5px', fontSize: '12px', display: 'inline-block', border: '1px solid #bae6fd' }}>
+                              📦 {order.consignmentNo}
+                            </span>
+                          </div>
+                        ) : (
+                          <div style={{ color: '#94a3b8', fontSize: '12px', fontStyle: 'italic' }}>
+                            No consignment yet
+                          </div>
+                        )}
+
+                        {order.consignmentImage && (
+                          <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <img 
+                              src={order.consignmentImage} 
+                              alt="Slip" 
+                              onClick={() => setPreviewImageUrl(order.consignmentImage)}
+                              style={{ width: '30px', height: '30px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #cbd5e1', cursor: 'pointer' }}
+                              title="Click to zoom consignment slip photo"
+                            />
+                            <span 
+                              onClick={() => setPreviewImageUrl(order.consignmentImage)}
+                              style={{ fontSize: '11px', color: '#0284c7', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}
+                            >
+                              📷 View Slip
+                            </span>
+                          </div>
+                        )}
+
+                        <div style={{ marginTop: '6px' }}>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenConsignmentModal(order)}
+                            style={{
+                              background: '#f1f5f9',
+                              color: '#334155',
+                              border: '1px solid #cbd5e1',
+                              padding: '3px 8px',
+                              borderRadius: '4px',
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              cursor: 'pointer'
+                            }}
+                          >
+                            ✏️ {order.consignmentNo ? 'Edit Consignment' : '+ Add Consignment'}
+                          </button>
+                        </div>
+                      </td>
+
+                      {/* Billing Breakdown (Anni Ponu Each User Dantlo) */}
+                      <td style={{ padding: '16px 14px' }}>
+                        <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '6px', padding: '5px 8px', marginBottom: '6px' }}>
+                          <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#047857', fontWeight: 800, letterSpacing: '0.4px' }}>
+                            ★ Anni Ponu (Benva Revenue)
+                          </div>
+                          <div style={{ fontSize: '15px', color: '#065f46', fontWeight: 800 }}>
+                            ₹{Number(order.finalAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                          </div>
+                        </div>
+                        <div style={{ fontSize: '12px', color: '#64748b' }}>
                           MRP: <span style={{ color: '#0f172a', fontWeight: 600 }}>₹{Number(order.totalMrp || 0).toLocaleString('en-IN')}</span>
                         </div>
-                        <div style={{ fontSize: '13px', color: '#16a34a', marginTop: '1px' }}>
+                        <div style={{ fontSize: '12px', color: '#dc2626' }}>
                           Disc: <span style={{ fontWeight: 600 }}>-₹{Number(order.discount || 0).toLocaleString('en-IN')}</span>
                         </div>
-                        <div style={{ fontSize: '14px', color: '#0f3162', fontWeight: 800, marginTop: '3px' }}>
-                          Paid: ₹{Number(order.finalAmount || 0).toLocaleString('en-IN')}
+                      </td>
+
+                      <td style={{ padding: '16px 14px', fontSize: '12px' }}>
+                        <div style={{ color: '#64748b' }}>
+                          Last: <span style={{ color: '#334155', fontWeight: 600 }}>{order.lastGivenDate ? new Date(order.lastGivenDate).toLocaleDateString('en-GB') : '-'}</span>
+                        </div>
+                        <div style={{ marginTop: '3px' }}>
+                          Due: <span style={{ 
+                            color: order.nextDueDate && new Date(order.nextDueDate) < new Date() ? '#dc2626' : '#0f172a', 
+                            fontWeight: order.nextDueDate && new Date(order.nextDueDate) < new Date() ? 800 : 600 
+                          }}>
+                            {order.nextDueDate ? new Date(order.nextDueDate).toLocaleDateString('en-GB') : '-'}
+                          </span>
                         </div>
                       </td>
-                      <td style={{ padding: '16px 14px', color: '#334155', fontWeight: 500, fontSize: '13px' }}>
-                        {order.lastGivenDate ? new Date(order.lastGivenDate).toLocaleDateString('en-GB') : '-'}
-                      </td>
-                      <td style={{ padding: '16px 14px' }}>
-                        <span style={{ 
-                          fontSize: '13px',
-                          color: order.nextDueDate && new Date(order.nextDueDate) < new Date() ? '#dc2626' : '#0f172a', 
-                          fontWeight: order.nextDueDate && new Date(order.nextDueDate) < new Date() ? 800 : 600 
-                        }}>
-                          {order.nextDueDate ? new Date(order.nextDueDate).toLocaleDateString('en-GB') : '-'}
-                        </span>
-                      </td>
+
                       <td style={{ padding: '16px 14px' }}>
                         <span style={{ 
                           padding: '4px 10px', 
                           borderRadius: '20px', 
-                          fontSize: '12px', 
+                          fontSize: '11px', 
                           fontWeight: 700, 
                           background: order.status === 'ACTIVE' ? '#dcfce7' : '#f1f5f9', 
                           color: order.status === 'ACTIVE' ? '#166534' : '#475569',
@@ -1323,6 +1647,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                           {order.status}
                         </span>
                       </td>
+
                       <td style={{ padding: '14px', textAlign: 'right', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
                         <div style={{ display: 'inline-flex', flexDirection: 'column', gap: '6px', alignItems: 'flex-end' }}>
                           {/* Edit & Delete Controls */}
@@ -1335,15 +1660,32 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                               ✏️ Edit
                             </button>
                             <button 
-                              onClick={() => handleDelete(order.id)} 
-                              style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca', padding: '5px 9px', borderRadius: '6px', cursor: 'pointer', fontWeight: 600, fontSize: '12px' }}
-                              title="Delete Order"
+                              onClick={() => handleDelete(order.id, order.patientName)} 
+                              disabled={deletingOrderId === order.id}
+                              style={{ 
+                                background: '#fee2e2', 
+                                color: '#dc2626', 
+                                border: '1px solid #fecaca', 
+                                padding: '5px 10px', 
+                                borderRadius: '6px', 
+                                cursor: deletingOrderId === order.id ? 'not-allowed' : 'pointer', 
+                                fontWeight: 700, 
+                                fontSize: '12px',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                              title="Delete Order Permanently"
                             >
-                              🗑️
+                              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="3 6 5 6 21 6"></polyline>
+                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                              </svg>
+                              {deletingOrderId === order.id ? 'Deleting...' : 'Delete'}
                             </button>
                           </div>
 
-                          {/* Method 1: Office Copy (Internal: Mobile, Address, MRP, Discount, Final, Prescriptions) */}
+                          {/* Method 1: Office Copy */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#f8fafc', padding: '4px 8px', borderRadius: '7px', border: '1px solid #e2e8f0' }}>
                             <span style={{ fontSize: '11px', fontWeight: 800, color: '#0f3162', letterSpacing: '0.2px' }}>
                               🏢 Office:
@@ -1360,13 +1702,13 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                               onClick={() => generatePDF(order, 'download', 'internal')} 
                               disabled={generatingPdfId === `${order.id}-internal-download`}
                               style={{ background: '#334155', color: 'white', border: 'none', padding: '4px 9px', borderRadius: '5px', cursor: 'pointer', fontSize: '11px', fontWeight: 700 }}
-                              title="Download Office Copy PDF (For Office & Staff Records)"
+                              title="Download Office Copy PDF"
                             >
                               {generatingPdfId === `${order.id}-internal-download` ? '...' : '📥 PDF'}
                             </button>
                           </div>
 
-                          {/* Method 2: Pharmacy Slip (For Partner Pharmacy: Hides Mobile & Address, Hides Billing) */}
+                          {/* Method 2: Pharmacy Slip */}
                           <div style={{ display: 'flex', alignItems: 'center', gap: '5px', background: '#f0f9ff', padding: '4px 8px', borderRadius: '7px', border: '1px solid #bae6fd' }}>
                             <span style={{ fontSize: '11px', fontWeight: 800, color: '#0284c7', letterSpacing: '0.2px' }}>
                               💊 Pharmacy:
@@ -1375,7 +1717,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                               onClick={() => generatePDF(order, 'view', 'pharmacy')} 
                               disabled={generatingPdfId === `${order.id}-pharmacy-view`}
                               style={{ background: '#0284c7', color: 'white', border: 'none', padding: '4px 9px', borderRadius: '5px', cursor: 'pointer', fontSize: '11px', fontWeight: 700 }}
-                              title="View Pharmacy Dispatch Slip (Hides Patient Mobile & Address)"
+                              title="View Pharmacy Dispatch Slip"
                             >
                               {generatingPdfId === `${order.id}-pharmacy-view` ? '...' : '👁️ View'}
                             </button>
@@ -1383,7 +1725,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                               onClick={() => generatePDF(order, 'download', 'pharmacy')} 
                               disabled={generatingPdfId === `${order.id}-pharmacy-download`}
                               style={{ background: '#0369a1', color: 'white', border: 'none', padding: '4px 9px', borderRadius: '5px', cursor: 'pointer', fontSize: '11px', fontWeight: 700 }}
-                              title="Download Pharmacy Slip PDF (Send to Partner Pharmacy)"
+                              title="Download Pharmacy Slip PDF"
                             >
                               {generatingPdfId === `${order.id}-pharmacy-download` ? '...' : '📥 PDF'}
                             </button>
@@ -1701,7 +2043,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                 </div>
 
                 {/* Billing & Discount Card */}
-                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px', marginBottom: '25px' }}>
+                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px', marginBottom: '20px' }}>
                   <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
                     💳 Billing & Discount Details
                   </h4>
@@ -1741,6 +2083,109 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                         onChange={e => setFormData({ ...formData, finalAmount: e.target.value })} 
                         style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#ecfdf5', color: '#065f46', fontWeight: 700 }} 
                       />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Consignment & Courier Tracking Section */}
+                <div style={{ background: '#f0f9ff', border: '1.5px solid #bae6fd', borderRadius: '10px', padding: '16px', marginBottom: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0369a1', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      📦 Consignment & Courier Tracking Details
+                    </h4>
+                    <span style={{ fontSize: '11px', color: '#0284c7', background: '#e0f2fe', padding: '2px 8px', borderRadius: '4px', fontWeight: 600 }}>
+                      Pharmacy Dispatch
+                    </span>
+                  </div>
+                  
+                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', alignItems: 'flex-start' }}>
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600, fontSize: '13px', color: '#0369a1' }}>
+                        Consignment / Courier Tracking Number
+                      </label>
+                      <input 
+                        type="text" 
+                        placeholder="e.g. BEN-CONG-9821 / DTDC / SpeedPost" 
+                        value={formData.consignmentNo} 
+                        onChange={e => setFormData({ ...formData, consignmentNo: e.target.value })} 
+                        style={{ width: '100%', padding: '10px 12px', borderRadius: '6px', border: '1px solid #93c5fd', fontWeight: 600, background: 'white', boxSizing: 'border-box' }} 
+                      />
+                      <span style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', display: 'block' }}>
+                        Enter courier tracking number or dispatch reference.
+                      </span>
+                    </div>
+
+                    <div>
+                      <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600, fontSize: '13px', color: '#0369a1' }}>
+                        Consignment Slip / Parcel Photo
+                      </label>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                        <label style={{
+                          background: isUploadingConsignmentSlip ? '#94a3b8' : '#0284c7',
+                          color: 'white',
+                          padding: '9px 15px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: isUploadingConsignmentSlip ? 'not-allowed' : 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          boxShadow: '0 2px 4px rgba(2, 132, 199, 0.25)'
+                        }}>
+                          {isUploadingConsignmentSlip ? '⏳ Uploading...' : formData.consignmentImage ? '✓ Change Slip' : '📷 Upload Slip Image'}
+                          <input 
+                            type="file" 
+                            accept="image/*" 
+                            style={{ display: 'none' }}
+                            disabled={isUploadingConsignmentSlip}
+                            onChange={async (e) => {
+                              const file = e.target.files?.[0];
+                              if (!file) return;
+                              setIsUploadingConsignmentSlip(true);
+                              try {
+                                const uFormData = new FormData();
+                                uFormData.append('file', file);
+                                const res = await fetch('/api/upload-direct', { method: 'POST', body: uFormData });
+                                if (res.ok) {
+                                  const data = await res.json();
+                                  const url = data.url || data.fileUrl;
+                                  if (url) {
+                                    setFormData(prev => ({ ...prev, consignmentImage: url }));
+                                  }
+                                }
+                              } catch (err) {
+                                console.error(err);
+                                alert('Upload failed');
+                              } finally {
+                                setIsUploadingConsignmentSlip(false);
+                                e.target.value = '';
+                              }
+                            }}
+                          />
+                        </label>
+                        {formData.consignmentImage && (
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                            <img 
+                              src={formData.consignmentImage} 
+                              alt="Slip" 
+                              onClick={() => setPreviewImageUrl(formData.consignmentImage)}
+                              style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '5px', border: '1.5px solid #0284c7', cursor: 'pointer' }}
+                              title="Click to preview slip"
+                            />
+                            <button
+                              type="button"
+                              onClick={() => setFormData(prev => ({ ...prev, consignmentImage: '' }))}
+                              style={{ background: '#fee2e2', color: '#dc2626', border: 'none', borderRadius: '4px', padding: '5px 9px', fontSize: '11px', cursor: 'pointer', fontWeight: 600 }}
+                            >
+                              Remove
+                            </button>
+                          </div>
+                        )}
+                      </div>
+                      <span style={{ fontSize: '11px', color: '#64748b', marginTop: '4px', display: 'block' }}>
+                        Upload photo of courier receipt, parcel booking slip, or dispatch label.
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -1971,6 +2416,127 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
               <a href={previewImageUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'white', textDecoration: 'underline', fontSize: '14px' }}>
                 Open original in new tab
               </a>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Official Bank Statement Modal for Medicines */}
+      {isStatementModalOpen && (
+        <MedicineRevenueStatementModal
+          onClose={() => setIsStatementModalOpen(false)}
+          transactions={statementTransactions}
+          summary={revenueSummary}
+          dateRange={{
+            from: fromDate,
+            to: toDate,
+            label: getDateRangeLabel()
+          }}
+        />
+      )}
+
+      {/* Quick Edit / Add Consignment Details Modal */}
+      {editingConsignmentOrder && (
+        <div style={{ position: 'fixed', inset: 0, background: 'rgba(15, 23, 42, 0.65)', backdropFilter: 'blur(4px)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 2100, padding: '20px' }}>
+          <div style={{ background: 'white', borderRadius: '16px', padding: '28px', width: '100%', maxWidth: '480px', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '18px' }}>
+              <div>
+                <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: '#0f172a' }}>
+                  📦 Consignment & Dispatch Tracking
+                </h3>
+                <p style={{ margin: '3px 0 0 0', fontSize: '13px', color: '#64748b' }}>
+                  Patient: <span style={{ fontWeight: 600, color: '#0284c7' }}>{editingConsignmentOrder.patientName}</span> ({editingConsignmentOrder.uhid || editingConsignmentOrder.mobile})
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setEditingConsignmentOrder(null)}
+                style={{ background: 'transparent', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#64748b' }}
+              >
+                &times;
+              </button>
+            </div>
+
+            <div style={{ marginBottom: '16px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#334155' }}>
+                Consignment / Tracking Number
+              </label>
+              <input
+                type="text"
+                placeholder="e.g. BEN-CONG-9821 / DTDC / SpeedPost"
+                value={consignmentForm.consignmentNo}
+                onChange={e => setConsignmentForm({ ...consignmentForm, consignmentNo: e.target.value })}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', fontWeight: 600, boxSizing: 'border-box' }}
+              />
+            </div>
+
+            <div style={{ marginBottom: '22px' }}>
+              <label style={{ display: 'block', marginBottom: '6px', fontSize: '13px', fontWeight: 600, color: '#334155' }}>
+                Consignment Slip / Parcel Photo
+              </label>
+              
+              <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+                <label style={{
+                  background: isUploadingConsignmentSlip ? '#94a3b8' : '#0284c7',
+                  color: 'white',
+                  padding: '9px 16px',
+                  borderRadius: '7px',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  cursor: isUploadingConsignmentSlip ? 'not-allowed' : 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '6px'
+                }}>
+                  {isUploadingConsignmentSlip ? '⏳ Uploading...' : consignmentForm.consignmentImage ? '✓ Change Slip' : '📷 Upload Slip Image'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    style={{ display: 'none' }}
+                    disabled={isUploadingConsignmentSlip}
+                    onChange={handleUploadConsignmentSlip}
+                  />
+                </label>
+
+                {consignmentForm.consignmentImage && (
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <img
+                      src={consignmentForm.consignmentImage}
+                      alt="Slip preview"
+                      onClick={() => setPreviewImageUrl(consignmentForm.consignmentImage)}
+                      style={{ width: '42px', height: '42px', objectFit: 'cover', borderRadius: '6px', border: '1.5px solid #0284c7', cursor: 'pointer' }}
+                      title="Click to view slip photo"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setConsignmentForm({ ...consignmentForm, consignmentImage: '' })}
+                      style={{ background: '#fee2e2', color: '#dc2626', border: 'none', padding: '5px 10px', borderRadius: '5px', fontSize: '12px', cursor: 'pointer', fontWeight: 600 }}
+                    >
+                      Remove
+                    </button>
+                  </div>
+                )}
+              </div>
+              <p style={{ margin: '6px 0 0 0', fontSize: '11px', color: '#94a3b8' }}>
+                Upload courier receipt, dispatch label, or parcel booking slip photo.
+              </p>
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+              <button
+                type="button"
+                onClick={() => setEditingConsignmentOrder(null)}
+                style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '9px 16px', borderRadius: '7px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveConsignment}
+                style={{ background: '#0284c7', color: 'white', border: 'none', padding: '9px 20px', borderRadius: '7px', fontSize: '13px', fontWeight: 700, cursor: 'pointer', boxShadow: '0 2px 6px rgba(2, 132, 199, 0.3)' }}
+              >
+                Save Consignment
+              </button>
             </div>
           </div>
         </div>
