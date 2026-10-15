@@ -1715,6 +1715,15 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
             flex-direction: column;
             gap: 10px;
           }
+          .export-buttons-group {
+            gap: 6px !important;
+          }
+          .export-action-btn {
+            padding: 5px !important;
+            font-size: 11px !important;
+            border-radius: 6px !important;
+            gap: 4px !important;
+          }
         }
       `}</style>
 
@@ -1939,9 +1948,10 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
             </span>
           </div>
 
-          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+          <div className="export-buttons-group" style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
             <button 
               onClick={() => setIsStatementModalOpen(true)}
+              className="export-action-btn"
               title="Download official Bank Statement with Anni Ponu revenue" 
               style={{ 
                 background: '#047857', 
@@ -1962,6 +1972,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
             </button>
             <button 
               onClick={exportHistoryCSV} 
+              className="export-action-btn"
               title="Download full history as Excel/CSV" 
               style={{ 
                 background: '#0284c7', 
@@ -1982,6 +1993,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
             </button>
             <button 
               onClick={exportHistoryPDF} 
+              className="export-action-btn"
               title="Download summary statement as PDF" 
               style={{ 
                 background: '#0f3162', 
@@ -2480,6 +2492,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
           <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
             <button
               onClick={exportRemindersCSV}
+              className="export-action-btn"
               style={{
                 background: 'white',
                 color: '#92400e',
