@@ -1,3 +1,4 @@
+import { Suspense } from 'react';
 import { prisma } from '@/lib/prisma';
 import MedicinesClient from './MedicinesClient';
 
@@ -8,5 +9,9 @@ export default async function MedicinesPage() {
     orderBy: { createdAt: 'desc' },
   });
 
-  return <MedicinesClient initialOrders={initialOrders} />;
+  return (
+    <Suspense fallback={<div style={{ padding: '24px', color: '#64748b' }}>Loading Medicines & Reminders...</div>}>
+      <MedicinesClient initialOrders={initialOrders} />
+    </Suspense>
+  );
 }

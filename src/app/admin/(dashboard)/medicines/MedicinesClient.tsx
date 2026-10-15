@@ -1,11 +1,42 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
 import MedicineRevenueStatementModal, { MedicineOrderTransaction, MedicineRevenueSummary } from './MedicineRevenueStatementModal';
 
 export default function MedicinesClient({ initialOrders }: { initialOrders: any[] }) {
   const [orders, setOrders] = useState(initialOrders);
   const [searchTerm, setSearchTerm] = useState('');
+  
+  // Navigation & Tab States
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const tabFromUrl = searchParams.get('tab');
+  const [currentTab, setCurrentTab] = useState<'orders' | 'upcoming'>(tabFromUrl === 'upcoming' ? 'upcoming' : 'orders');
+  const [reminderFilter, setReminderFilter] = useState<'next_month' | 'next_30_days' | 'next_60_days' | 'all_upcoming' | 'overdue'>('next_month');
+  const [editingDueDateOrder, setEditingDueDateOrder] = useState<any | null>(null);
+  const [newDueDateValue, setNewDueDateValue] = useState('');
+  const [isUpdatingDueDate, setIsUpdatingDueDate] = useState(false);
+
+  useEffect(() => {
+    if (tabFromUrl === 'upcoming') {
+      setCurrentTab('upcoming');
+    } else if (tabFromUrl === 'orders' || !tabFromUrl) {
+      setCurrentTab('orders');
+    }
+  }, [tabFromUrl]);
+
+  const handleTabChange = (newTab: 'orders' | 'upcoming') => {
+    setCurrentTab(newTab);
+    const params = new URLSearchParams(window.location.search);
+    if (newTab === 'upcoming') {
+      params.set('tab', 'upcoming');
+    } else {
+      params.delete('tab');
+    }
+    const queryString = params.toString() ? `?${params.toString()}` : '';
+    router.replace(`/admin/medicines${queryString}`, { scroll: false });
+  };
   
   // Modal states
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
@@ -1212,16 +1243,211 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     };
   });
 
+  // ── Next Month & Reminder Calculations ──
+  const now = new Date();
+  const currentYear = now.getFullYear();
+  const currentMonth = now.getMonth();
+
+  // Next month boundary (1st of next month to last day of next month)
+  const nextMonthStart = new Date(currentYear, currentMonth + 1, 1, 0, 0, 0, 0);
+  const nextMonthEnd = new Date(currentYear, currentMonth + 2, 0, 23, 59, 59, 999);
+  const nextMonthName = nextMonthStart.toLocaleString('en-US', { month: 'long', year: 'numeric' });
+
+  // Reminder Categorizations
+  const allOrdersWithDueDate = orders.filter(o => o.nextDueDate);
+  const nextMonthOrders = allOrdersWithDueDate.filter(o => {
+    const due = new Date(o.nextDueDate);
+    return due >= nextMonthStart && due <= nextMonthEnd;
+  });
+  const allUpcomingOrders = allOrdersWithDueDate.filter(o => new Date(o.nextDueDate) >= now);
+  const overdueOrders = allOrdersWithDueDate.filter(o => new Date(o.nextDueDate) < now);
+
+  const filteredReminders = orders.filter(o => {
+    if (!o.nextDueDate) return false;
+    const due = new Date(o.nextDueDate);
+    if (isNaN(due.getTime())) return false;
+
+    if (searchTerm) {
+      const term = searchTerm.toLowerCase();
+      const matchesName = o.patientName?.toLowerCase().includes(term);
+      const matchesPhone = o.mobile?.includes(term);
+      const matchesUhid = o.uhid && o.uhid.toLowerCase().includes(term);
+      let matchesMed = false;
+      try {
+        const meds = Array.isArray(o.medicines) ? o.medicines : (typeof o.medicines === 'string' ? JSON.parse(o.medicines) : []);
+        matchesMed = meds.some((m: any) => m.name && m.name.toLowerCase().includes(term));
+      } catch (e) {}
+      if (!matchesName && !matchesPhone && !matchesUhid && !matchesMed) return false;
+    }
+
+    if (reminderFilter === 'next_month') {
+      return due >= nextMonthStart && due <= nextMonthEnd;
+    }
+    if (reminderFilter === 'next_30_days') {
+      const thirtyDays = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      return due >= now && due <= thirtyDays;
+    }
+    if (reminderFilter === 'next_60_days') {
+      const sixtyDays = new Date(now.getTime() + 60 * 24 * 60 * 60 * 1000);
+      return due >= now && due <= sixtyDays;
+    }
+    if (reminderFilter === 'overdue') {
+      return due < now;
+    }
+    if (reminderFilter === 'all_upcoming') {
+      return due >= now;
+    }
+    return true;
+  }).sort((a, b) => new Date(a.nextDueDate).getTime() - new Date(b.nextDueDate).getTime());
+
+  const nextMonthProjectedRevenue = nextMonthOrders.reduce((sum, o) => sum + (Number(o.finalAmount) || 0), 0);
+
+  const getDaysUntilDue = (dueDate: Date) => {
+    const diffTime = dueDate.getTime() - now.getTime();
+    const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+    if (diffDays < 0) return `${Math.abs(diffDays)} day${Math.abs(diffDays) === 1 ? '' : 's'} overdue`;
+    if (diffDays === 0) return 'Due today';
+    if (diffDays === 1) return 'Due tomorrow';
+    return `In ${diffDays} days`;
+  };
+
+  const getWhatsAppReminderUrl = (order: any) => {
+    const cleanPhone = (order.mobile || '').replace(/\D/g, '');
+    const phone = cleanPhone.startsWith('91') && cleanPhone.length > 10 ? cleanPhone : `91${cleanPhone}`;
+    const dueDateStr = order.nextDueDate ? new Date(order.nextDueDate).toLocaleDateString('en-GB') : 'soon';
+    
+    let medNames = '';
+    try {
+      const meds = Array.isArray(order.medicines) ? order.medicines : (typeof order.medicines === 'string' ? JSON.parse(order.medicines) : []);
+      medNames = meds.filter((m: any) => m.isSelected !== false && m.name).map((m: any) => m.name).join(', ');
+    } catch (e) {}
+
+    const msg = `Dear ${order.patientName || 'Patient'},\n\nThis is a friendly reminder from *BENVA Healthcare*.\n\nYour medicine refill is scheduled for *${dueDateStr}*${medNames ? ` (${medNames})` : ''}.\n\nWould you like us to dispatch your next monthly medicine package? Please reply to confirm or call us.\n\nThank you,\nBENVA Healthcare Pharmacy Team`;
+    return `https://wa.me/${phone}?text=${encodeURIComponent(msg)}`;
+  };
+
+  const handleQuickRefill = (order: any) => {
+    let urls: string[] = [];
+    if (Array.isArray(order.prescriptionUrls)) {
+      urls = order.prescriptionUrls;
+    } else if (typeof order.prescriptionUrls === 'string') {
+      try {
+        const parsed = JSON.parse(order.prescriptionUrls);
+        if (Array.isArray(parsed)) urls = parsed;
+        else if (parsed) urls = [parsed];
+      } catch {
+        if (order.prescriptionUrls.startsWith('http') || order.prescriptionUrls.startsWith('/')) {
+          urls = [order.prescriptionUrls];
+        }
+      }
+    }
+
+    const todayStr = new Date().toISOString().split('T')[0];
+    const nextMonthDue = new Date();
+    nextMonthDue.setDate(nextMonthDue.getDate() + 30);
+    const nextMonthDueStr = nextMonthDue.toISOString().split('T')[0];
+
+    setFormData({
+      patientName: order.patientName || '',
+      mobile: order.mobile || '',
+      address: order.address || '',
+      prescriptionUrls: urls,
+      medicines: order.medicines || [],
+      totalMrp: order.totalMrp ?? '',
+      discount: order.discount ?? '',
+      finalAmount: order.finalAmount ?? '',
+      lastGivenDate: todayStr,
+      nextDueDate: nextMonthDueStr,
+      notes: `Refill order for previous prescription (${order.patientName})`,
+      status: 'ACTIVE',
+      uhid: order.uhid || '',
+      consignmentNo: '',
+      consignmentImage: ''
+    });
+    setEditingOrder(null);
+    setIsPatientConfirmed(true);
+    setIsAddModalOpen(true);
+  };
+
+  const handleOpenDueDateModal = (order: any) => {
+    setEditingDueDateOrder(order);
+    setNewDueDateValue(order.nextDueDate ? new Date(order.nextDueDate).toISOString().split('T')[0] : '');
+  };
+
+  const handleSaveDueDate = async () => {
+    if (!editingDueDateOrder) return;
+    setIsUpdatingDueDate(true);
+    try {
+      const res = await fetch(`/api/admin/medicines/${editingDueDateOrder.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ nextDueDate: newDueDateValue ? new Date(newDueDateValue).toISOString() : null })
+      });
+      if (res.ok) {
+        const updated = await res.json();
+        setOrders(prev => prev.map(o => o.id === updated.id ? { ...o, nextDueDate: updated.nextDueDate } : o));
+        setEditingDueDateOrder(null);
+      } else {
+        alert('Failed to update due date');
+      }
+    } catch (err) {
+      console.error('Error updating due date', err);
+      alert('Error updating due date');
+    } finally {
+      setIsUpdatingDueDate(false);
+    }
+  };
+
+  const exportRemindersCSV = () => {
+    try {
+      const headers = ['S.No', 'Patient Name', 'UHID', 'Mobile Number', 'Address', 'Medicines List', 'Last Given Date', 'Next Due Date', 'Status', 'Estimated Amount (INR)'];
+      const rows = filteredReminders.map((o, idx) => {
+        let medList: any[] = [];
+        try {
+          if (typeof o.medicines === 'string') medList = JSON.parse(o.medicines);
+          else if (Array.isArray(o.medicines)) medList = o.medicines;
+        } catch (e) {}
+        const medsString = medList.filter((m: any) => m.isSelected !== false).map((m: any) => `${m.name || 'Medicine'} (${m.type || 'Tab'}: ${m.quantity || '1'})`).join('; ');
+        const lastGiven = o.lastGivenDate ? new Date(o.lastGivenDate).toLocaleDateString('en-GB') : '-';
+        const nextDue = o.nextDueDate ? new Date(o.nextDueDate).toLocaleDateString('en-GB') : '-';
+        return [
+          idx + 1,
+          `"${(o.patientName || '').replace(/"/g, '""')}"`,
+          `"${(o.uhid || '').replace(/"/g, '""')}"`,
+          `"${(o.mobile || '').replace(/"/g, '""')}"`,
+          `"${(o.address || '').replace(/"/g, '""')}"`,
+          `"${medsString.replace(/"/g, '""')}"`,
+          lastGiven,
+          nextDue,
+          o.status || 'ACTIVE',
+          Number(o.finalAmount || 0)
+        ].join(',');
+      });
+
+      const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows].join('\n');
+      const encodedUri = encodeURI(csvContent);
+      const link = document.createElement('a');
+      link.setAttribute('href', encodedUri);
+      link.setAttribute('download', `Benva_Medicine_Upcoming_Reminders_${reminderFilter}.csv`);
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+    } catch (err) {
+      console.error('Export reminders CSV error:', err);
+      alert('Failed to export reminders CSV');
+    }
+  };
+
   return (
     <div style={{ padding: '24px', maxWidth: '1360px', margin: '0 auto', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
       {/* Header with Title & Action */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
         <div>
           <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f274a', margin: 0, letterSpacing: '-0.5px' }}>
-            Medicine Orders & Benva Revenue
+            Medicine Orders & Reminders
           </h1>
           <p style={{ color: '#64748b', margin: '6px 0 0 0', fontSize: '14px' }}>
-            Track patient prescriptions, WhatsApp medicine strip scans, pharmacy dispatch fulfillment, and download bank statements.
+            Track patient prescriptions, WhatsApp medicine scans, upcoming monthly refill reminders, and bank statements.
           </p>
         </div>
         <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
@@ -1276,8 +1502,77 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         </div>
       </div>
 
-      {/* Benva Revenue Summary Cards (Paina vachey options / Overall Totals) */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
+      {/* ── MAIN TABS: ALL ORDERS vs UPCOMING REMINDERS (NEXT MONTH) ── */}
+      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', borderBottom: '2px solid #e2e8f0', paddingBottom: '2px', flexWrap: 'wrap' }}>
+        <button
+          type="button"
+          onClick={() => handleTabChange('orders')}
+          style={{
+            padding: '12px 22px',
+            fontSize: '15px',
+            fontWeight: 700,
+            border: 'none',
+            borderBottom: currentTab === 'orders' ? '3px solid #0284c7' : '3px solid transparent',
+            background: currentTab === 'orders' ? '#f0f9ff' : 'transparent',
+            color: currentTab === 'orders' ? '#0369a1' : '#64748b',
+            borderRadius: '8px 8px 0 0',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.15s ease'
+          }}
+        >
+          <span>📦 All Medicine Orders</span>
+          <span style={{
+            fontSize: '12px',
+            fontWeight: 800,
+            padding: '2px 8px',
+            borderRadius: '20px',
+            background: currentTab === 'orders' ? '#0284c7' : '#e2e8f0',
+            color: currentTab === 'orders' ? 'white' : '#475569'
+          }}>
+            {orders.length}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleTabChange('upcoming')}
+          style={{
+            padding: '12px 22px',
+            fontSize: '15px',
+            fontWeight: 700,
+            border: 'none',
+            borderBottom: currentTab === 'upcoming' ? '3px solid #d97706' : '3px solid transparent',
+            background: currentTab === 'upcoming' ? '#fffbeb' : 'transparent',
+            color: currentTab === 'upcoming' ? '#b45309' : '#64748b',
+            borderRadius: '8px 8px 0 0',
+            cursor: 'pointer',
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '8px',
+            transition: 'all 0.15s ease'
+          }}
+        >
+          <span>🔔 Upcoming Reminders (Next Month)</span>
+          <span style={{
+            fontSize: '12px',
+            fontWeight: 800,
+            padding: '2px 8px',
+            borderRadius: '20px',
+            background: currentTab === 'upcoming' ? '#f59e0b' : '#fef3c7',
+            color: currentTab === 'upcoming' ? 'white' : '#92400e'
+          }}>
+            {nextMonthOrders.length}
+          </span>
+        </button>
+      </div>
+
+      {currentTab === 'orders' && (
+        <>
+          {/* Benva Revenue Summary Cards (Paina vachey options / Overall Totals) */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
         {/* 1. Benva Net Revenue (Featured Card - Anni Ponu) */}
         <div style={{ background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: '1px solid #059669', borderRadius: '12px', padding: '18px 20px', boxShadow: '0 4px 14px rgba(4, 120, 87, 0.25)' }}>
           <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.6px', opacity: 0.9 }}>
@@ -1740,6 +2035,458 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
           </table>
         </div>
       </div>
+      </>
+    )}
+
+    {currentTab === 'upcoming' && (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Header Highlight Banner for Next Month */}
+        <div style={{ background: 'linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%)', border: '1.5px solid #f59e0b', borderRadius: '12px', padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '14px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <div style={{ width: '42px', height: '42px', borderRadius: '10px', background: '#f59e0b', color: 'white', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '22px' }}>
+              🔔
+            </div>
+            <div>
+              <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 800, color: '#92400e' }}>
+                Next Month Medicine Refill Reminders ({nextMonthName})
+              </h3>
+              <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#b45309' }}>
+                Proactively contact recurring patients whose medication runs out in <strong>{nextMonthName}</strong>. Send WhatsApp refill alerts or call to dispatch refills.
+              </p>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button
+              onClick={exportRemindersCSV}
+              style={{
+                background: 'white',
+                color: '#92400e',
+                border: '1.5px solid #f59e0b',
+                padding: '9px 16px',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              📊 Export Reminders CSV
+            </button>
+          </div>
+        </div>
+
+        {/* Metric Cards for Reminders */}
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
+          <div style={{ background: 'linear-gradient(135deg, #b45309 0%, #d97706 100%)', color: 'white', borderRadius: '12px', padding: '18px 20px', boxShadow: '0 4px 14px rgba(217, 119, 6, 0.25)' }}>
+            <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.6px', opacity: 0.9 }}>
+              🔔 Next Month Due ({nextMonthName})
+            </div>
+            <div style={{ fontSize: '28px', fontWeight: 800, marginTop: '4px' }}>
+              {nextMonthOrders.length} Patient{nextMonthOrders.length === 1 ? '' : 's'}
+            </div>
+            <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '4px' }}>
+              Refills scheduled during {nextMonthName}
+            </div>
+          </div>
+
+          <div style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #10b981', borderRadius: '12px', padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              💰 Expected Refill Revenue
+            </div>
+            <div style={{ fontSize: '26px', fontWeight: 800, color: '#065f46', marginTop: '4px' }}>
+              ₹{nextMonthProjectedRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+            </div>
+            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+              Estimated monthly refill value ({nextMonthName})
+            </div>
+          </div>
+
+          <div style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #0284c7', borderRadius: '12px', padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: '#0369a1', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              🗓️ Total Upcoming Refills
+            </div>
+            <div style={{ fontSize: '26px', fontWeight: 800, color: '#0f274a', marginTop: '4px' }}>
+              {allUpcomingOrders.length} Scheduled
+            </div>
+            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
+              All future refilling dates
+            </div>
+          </div>
+
+          <div style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #ef4444', borderRadius: '12px', padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+            <div style={{ fontSize: '11px', fontWeight: 700, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              ⚠️ Overdue Refills
+            </div>
+            <div style={{ fontSize: '26px', fontWeight: 800, color: '#dc2626', marginTop: '4px' }}>
+              {overdueOrders.length} Overdue
+            </div>
+            <div style={{ fontSize: '12px', color: '#dc2626', marginTop: '4px' }}>
+              Due date passed without renewal
+            </div>
+          </div>
+        </div>
+
+        {/* Reminders Table Box */}
+        <div style={{ background: 'white', borderRadius: '14px', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+          {/* Filter Pills Toolbar */}
+          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px', display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', justifyContent: 'space-between' }}>
+            <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
+              <button
+                type="button"
+                onClick={() => setReminderFilter('next_month')}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: '7px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  border: '1px solid',
+                  borderColor: reminderFilter === 'next_month' ? '#d97706' : '#cbd5e1',
+                  background: reminderFilter === 'next_month' ? '#d97706' : 'white',
+                  color: reminderFilter === 'next_month' ? 'white' : '#475569',
+                  boxShadow: reminderFilter === 'next_month' ? '0 2px 4px rgba(217,119,6,0.2)' : 'none'
+                }}
+              >
+                🌟 Next Month ({nextMonthName})
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setReminderFilter('next_30_days')}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: '7px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  border: '1px solid',
+                  borderColor: reminderFilter === 'next_30_days' ? '#0284c7' : '#cbd5e1',
+                  background: reminderFilter === 'next_30_days' ? '#0284c7' : 'white',
+                  color: reminderFilter === 'next_30_days' ? 'white' : '#475569',
+                  boxShadow: reminderFilter === 'next_30_days' ? '0 2px 4px rgba(2,132,199,0.2)' : 'none'
+                }}
+              >
+                📆 Next 30 Days
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setReminderFilter('next_60_days')}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: '7px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  border: '1px solid',
+                  borderColor: reminderFilter === 'next_60_days' ? '#0284c7' : '#cbd5e1',
+                  background: reminderFilter === 'next_60_days' ? '#0284c7' : 'white',
+                  color: reminderFilter === 'next_60_days' ? 'white' : '#475569'
+                }}
+              >
+                🗓️ Next 60 Days
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setReminderFilter('all_upcoming')}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: '7px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  border: '1px solid',
+                  borderColor: reminderFilter === 'all_upcoming' ? '#0f3162' : '#cbd5e1',
+                  background: reminderFilter === 'all_upcoming' ? '#0f3162' : 'white',
+                  color: reminderFilter === 'all_upcoming' ? 'white' : '#475569'
+                }}
+              >
+                📋 All Upcoming
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setReminderFilter('overdue')}
+                style={{
+                  padding: '8px 14px',
+                  borderRadius: '7px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: 'pointer',
+                  border: '1px solid',
+                  borderColor: reminderFilter === 'overdue' ? '#dc2626' : '#cbd5e1',
+                  background: reminderFilter === 'overdue' ? '#dc2626' : 'white',
+                  color: reminderFilter === 'overdue' ? 'white' : '#475569'
+                }}
+              >
+                ⚠️ Overdue ({overdueOrders.length})
+              </button>
+            </div>
+
+            <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600, background: '#e2e8f0', padding: '5px 12px', borderRadius: '20px' }}>
+              {filteredReminders.length} reminder{filteredReminders.length === 1 ? '' : 's'} found
+            </span>
+          </div>
+
+          {/* Search Input */}
+          <div style={{ position: 'relative', marginBottom: '20px' }}>
+            <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontSize: '15px' }}>🔍</span>
+            <input 
+              type="text" 
+              placeholder="Search patient name, mobile number, UHID, or medicine name..."
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              style={{ width: '100%', padding: '11px 12px 11px 38px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none' }}
+            />
+          </div>
+
+          {/* Reminders Table */}
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0', color: '#0f172a' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', textAlign: 'left' }}>
+                  <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', width: '45px' }}>#</th>
+                  <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', minWidth: '180px' }}>Patient Details</th>
+                  <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', minWidth: '220px' }}>Prescribed Medicines</th>
+                  <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', minWidth: '110px' }}>Last Given</th>
+                  <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', minWidth: '170px' }}>Refill Due Date</th>
+                  <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', minWidth: '110px' }}>Refill Value</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'right', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', minWidth: '230px' }}>Refill Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {filteredReminders.length === 0 ? (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '48px 20px', color: '#94a3b8' }}>
+                      <div style={{ fontSize: '36px', marginBottom: '10px' }}>🔔</div>
+                      <div style={{ fontWeight: 700, fontSize: '16px', color: '#334155' }}>
+                        No medicine refill reminders for this filter ({reminderFilter === 'next_month' ? nextMonthName : reminderFilter.replace('_', ' ')})
+                      </div>
+                      <p style={{ margin: '6px 0 16px 0', fontSize: '13px' }}>
+                        Try switching filter pills above to "All Upcoming" or add a new medicine order with a next due date.
+                      </p>
+                      <div style={{ display: 'flex', gap: '10px', justifyContent: 'center' }}>
+                        <button
+                          type="button"
+                          onClick={() => setReminderFilter('all_upcoming')}
+                          style={{ background: '#0284c7', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '7px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          View All Upcoming
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => { resetForm(); setIsAddModalOpen(true); }}
+                          style={{ background: '#047857', color: 'white', border: 'none', padding: '8px 16px', borderRadius: '7px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+                        >
+                          + Add New Order
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                ) : (
+                  filteredReminders.map((order, index) => {
+                    const dueDate = new Date(order.nextDueDate);
+                    const isOverdue = dueDate < now;
+                    const isNextMonthDue = dueDate >= nextMonthStart && dueDate <= nextMonthEnd;
+
+                    let medList: any[] = [];
+                    try {
+                      if (typeof order.medicines === 'string') medList = JSON.parse(order.medicines);
+                      else if (Array.isArray(order.medicines)) medList = order.medicines;
+                    } catch (e) {}
+
+                    const activeMeds = medList.filter((m: any) => m.isSelected !== false);
+
+                    return (
+                      <tr key={order.id} style={{ borderBottom: '1px solid #f1f5f9', background: index % 2 === 0 ? 'white' : '#fafafa' }}>
+                        <td style={{ padding: '16px 14px', color: '#64748b', fontWeight: 700, fontSize: '13px' }}>
+                          {index + 1}
+                        </td>
+
+                        {/* Patient Details */}
+                        <td style={{ padding: '16px 14px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                            <span style={{ fontWeight: 700, color: '#0f274a', fontSize: '15px' }}>{order.patientName}</span>
+                            {order.uhid && (
+                              <span style={{ fontSize: '11px', background: '#e0f2fe', color: '#0369a1', padding: '2px 7px', borderRadius: '4px', fontWeight: 700, letterSpacing: '0.3px', border: '1px solid #bae6fd' }}>
+                                🆔 {order.uhid}
+                              </span>
+                            )}
+                          </div>
+                          <div style={{ fontSize: '13px', color: '#0284c7', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <span>📞</span>
+                            <a href={`tel:${order.mobile}`} style={{ color: '#0284c7', textDecoration: 'none', fontWeight: 600 }}>
+                              {order.mobile}
+                            </a>
+                          </div>
+                          {order.address && (
+                            <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '2px', maxWidth: '240px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={order.address}>
+                              📍 {order.address}
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Prescribed Medicines */}
+                        <td style={{ padding: '16px 14px' }}>
+                          {activeMeds.length > 0 ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                              {activeMeds.slice(0, 3).map((m: any, mIdx: number) => (
+                                <div key={mIdx} style={{ fontSize: '12px', color: '#334155', background: '#f1f5f9', padding: '3px 8px', borderRadius: '5px', display: 'inline-block' }}>
+                                  💊 <strong>{m.name || 'Medicine'}</strong> {m.quantity ? `× ${m.quantity}` : ''} {m.instructions ? `(${m.instructions})` : ''}
+                                </div>
+                              ))}
+                              {activeMeds.length > 3 && (
+                                <span style={{ fontSize: '11px', color: '#64748b', fontStyle: 'italic' }}>
+                                  +{activeMeds.length - 3} more medicines
+                                </span>
+                              )}
+                            </div>
+                          ) : (
+                            <span style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>No medicine details entered</span>
+                          )}
+                        </td>
+
+                        {/* Last Given */}
+                        <td style={{ padding: '16px 14px', fontSize: '13px', color: '#475569' }}>
+                          {order.lastGivenDate ? new Date(order.lastGivenDate).toLocaleDateString('en-GB') : '-'}
+                        </td>
+
+                        {/* Refill Due Date & Countdown */}
+                        <td style={{ padding: '16px 14px' }}>
+                          <div style={{ fontWeight: 700, fontSize: '14px', color: isOverdue ? '#dc2626' : (isNextMonthDue ? '#b45309' : '#0f274a') }}>
+                            📅 {dueDate.toLocaleDateString('en-GB')}
+                          </div>
+                          <div style={{ marginTop: '4px' }}>
+                            <span style={{
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              padding: '2px 8px',
+                              borderRadius: '4px',
+                              background: isOverdue ? '#fee2e2' : (isNextMonthDue ? '#fef3c7' : '#e0f2fe'),
+                              color: isOverdue ? '#991b1b' : (isNextMonthDue ? '#92400e' : '#0369a1'),
+                              border: `1px solid ${isOverdue ? '#fca5a5' : (isNextMonthDue ? '#fde68a' : '#bae6fd')}`,
+                              display: 'inline-block'
+                            }}>
+                              {isNextMonthDue ? `🌟 Next Month (${getDaysUntilDue(dueDate)})` : getDaysUntilDue(dueDate)}
+                            </span>
+                          </div>
+                        </td>
+
+                        {/* Estimated Refill Value */}
+                        <td style={{ padding: '16px 14px' }}>
+                          <div style={{ fontSize: '14px', fontWeight: 800, color: '#065f46' }}>
+                            ₹{Number(order.finalAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                          </div>
+                          {Number(order.discount || 0) > 0 && (
+                            <div style={{ fontSize: '11px', color: '#dc2626' }}>
+                              (Saved ₹{Number(order.discount || 0).toLocaleString('en-IN')})
+                            </div>
+                          )}
+                        </td>
+
+                        {/* Actions */}
+                        <td style={{ padding: '16px 14px', textAlign: 'right' }}>
+                          <div style={{ display: 'flex', gap: '6px', justifyContent: 'flex-end', flexWrap: 'wrap', alignItems: 'center' }}>
+                            {/* WhatsApp Reminder Button */}
+                            <a
+                              href={getWhatsAppReminderUrl(order)}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              title="Send WhatsApp refill reminder to patient"
+                              style={{
+                                background: '#25D366',
+                                color: 'white',
+                                padding: '6px 10px',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                textDecoration: 'none',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                boxShadow: '0 2px 4px rgba(37,211,102,0.25)'
+                              }}
+                            >
+                              <span>💬</span> WhatsApp
+                            </a>
+
+                            {/* Call Patient Link */}
+                            <a
+                              href={`tel:${order.mobile}`}
+                              title={`Call ${order.patientName}`}
+                              style={{
+                                background: '#f1f5f9',
+                                color: '#0369a1',
+                                padding: '6px 10px',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                textDecoration: 'none',
+                                border: '1px solid #cbd5e1',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px'
+                              }}
+                            >
+                              <span>📞</span> Call
+                            </a>
+
+                            {/* Quick Refill / Re-order Button */}
+                            <button
+                              type="button"
+                              onClick={() => handleQuickRefill(order)}
+                              title="Create new medicine refill order prefilled with this patient and medicines"
+                              style={{
+                                background: '#0284c7',
+                                color: 'white',
+                                border: 'none',
+                                padding: '6px 10px',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                boxShadow: '0 2px 4px rgba(2,132,199,0.25)'
+                              }}
+                            >
+                              <span>🔄</span> Refill
+                            </button>
+
+                            {/* Edit Due Date Button */}
+                            <button
+                              type="button"
+                              onClick={() => handleOpenDueDateModal(order)}
+                              title="Change next refill due date"
+                              style={{
+                                background: '#fff',
+                                color: '#475569',
+                                border: '1px solid #cbd5e1',
+                                padding: '6px 10px',
+                                borderRadius: '6px',
+                                fontSize: '12px',
+                                fontWeight: 600,
+                                cursor: 'pointer'
+                              }}
+                            >
+                              <span>✏️</span> Date
+                            </button>
+                          </div>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    )}
 
       {isAddModalOpen && (
         <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '20px' }}>
@@ -2542,6 +3289,59 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         </div>
       )}
 
+      {editingDueDateOrder && (
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1100, padding: '20px' }}>
+          <div style={{ background: 'white', borderRadius: '12px', width: '100%', maxWidth: '440px', padding: '24px', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.2)' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+              <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f274a' }}>
+                ✏️ Update Refill Due Date
+              </h3>
+              <button 
+                type="button" 
+                onClick={() => setEditingDueDateOrder(null)} 
+                style={{ background: 'none', border: 'none', fontSize: '20px', cursor: 'pointer', color: '#64748b' }}
+              >
+                &times;
+              </button>
+            </div>
+            <p style={{ margin: '0 0 16px 0', fontSize: '13px', color: '#64748b' }}>
+              Change next medicine refill reminder due date for <strong>{editingDueDateOrder.patientName}</strong>
+            </p>
+
+            <div style={{ marginBottom: '20px' }}>
+              <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
+                Next Refill Due Date:
+              </label>
+              <input
+                type="date"
+                value={newDueDateValue}
+                onChange={e => setNewDueDateValue(e.target.value)}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '7px', border: '1.5px solid #0284c7', fontSize: '14px', outline: 'none' }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px' }}>
+              <button
+                type="button"
+                onClick={() => setEditingDueDateOrder(null)}
+                style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '9px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleSaveDueDate}
+                disabled={isUpdatingDueDate}
+                style={{ background: '#0284c7', color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 700, cursor: isUpdatingDueDate ? 'not-allowed' : 'pointer' }}
+              >
+                {isUpdatingDueDate ? 'Saving...' : 'Save Due Date'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
+
