@@ -18,6 +18,37 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
   const [newDueDateValue, setNewDueDateValue] = useState('');
   const [isUpdatingDueDate, setIsUpdatingDueDate] = useState(false);
 
+  // Modal states
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [editingOrder, setEditingOrder] = useState<any>(null);
+  const [viewingOrder, setViewingOrder] = useState<any>(null);
+  const [isUploadingImage, setIsUploadingImage] = useState(false);
+  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
+  const [generatingPdfId, setGeneratingPdfId] = useState<string | null>(null);
+  const [uploadSuccessMessage, setUploadSuccessMessage] = useState<string | null>(null);
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [selectedPreset, setSelectedPreset] = useState<'all' | 'this_month' | 'last_month' | 'last_30_days'>('all');
+  const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
+  const [editingConsignmentOrder, setEditingConsignmentOrder] = useState<any | null>(null);
+  const [consignmentForm, setConsignmentForm] = useState({ consignmentNo: '', consignmentImage: '' });
+  const [isUploadingConsignmentSlip, setIsUploadingConsignmentSlip] = useState(false);
+  const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  // Pagination States
+  const [ordersPage, setOrdersPage] = useState(1);
+  const [remindersPage, setRemindersPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
+
+  useEffect(() => {
+    setOrdersPage(1);
+  }, [searchTerm, fromDate, toDate, selectedPreset]);
+
+  useEffect(() => {
+    setRemindersPage(1);
+  }, [searchTerm, reminderFilter]);
+
   useEffect(() => {
     if (tabFromUrl === 'upcoming') {
       setCurrentTab('upcoming');
@@ -37,24 +68,6 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     const queryString = params.toString() ? `?${params.toString()}` : '';
     router.replace(`/admin/medicines${queryString}`, { scroll: false });
   };
-  
-  // Modal states
-  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
-  const [editingOrder, setEditingOrder] = useState<any>(null);
-  const [viewingOrder, setViewingOrder] = useState<any>(null);
-  const [isUploadingImage, setIsUploadingImage] = useState(false);
-  const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
-  const [generatingPdfId, setGeneratingPdfId] = useState<string | null>(null);
-  const [uploadSuccessMessage, setUploadSuccessMessage] = useState<string | null>(null);
-  const [fromDate, setFromDate] = useState('');
-  const [toDate, setToDate] = useState('');
-  const [selectedPreset, setSelectedPreset] = useState<'all' | 'this_month' | 'last_month' | 'last_30_days'>('all');
-  const [isStatementModalOpen, setIsStatementModalOpen] = useState(false);
-  const [editingConsignmentOrder, setEditingConsignmentOrder] = useState<any | null>(null);
-  const [consignmentForm, setConsignmentForm] = useState({ consignmentNo: '', consignmentImage: '' });
-  const [isUploadingConsignmentSlip, setIsUploadingConsignmentSlip] = useState(false);
-  const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
-  const fileInputRef = React.useRef<HTMLInputElement>(null);
   
   // Form states
   const [formData, setFormData] = useState({
@@ -1300,6 +1313,104 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     return true;
   }).sort((a, b) => new Date(a.nextDueDate).getTime() - new Date(b.nextDueDate).getTime());
 
+  // Pagination Calculations
+  const totalOrdersPages = Math.max(1, Math.ceil(filteredOrders.length / pageSize));
+  const paginatedOrders = filteredOrders.slice((ordersPage - 1) * pageSize, ordersPage * pageSize);
+
+  const totalRemindersPages = Math.max(1, Math.ceil(filteredReminders.length / pageSize));
+  const paginatedReminders = filteredReminders.slice((remindersPage - 1) * pageSize, remindersPage * pageSize);
+
+  const renderPagination = (
+    currentPage: number,
+    totalPages: number,
+    totalItems: number,
+    onPageChange: (p: number) => void
+  ) => {
+    if (totalItems === 0) return null;
+    const startItem = (currentPage - 1) * pageSize + 1;
+    const endItem = Math.min(currentPage * pageSize, totalItems);
+
+    return (
+      <div style={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        marginTop: '20px',
+        padding: '12px 16px',
+        background: '#f8fafc',
+        borderRadius: '10px',
+        border: '1px solid #e2e8f0',
+        flexWrap: 'wrap',
+        gap: '12px'
+      }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '12px', fontSize: '13px', color: '#64748b', flexWrap: 'wrap' }}>
+          <span>
+            Showing <strong>{startItem}</strong> - <strong>{endItem}</strong> of <strong>{totalItems}</strong> entries
+          </span>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+            <span style={{ fontSize: '12px' }}>Rows:</span>
+            <select
+              value={pageSize}
+              onChange={e => {
+                setPageSize(Number(e.target.value));
+                setOrdersPage(1);
+                setRemindersPage(1);
+              }}
+              style={{ padding: '4px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '12px', background: 'white', color: '#1e293b' }}
+            >
+              <option value={5}>5 per page</option>
+              <option value={10}>10 per page</option>
+              <option value={20}>20 per page</option>
+              <option value={50}>50 per page</option>
+            </select>
+          </div>
+        </div>
+
+        <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+          <button
+            type="button"
+            onClick={() => onPageChange(Math.max(1, currentPage - 1))}
+            disabled={currentPage <= 1}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '6px',
+              border: '1px solid #cbd5e1',
+              background: currentPage <= 1 ? '#f1f5f9' : 'white',
+              color: currentPage <= 1 ? '#94a3b8' : '#1e293b',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: currentPage <= 1 ? 'not-allowed' : 'pointer'
+            }}
+          >
+            ‹ Prev
+          </button>
+
+          <span style={{ fontSize: '13px', fontWeight: 800, color: '#0f274a', padding: '0 8px' }}>
+            Page {currentPage} of {totalPages}
+          </span>
+
+          <button
+            type="button"
+            onClick={() => onPageChange(Math.min(totalPages, currentPage + 1))}
+            disabled={currentPage >= totalPages}
+            style={{
+              padding: '6px 14px',
+              borderRadius: '6px',
+              border: '1px solid #cbd5e1',
+              background: currentPage >= totalPages ? '#f1f5f9' : 'white',
+              color: currentPage >= totalPages ? '#94a3b8' : '#1e293b',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: currentPage >= totalPages ? 'not-allowed' : 'pointer'
+            }}
+          >
+            Next ›
+          </button>
+        </div>
+      </div>
+    );
+  };
+
   const nextMonthProjectedRevenue = nextMonthOrders.reduce((sum, o) => sum + (Number(o.finalAmount) || 0), 0);
 
   const getDaysUntilDue = (dueDate: Date) => {
@@ -1439,37 +1550,196 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
   };
 
   return (
-    <div style={{ padding: '24px', maxWidth: '1360px', margin: '0 auto', fontFamily: 'system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif' }}>
+    <div className="medicines-page-container">
+      <style>{`
+        .medicines-page-container {
+          padding: 24px;
+          max-width: 1360px;
+          margin: 0 auto;
+          font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+        }
+        .med-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          margin-bottom: 20px;
+          flex-wrap: wrap;
+          gap: 16px;
+        }
+        .med-header-title {
+          font-size: 26px;
+          font-weight: 800;
+          color: #0f274a;
+          margin: 0;
+          letter-spacing: -0.5px;
+        }
+        .med-header-actions {
+          display: flex;
+          gap: 12px;
+          flex-wrap: wrap;
+          align-items: center;
+        }
+        .med-tabs-container {
+          display: flex;
+          gap: 6px;
+          margin-bottom: 22px;
+          background: #f1f5f9;
+          padding: 5px;
+          border-radius: 12px;
+          width: fit-content;
+          border: 1px solid #e2e8f0;
+        }
+        .med-tab-btn {
+          padding: 10px 18px;
+          font-size: 14px;
+          font-weight: 700;
+          border: none;
+          border-radius: 8px;
+          cursor: pointer;
+          display: inline-flex;
+          align-items: center;
+          gap: 8px;
+          transition: all 0.2s ease;
+          background: transparent;
+          color: #64748b;
+        }
+        .med-tab-btn.active-orders {
+          background: white;
+          color: #0284c7;
+          box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
+        }
+        .med-tab-btn.active-upcoming {
+          background: white;
+          color: #b45309;
+          box-shadow: 0 2px 8px rgba(217, 119, 6, 0.15);
+        }
+        .metric-cards-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+          gap: 14px;
+          margin-bottom: 22px;
+        }
+        .metric-card-box {
+          border-radius: 12px;
+          padding: 16px 18px;
+          transition: transform 0.15s ease;
+        }
+        .metric-card-val {
+          font-size: 24px;
+          font-weight: 800;
+          margin-top: 4px;
+        }
+        .desktop-table-view {
+          display: block;
+        }
+        .mobile-cards-view {
+          display: none;
+        }
+        
+        @media (max-width: 768px) {
+          .medicines-page-container {
+            padding: 12px 10px;
+          }
+          .med-header {
+            flex-direction: column;
+            align-items: stretch;
+            gap: 12px;
+            margin-bottom: 16px;
+          }
+          .med-header-title {
+            font-size: 20px;
+          }
+          .med-header-actions {
+            display: flex;
+            flex-direction: column;
+            width: 100%;
+            gap: 8px;
+          }
+          .med-header-actions button {
+            width: 100%;
+            justify-content: center;
+            padding: 12px !important;
+            font-size: 14px !important;
+          }
+          .med-tabs-container {
+            width: 100%;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            padding: 4px;
+            margin-bottom: 16px;
+            box-sizing: border-box;
+          }
+          .med-tab-btn {
+            padding: 9px 8px;
+            font-size: 12px;
+            justify-content: center;
+            text-align: center;
+          }
+          .metric-cards-grid {
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            margin-bottom: 16px;
+          }
+          .metric-card-box {
+            padding: 12px 12px;
+          }
+          .metric-card-val {
+            font-size: 17px !important;
+          }
+          .desktop-table-view {
+            display: none !important;
+          }
+          .mobile-cards-view {
+            display: flex !important;
+            flex-direction: column;
+            gap: 12px;
+          }
+          .mobile-order-card {
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            padding: 14px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+          }
+          .mobile-filter-container {
+            padding: 12px 10px !important;
+          }
+        }
+      `}</style>
+
       {/* Header with Title & Action */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '16px' }}>
+      <div className="med-header">
         <div>
-          <h1 style={{ fontSize: '26px', fontWeight: 800, color: '#0f274a', margin: 0, letterSpacing: '-0.5px' }}>
+          <h1 className="med-header-title">
             Medicine Orders & Reminders
           </h1>
-          <p style={{ color: '#64748b', margin: '6px 0 0 0', fontSize: '14px' }}>
+          <p style={{ color: '#64748b', margin: '6px 0 0 0', fontSize: '13px' }}>
             Track patient prescriptions, WhatsApp medicine scans, upcoming monthly refill reminders, and bank statements.
           </p>
         </div>
-        <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap', alignItems: 'center' }}>
+        <div className="med-header-actions">
           <button 
             onClick={() => setIsStatementModalOpen(true)}
             style={{ 
               background: '#047857', 
               color: 'white', 
               border: 'none', 
-              padding: '11px 20px', 
+              padding: '11px 18px', 
               borderRadius: '10px', 
               fontWeight: 700, 
-              fontSize: '14px',
+              fontSize: '13px',
               cursor: 'pointer', 
-              boxShadow: '0 4px 12px rgba(4, 120, 87, 0.3)',
+              boxShadow: '0 4px 12px rgba(4, 120, 87, 0.25)',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
               transition: 'transform 0.15s ease'
             }}
           >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path>
               <polyline points="14 2 14 8 20 8"></polyline>
               <line x1="16" y1="13" x2="8" y2="13"></line>
@@ -1485,12 +1755,12 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
               background: 'linear-gradient(135deg, #0284c7 0%, #0369a1 100%)', 
               color: 'white', 
               border: 'none', 
-              padding: '11px 22px', 
+              padding: '11px 20px', 
               borderRadius: '10px', 
               fontWeight: 700, 
-              fontSize: '14px',
+              fontSize: '13px',
               cursor: 'pointer', 
-              boxShadow: '0 4px 12px rgba(2, 132, 199, 0.35)',
+              boxShadow: '0 4px 12px rgba(2, 132, 199, 0.3)',
               display: 'inline-flex',
               alignItems: 'center',
               gap: '8px',
@@ -1503,33 +1773,19 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
       </div>
 
       {/* ── MAIN TABS: ALL ORDERS vs UPCOMING REMINDERS (NEXT MONTH) ── */}
-      <div style={{ display: 'flex', gap: '8px', marginBottom: '24px', borderBottom: '2px solid #e2e8f0', paddingBottom: '2px', flexWrap: 'wrap' }}>
+      <div className="med-tabs-container">
         <button
           type="button"
           onClick={() => handleTabChange('orders')}
-          style={{
-            padding: '12px 22px',
-            fontSize: '15px',
-            fontWeight: 700,
-            border: 'none',
-            borderBottom: currentTab === 'orders' ? '3px solid #0284c7' : '3px solid transparent',
-            background: currentTab === 'orders' ? '#f0f9ff' : 'transparent',
-            color: currentTab === 'orders' ? '#0369a1' : '#64748b',
-            borderRadius: '8px 8px 0 0',
-            cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: 'all 0.15s ease'
-          }}
+          className={`med-tab-btn ${currentTab === 'orders' ? 'active-orders' : ''}`}
         >
           <span>📦 All Medicine Orders</span>
           <span style={{
-            fontSize: '12px',
+            fontSize: '11px',
             fontWeight: 800,
-            padding: '2px 8px',
+            padding: '2px 7px',
             borderRadius: '20px',
-            background: currentTab === 'orders' ? '#0284c7' : '#e2e8f0',
+            background: currentTab === 'orders' ? '#0284c7' : '#cbd5e1',
             color: currentTab === 'orders' ? 'white' : '#475569'
           }}>
             {orders.length}
@@ -1539,29 +1795,15 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         <button
           type="button"
           onClick={() => handleTabChange('upcoming')}
-          style={{
-            padding: '12px 22px',
-            fontSize: '15px',
-            fontWeight: 700,
-            border: 'none',
-            borderBottom: currentTab === 'upcoming' ? '3px solid #d97706' : '3px solid transparent',
-            background: currentTab === 'upcoming' ? '#fffbeb' : 'transparent',
-            color: currentTab === 'upcoming' ? '#b45309' : '#64748b',
-            borderRadius: '8px 8px 0 0',
-            cursor: 'pointer',
-            display: 'inline-flex',
-            alignItems: 'center',
-            gap: '8px',
-            transition: 'all 0.15s ease'
-          }}
+          className={`med-tab-btn ${currentTab === 'upcoming' ? 'active-upcoming' : ''}`}
         >
-          <span>🔔 Upcoming Reminders (Next Month)</span>
+          <span>🔔 Reminders (Next Month)</span>
           <span style={{
-            fontSize: '12px',
+            fontSize: '11px',
             fontWeight: 800,
-            padding: '2px 8px',
+            padding: '2px 7px',
             borderRadius: '20px',
-            background: currentTab === 'upcoming' ? '#f59e0b' : '#fef3c7',
+            background: currentTab === 'upcoming' ? '#f59e0b' : '#fde68a',
             color: currentTab === 'upcoming' ? 'white' : '#92400e'
           }}>
             {nextMonthOrders.length}
@@ -1572,59 +1814,59 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
       {currentTab === 'orders' && (
         <>
           {/* Benva Revenue Summary Cards (Paina vachey options / Overall Totals) */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        {/* 1. Benva Net Revenue (Featured Card - Anni Ponu) */}
-        <div style={{ background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: '1px solid #059669', borderRadius: '12px', padding: '18px 20px', boxShadow: '0 4px 14px rgba(4, 120, 87, 0.25)' }}>
-          <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.6px', opacity: 0.9 }}>
-            ★ Benva Net Revenue (Anni Ponu)
-          </div>
-          <div style={{ fontSize: '26px', fontWeight: 800, marginTop: '4px' }}>
-            ₹{totalNetRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </div>
-          <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '4px', fontWeight: 500 }}>
-            Total net realized amount after all discounts
-          </div>
-        </div>
+          <div className="metric-cards-grid">
+            {/* 1. Benva Net Revenue (Featured Card - Anni Ponu) */}
+            <div className="metric-card-box" style={{ background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: '1px solid #059669', boxShadow: '0 4px 14px rgba(4, 120, 87, 0.25)' }}>
+              <div style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.6px', opacity: 0.9 }}>
+                ★ Net Revenue (Anni Ponu)
+              </div>
+              <div className="metric-card-val" style={{ color: 'white' }}>
+                ₹{totalNetRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <div style={{ fontSize: '11px', opacity: 0.85, marginTop: '3px', fontWeight: 500 }}>
+                Total net realized amount
+              </div>
+            </div>
 
-        {/* 2. Total Gross MRP Billed */}
-        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderRadius: '12px', padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Total Gross MRP Billed
-          </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f274a', marginTop: '4px' }}>
-            ₹{totalGrossMrp.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </div>
-          <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', fontWeight: 500 }}>
-            Medicine MRP catalog value before discounts
-          </div>
-        </div>
+            {/* 2. Total Gross MRP Billed */}
+            <div className="metric-card-box" style={{ background: 'white', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+              <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Total Gross MRP
+              </div>
+              <div className="metric-card-val" style={{ color: '#0f274a' }}>
+                ₹{totalGrossMrp.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px', fontWeight: 500 }}>
+                Catalog value before disc
+              </div>
+            </div>
 
-        {/* 3. Total Discounts Given */}
-        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #ef4444', borderRadius: '12px', padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Total Deductions / Discounts
-          </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#dc2626', marginTop: '4px' }}>
-            -₹{totalDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-          </div>
-          <div style={{ fontSize: '12px', color: '#dc2626', marginTop: '4px', fontWeight: 500 }}>
-            Discounts deducted from MRP
-          </div>
-        </div>
+            {/* 3. Total Discounts Given */}
+            <div className="metric-card-box" style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #ef4444', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+              <div style={{ fontSize: '10px', fontWeight: 700, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Deductions / Discounts
+              </div>
+              <div className="metric-card-val" style={{ color: '#dc2626' }}>
+                -₹{totalDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <div style={{ fontSize: '11px', color: '#dc2626', marginTop: '3px', fontWeight: 500 }}>
+                Deducted from MRP
+              </div>
+            </div>
 
-        {/* 4. Total Orders & Fulfillment */}
-        <div style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #0284c7', borderRadius: '12px', padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-          <div style={{ fontSize: '11px', fontWeight: 700, color: '#0369a1', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-            Orders & Dispatch Fulfillment
+            {/* 4. Total Orders & Fulfillment */}
+            <div className="metric-card-box" style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #0284c7', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+              <div style={{ fontSize: '10px', fontWeight: 700, color: '#0369a1', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                Orders & Fulfillment
+              </div>
+              <div className="metric-card-val" style={{ color: '#0f274a' }}>
+                {totalOrdersCount} Orders
+              </div>
+              <div style={{ fontSize: '11px', color: '#0284c7', marginTop: '3px', fontWeight: 600 }}>
+                📦 {activeOrdersCount} Active deliveries
+              </div>
+            </div>
           </div>
-          <div style={{ fontSize: '24px', fontWeight: 800, color: '#0f274a', marginTop: '4px' }}>
-            {totalOrdersCount} Orders
-          </div>
-          <div style={{ fontSize: '12px', color: '#0284c7', marginTop: '4px', fontWeight: 600 }}>
-            📦 {activeOrdersCount} Active pharmacy deliveries
-          </div>
-        </div>
-      </div>
 
       <div style={{ background: 'white', borderRadius: '14px', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
         {/* Date Filter & Export Toolbar */}
@@ -1765,8 +2007,8 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
           />
         </div>
 
-        {/* Table Container */}
-        <div style={{ overflowX: 'auto' }}>
+        {/* Table Container for Desktop */}
+        <div className="desktop-table-view" style={{ overflowX: 'auto' }}>
           <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0', color: '#0f172a' }}>
             <thead>
               <tr style={{ background: '#f8fafc', textAlign: 'left' }}>
@@ -1780,7 +2022,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
               </tr>
             </thead>
             <tbody>
-              {filteredOrders.length === 0 ? (
+              {paginatedOrders.length === 0 ? (
                 <tr>
                   <td colSpan={7} style={{ textAlign: 'center', padding: '40px', color: '#94a3b8' }}>
                     <div style={{ fontSize: '32px', marginBottom: '8px' }}>📋</div>
@@ -1788,7 +2030,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                   </td>
                 </tr>
               ) : (
-                filteredOrders.map((order, index) => {
+                paginatedOrders.map((order, index) => {
                   let pImgs: string[] = [];
                   if (Array.isArray(order.prescriptionUrls)) {
                     pImgs = order.prescriptionUrls;
@@ -1804,10 +2046,12 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                     }
                   }
 
+                  const orderIndex = (ordersPage - 1) * pageSize + index + 1;
+
                   return (
                     <tr key={order.id} style={{ borderBottom: '1px solid #f1f5f9', background: index % 2 === 0 ? 'white' : '#fafafa' }}>
                       <td style={{ padding: '16px 14px', color: '#64748b', fontWeight: 700, fontSize: '13px' }}>
-                        {index + 1}
+                        {orderIndex}
                       </td>
                       <td style={{ padding: '16px 14px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
@@ -2034,6 +2278,176 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
             </tbody>
           </table>
         </div>
+
+        {/* Mobile Cards View (< 768px) */}
+        <div className="mobile-cards-view">
+          {paginatedOrders.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '30px', color: '#94a3b8', background: '#f8fafc', borderRadius: '10px' }}>
+              <div style={{ fontSize: '28px', marginBottom: '6px' }}>📋</div>
+              <div style={{ fontWeight: 600, fontSize: '14px' }}>No medicine orders match your criteria</div>
+            </div>
+          ) : (
+            paginatedOrders.map((order, index) => {
+              let pImgs: string[] = [];
+              if (Array.isArray(order.prescriptionUrls)) {
+                pImgs = order.prescriptionUrls;
+              } else if (typeof order.prescriptionUrls === 'string') {
+                try {
+                  const parsed = JSON.parse(order.prescriptionUrls);
+                  if (Array.isArray(parsed)) pImgs = parsed;
+                  else if (parsed) pImgs = [parsed];
+                } catch {
+                  if (order.prescriptionUrls.startsWith('http') || order.prescriptionUrls.startsWith('/') || order.prescriptionUrls.startsWith('data:')) {
+                    pImgs = [order.prescriptionUrls];
+                  }
+                }
+              }
+
+              const orderIndex = (ordersPage - 1) * pageSize + index + 1;
+              const isDueOverdue = order.nextDueDate && new Date(order.nextDueDate) < new Date();
+
+              return (
+                <div key={order.id} className="mobile-order-card">
+                  {/* Top Row: Index, Name, Status */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                      <span style={{ background: '#f1f5f9', color: '#64748b', fontSize: '11px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px' }}>
+                        #{orderIndex}
+                      </span>
+                      <span style={{ fontWeight: 800, color: '#0f274a', fontSize: '16px' }}>{order.patientName}</span>
+                      {order.uhid && (
+                        <span style={{ fontSize: '10px', background: '#e0f2fe', color: '#0369a1', padding: '2px 5px', borderRadius: '4px', fontWeight: 700, border: '1px solid #bae6fd' }}>
+                          🆔 {order.uhid}
+                        </span>
+                      )}
+                    </div>
+                    <span style={{ 
+                      padding: '3px 8px', 
+                      borderRadius: '20px', 
+                      fontSize: '11px', 
+                      fontWeight: 700, 
+                      background: order.status === 'ACTIVE' ? '#dcfce7' : '#f1f5f9', 
+                      color: order.status === 'ACTIVE' ? '#166534' : '#475569',
+                      flexShrink: 0
+                    }}>
+                      {order.status}
+                    </span>
+                  </div>
+
+                  {/* Phone & Address */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '6px', fontSize: '13px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      <span>📞</span>
+                      <a href={`tel:${order.mobile}`} style={{ color: '#0284c7', fontWeight: 700, textDecoration: 'none' }}>
+                        {order.mobile}
+                      </a>
+                    </div>
+                    {order.address && (
+                      <div style={{ fontSize: '12px', color: '#64748b', maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={order.address}>
+                        📍 {order.address}
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Prescription Photos Preview */}
+                  {pImgs.length > 0 && (
+                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center', overflowX: 'auto', paddingBottom: '2px' }}>
+                      {pImgs.map((url: string, pIdx: number) => (
+                        <img 
+                          key={pIdx} 
+                          src={url} 
+                          alt="Prescription" 
+                          onClick={() => setPreviewImageUrl(url)}
+                          style={{ width: '40px', height: '40px', objectFit: 'cover', borderRadius: '6px', border: '1.5px solid #cbd5e1', cursor: 'pointer', flexShrink: 0 }} 
+                        />
+                      ))}
+                      <span style={{ fontSize: '11px', color: '#0284c7', background: '#f0f9ff', padding: '3px 7px', borderRadius: '4px', border: '1px solid #bae6fd', whiteSpace: 'nowrap' }}>
+                        📎 {pImgs.length} photo{pImgs.length > 1 ? 's' : ''}
+                      </span>
+                    </div>
+                  )}
+
+                  {/* Revenue / Anni Ponu Highlight Box */}
+                  <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '8px', padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#047857', fontWeight: 800, letterSpacing: '0.4px' }}>
+                        ★ Anni Ponu (Benva Revenue)
+                      </div>
+                      <div style={{ fontSize: '17px', color: '#065f46', fontWeight: 800 }}>
+                        ₹{Number(order.finalAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right', fontSize: '11px' }}>
+                      <div style={{ color: '#64748b' }}>MRP: <strong style={{ color: '#1e293b' }}>₹{Number(order.totalMrp || 0).toLocaleString('en-IN')}</strong></div>
+                      <div style={{ color: '#dc2626' }}>Disc: <strong>-₹{Number(order.discount || 0).toLocaleString('en-IN')}</strong></div>
+                    </div>
+                  </div>
+
+                  {/* Consignment & Due Date */}
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '8px 10px', borderRadius: '8px', fontSize: '12px', flexWrap: 'wrap', gap: '6px' }}>
+                    <div>
+                      {order.consignmentNo ? (
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          <span style={{ fontWeight: 700, color: '#0369a1' }}>📦 {order.consignmentNo}</span>
+                          {order.consignmentImage && (
+                            <span onClick={() => setPreviewImageUrl(order.consignmentImage)} style={{ color: '#0284c7', textDecoration: 'underline', cursor: 'pointer', fontSize: '11px' }}>Slip</span>
+                          )}
+                        </div>
+                      ) : (
+                        <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>No consignment</span>
+                      )}
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div>Due: <strong style={{ color: isDueOverdue ? '#dc2626' : '#0f172a' }}>{order.nextDueDate ? new Date(order.nextDueDate).toLocaleDateString('en-GB') : '-'}</strong></div>
+                    </div>
+                  </div>
+
+                  {/* Action Buttons Toolbar */}
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', paddingTop: '4px', borderTop: '1px solid #f1f5f9' }}>
+                    <button 
+                      onClick={() => generatePDF(order, 'view', 'internal')} 
+                      disabled={generatingPdfId === `${order.id}-internal-view`}
+                      style={{ flex: 1, minWidth: '85px', background: '#0f3162', color: 'white', border: 'none', padding: '7px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      👁️ Office
+                    </button>
+                    <button 
+                      onClick={() => generatePDF(order, 'view', 'pharmacy')} 
+                      disabled={generatingPdfId === `${order.id}-pharmacy-view`}
+                      style={{ flex: 1, minWidth: '85px', background: '#0284c7', color: 'white', border: 'none', padding: '7px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      💊 Pharmacy
+                    </button>
+                    <button 
+                      onClick={() => handleOpenConsignmentModal(order)}
+                      style={{ flex: 1, minWidth: '95px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '7px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      🚚 {order.consignmentNo ? 'Edit Track' : '+ Track'}
+                    </button>
+                    <button 
+                      onClick={() => handleEdit(order)} 
+                      style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '7px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                      title="Edit Order"
+                    >
+                      ✏️
+                    </button>
+                    <button 
+                      onClick={() => handleDelete(order.id, order.patientName)} 
+                      disabled={deletingOrderId === order.id}
+                      style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca', padding: '7px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                      title="Delete Order"
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                </div>
+              );
+            })
+          )}
+        </div>
+
+        {/* Pagination Controls */}
+        {renderPagination(ordersPage, totalOrdersPages, filteredOrders.length, setOrdersPage)}
       </div>
       </>
     )}
@@ -2078,52 +2492,52 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         </div>
 
         {/* Metric Cards for Reminders */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '16px' }}>
-          <div style={{ background: 'linear-gradient(135deg, #b45309 0%, #d97706 100%)', color: 'white', borderRadius: '12px', padding: '18px 20px', boxShadow: '0 4px 14px rgba(217, 119, 6, 0.25)' }}>
-            <div style={{ fontSize: '11px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.6px', opacity: 0.9 }}>
+        <div className="metric-cards-grid">
+          <div className="metric-card-box" style={{ background: 'linear-gradient(135deg, #b45309 0%, #d97706 100%)', color: 'white', boxShadow: '0 4px 14px rgba(217, 119, 6, 0.25)' }}>
+            <div style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.6px', opacity: 0.9 }}>
               🔔 Next Month Due ({nextMonthName})
             </div>
-            <div style={{ fontSize: '28px', fontWeight: 800, marginTop: '4px' }}>
+            <div className="metric-card-val" style={{ color: 'white' }}>
               {nextMonthOrders.length} Patient{nextMonthOrders.length === 1 ? '' : 's'}
             </div>
-            <div style={{ fontSize: '12px', opacity: 0.9, marginTop: '4px' }}>
-              Refills scheduled during {nextMonthName}
+            <div style={{ fontSize: '11px', opacity: 0.9, marginTop: '3px' }}>
+              Refills in {nextMonthName}
             </div>
           </div>
 
-          <div style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #10b981', borderRadius: '12px', padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div className="metric-card-box" style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #10b981', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+            <div style={{ fontSize: '10px', fontWeight: 700, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               💰 Expected Refill Revenue
             </div>
-            <div style={{ fontSize: '26px', fontWeight: 800, color: '#065f46', marginTop: '4px' }}>
+            <div className="metric-card-val" style={{ color: '#065f46' }}>
               ₹{nextMonthProjectedRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
             </div>
-            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-              Estimated monthly refill value ({nextMonthName})
+            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px' }}>
+              Monthly refill value
             </div>
           </div>
 
-          <div style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #0284c7', borderRadius: '12px', padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: '#0369a1', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div className="metric-card-box" style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #0284c7', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+            <div style={{ fontSize: '10px', fontWeight: 700, color: '#0369a1', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               🗓️ Total Upcoming Refills
             </div>
-            <div style={{ fontSize: '26px', fontWeight: 800, color: '#0f274a', marginTop: '4px' }}>
+            <div className="metric-card-val" style={{ color: '#0f274a' }}>
               {allUpcomingOrders.length} Scheduled
             </div>
-            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px' }}>
-              All future refilling dates
+            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px' }}>
+              All future refill dates
             </div>
           </div>
 
-          <div style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #ef4444', borderRadius: '12px', padding: '18px 20px', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-            <div style={{ fontSize: '11px', fontWeight: 700, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+          <div className="metric-card-box" style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #ef4444', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+            <div style={{ fontSize: '10px', fontWeight: 700, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
               ⚠️ Overdue Refills
             </div>
-            <div style={{ fontSize: '26px', fontWeight: 800, color: '#dc2626', marginTop: '4px' }}>
+            <div className="metric-card-val" style={{ color: '#dc2626' }}>
               {overdueOrders.length} Overdue
             </div>
-            <div style={{ fontSize: '12px', color: '#dc2626', marginTop: '4px' }}>
-              Due date passed without renewal
+            <div style={{ fontSize: '11px', color: '#dc2626', marginTop: '3px' }}>
+              Passed without renewal
             </div>
           </div>
         </div>
@@ -2243,8 +2657,8 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
             />
           </div>
 
-          {/* Reminders Table */}
-          <div style={{ overflowX: 'auto' }}>
+          {/* Reminders Table for Desktop */}
+          <div className="desktop-table-view" style={{ overflowX: 'auto' }}>
             <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0', color: '#0f172a' }}>
               <thead>
                 <tr style={{ background: '#f8fafc', textAlign: 'left' }}>
@@ -2258,7 +2672,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                 </tr>
               </thead>
               <tbody>
-                {filteredReminders.length === 0 ? (
+                {paginatedReminders.length === 0 ? (
                   <tr>
                     <td colSpan={7} style={{ textAlign: 'center', padding: '48px 20px', color: '#94a3b8' }}>
                       <div style={{ fontSize: '36px', marginBottom: '10px' }}>🔔</div>
@@ -2287,7 +2701,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                     </td>
                   </tr>
                 ) : (
-                  filteredReminders.map((order, index) => {
+                  paginatedReminders.map((order, index) => {
                     const dueDate = new Date(order.nextDueDate);
                     const isOverdue = dueDate < now;
                     const isNextMonthDue = dueDate >= nextMonthStart && dueDate <= nextMonthEnd;
@@ -2299,11 +2713,12 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                     } catch (e) {}
 
                     const activeMeds = medList.filter((m: any) => m.isSelected !== false);
+                    const reminderIndex = (remindersPage - 1) * pageSize + index + 1;
 
                     return (
                       <tr key={order.id} style={{ borderBottom: '1px solid #f1f5f9', background: index % 2 === 0 ? 'white' : '#fafafa' }}>
                         <td style={{ padding: '16px 14px', color: '#64748b', fontWeight: 700, fontSize: '13px' }}>
-                          {index + 1}
+                          {reminderIndex}
                         </td>
 
                         {/* Patient Details */}
@@ -2484,6 +2899,190 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
               </tbody>
             </table>
           </div>
+
+          {/* Mobile Cards View for Reminders (< 768px) */}
+          <div className="mobile-cards-view">
+            {paginatedReminders.length === 0 ? (
+              <div style={{ textAlign: 'center', padding: '30px', color: '#64748b', background: '#f8fafc', borderRadius: '10px' }}>
+                <div style={{ fontSize: '28px', marginBottom: '6px' }}>🎉</div>
+                <div style={{ fontWeight: 600, fontSize: '14px' }}>
+                  No medicine refill reminders for this filter
+                </div>
+              </div>
+            ) : (
+              paginatedReminders.map((order, index) => {
+                const dueDate = new Date(order.nextDueDate);
+                const isOverdue = dueDate < now;
+                const isNextMonthDue = dueDate >= nextMonthStart && dueDate <= nextMonthEnd;
+
+                let medList: any[] = [];
+                try {
+                  if (typeof order.medicines === 'string') medList = JSON.parse(order.medicines);
+                  else if (Array.isArray(order.medicines)) medList = order.medicines;
+                } catch (e) {}
+                const activeMeds = medList.filter((m: any) => m.isSelected !== false);
+                const reminderIndex = (remindersPage - 1) * pageSize + index + 1;
+
+                return (
+                  <div key={order.id} className="mobile-order-card" style={{ borderLeft: isOverdue ? '4px solid #ef4444' : (isNextMonthDue ? '4px solid #f59e0b' : '4px solid #0284c7') }}>
+                    {/* Top Header */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: '8px' }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                          <span style={{ background: '#f1f5f9', color: '#64748b', fontSize: '11px', fontWeight: 800, padding: '2px 6px', borderRadius: '4px' }}>
+                            #{reminderIndex}
+                          </span>
+                          <span style={{ fontWeight: 800, color: '#0f274a', fontSize: '16px' }}>{order.patientName}</span>
+                        </div>
+                        {order.uhid && (
+                          <span style={{ fontSize: '10px', background: '#e0f2fe', color: '#0369a1', padding: '1px 6px', borderRadius: '4px', fontWeight: 700, border: '1px solid #bae6fd', marginTop: '3px', display: 'inline-block' }}>
+                            🆔 {order.uhid}
+                          </span>
+                        )}
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <span style={{ 
+                          padding: '3px 8px', 
+                          borderRadius: '20px', 
+                          fontSize: '11px', 
+                          fontWeight: 800, 
+                          background: isOverdue ? '#fee2e2' : (isNextMonthDue ? '#fef3c7' : '#e0f2fe'), 
+                          color: isOverdue ? '#dc2626' : (isNextMonthDue ? '#b45309' : '#0369a1'),
+                          display: 'inline-block'
+                        }}>
+                          {getDaysUntilDue(dueDate)}
+                        </span>
+                        <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px' }}>
+                          Due: {dueDate.toLocaleDateString('en-GB')}
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Prescribed Medicines Preview */}
+                    {activeMeds.length > 0 && (
+                      <div style={{ background: '#f8fafc', padding: '8px 10px', borderRadius: '8px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                        <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Prescribed Medicines:</div>
+                        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px' }}>
+                          {activeMeds.slice(0, 3).map((m: any, mIdx: number) => (
+                            <span key={mIdx} style={{ fontSize: '11px', color: '#334155', background: 'white', border: '1px solid #e2e8f0', padding: '2px 6px', borderRadius: '4px' }}>
+                              💊 {m.name || 'Medicine'} {m.quantity ? `×${m.quantity}` : ''}
+                            </span>
+                          ))}
+                          {activeMeds.length > 3 && (
+                            <span style={{ fontSize: '11px', color: '#64748b', padding: '2px 4px' }}>+{activeMeds.length - 3} more</span>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Financials & Phone */}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '12px' }}>
+                      <div>
+                        <span>📞 </span>
+                        <a href={`tel:${order.mobile}`} style={{ color: '#0284c7', fontWeight: 700, textDecoration: 'none' }}>
+                          {order.mobile}
+                        </a>
+                      </div>
+                      <div>
+                        Refill Est: <strong style={{ color: '#065f46' }}>₹{Number(order.finalAmount || 0).toLocaleString('en-IN')}</strong>
+                      </div>
+                    </div>
+
+                    {/* 1-Tap Action Row */}
+                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '6px', paddingTop: '4px', borderTop: '1px solid #f1f5f9' }}>
+                      <a
+                        href={getWhatsAppReminderUrl(order)}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        style={{
+                          background: '#25D366',
+                          color: 'white',
+                          padding: '8px 10px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          textDecoration: 'none',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          boxShadow: '0 2px 4px rgba(37,211,102,0.25)'
+                        }}
+                      >
+                        <span>💬</span> WhatsApp
+                      </a>
+
+                      <button
+                        type="button"
+                        onClick={() => handleQuickRefill(order)}
+                        style={{
+                          background: '#0284c7',
+                          color: 'white',
+                          border: 'none',
+                          padding: '8px 10px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '6px',
+                          boxShadow: '0 2px 4px rgba(2,132,199,0.25)'
+                        }}
+                      >
+                        <span>🔄</span> Refill
+                      </button>
+
+                      <a
+                        href={`tel:${order.mobile}`}
+                        style={{
+                          background: '#f1f5f9',
+                          color: '#0369a1',
+                          padding: '7px 10px',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: 700,
+                          textDecoration: 'none',
+                          border: '1px solid #cbd5e1',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '4px'
+                        }}
+                      >
+                        <span>📞</span> Call
+                      </a>
+
+                      <button
+                        type="button"
+                        onClick={() => handleOpenDueDateModal(order)}
+                        style={{
+                          background: '#fff',
+                          color: '#475569',
+                          border: '1px solid #cbd5e1',
+                          padding: '7px 10px',
+                          borderRadius: '6px',
+                          fontSize: '11px',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '4px'
+                        }}
+                      >
+                        <span>✏️</span> Edit Date
+                      </button>
+                    </div>
+                  </div>
+                );
+              })
+            )}
+          </div>
+
+          {/* Pagination for Reminders */}
+          {renderPagination(remindersPage, totalRemindersPages, filteredReminders.length, setRemindersPage)}
         </div>
       </div>
     )}

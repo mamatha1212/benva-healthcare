@@ -5,9 +5,8 @@ import { cookies } from 'next/headers';
 
 export const dynamic = 'force-dynamic';
 
-export default async function GenericModulePage({ params }: { params: Promise<{ module: string }> | { module: string } }) {
-  // Resolve params if it's a promise (Next.js 15+ pattern)
-  const resolvedParams = await Promise.resolve(params);
+export default async function GenericModulePage({ params }: { params: Promise<{ module: string }> }) {
+  const resolvedParams = await params;
   const moduleSlug = resolvedParams.module;
   const expectedModuleName = moduleSlug.toUpperCase();
 
