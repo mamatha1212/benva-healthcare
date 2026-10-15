@@ -1638,13 +1638,23 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         
         @media (max-width: 768px) {
           .medicines-page-container {
-            padding: 12px 10px;
+            padding: 0 !important;
+          }
+          .med-table-card {
+            padding: 10px !important;
+            border-radius: 10px !important;
+          }
+          .mobile-filter-container {
+            padding: 10px !important;
+            border-radius: 8px !important;
+            gap: 10px !important;
+            margin-bottom: 14px !important;
           }
           .med-header {
             flex-direction: column;
             align-items: stretch;
             gap: 12px;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
           }
           .med-header-title {
             font-size: 20px;
@@ -1658,30 +1668,31 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
           .med-header-actions button {
             width: 100%;
             justify-content: center;
-            padding: 12px !important;
-            font-size: 14px !important;
+            padding: 11px !important;
+            font-size: 13px !important;
           }
           .med-tabs-container {
             width: 100%;
             display: grid;
             grid-template-columns: 1fr 1fr;
             padding: 4px;
-            margin-bottom: 16px;
+            margin-bottom: 14px;
             box-sizing: border-box;
           }
           .med-tab-btn {
-            padding: 9px 8px;
+            padding: 8px 6px;
             font-size: 12px;
             justify-content: center;
             text-align: center;
           }
           .metric-cards-grid {
             grid-template-columns: 1fr 1fr;
-            gap: 10px;
-            margin-bottom: 16px;
+            gap: 8px;
+            margin-bottom: 14px;
           }
           .metric-card-box {
-            padding: 12px 12px;
+            padding: 10px !important;
+            border-radius: 10px !important;
           }
           .metric-card-val {
             font-size: 17px !important;
@@ -1692,20 +1703,17 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
           .mobile-cards-view {
             display: flex !important;
             flex-direction: column;
-            gap: 12px;
+            gap: 10px;
           }
           .mobile-order-card {
             background: white;
             border: 1px solid #e2e8f0;
-            border-radius: 12px;
-            padding: 14px;
+            border-radius: 10px;
+            padding: 10px !important;
             box-shadow: 0 2px 8px rgba(0,0,0,0.04);
             display: flex;
             flex-direction: column;
             gap: 10px;
-          }
-          .mobile-filter-container {
-            padding: 12px 10px !important;
           }
         }
       `}</style>
@@ -1868,9 +1876,9 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
             </div>
           </div>
 
-      <div style={{ background: 'white', borderRadius: '14px', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+      <div className="med-table-card" style={{ background: 'white', borderRadius: '14px', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
         {/* Date Filter & Export Toolbar */}
-        <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px', display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', justifyContent: 'space-between' }}>
+        <div className="mobile-filter-container" style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px', display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', justifyContent: 'space-between' }}>
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center' }}>
             {/* Quick Month Presets */}
             <div style={{ display: 'flex', gap: '6px', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -2543,9 +2551,9 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         </div>
 
         {/* Reminders Table Box */}
-        <div style={{ background: 'white', borderRadius: '14px', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+        <div className="med-table-card" style={{ background: 'white', borderRadius: '14px', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
           {/* Filter Pills Toolbar */}
-          <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px', display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', justifyContent: 'space-between' }}>
+          <div className="mobile-filter-container" style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px', display: 'flex', flexWrap: 'wrap', gap: '14px', alignItems: 'center', justifyContent: 'space-between' }}>
             <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
               <button
                 type="button"
