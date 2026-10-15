@@ -119,6 +119,7 @@ const convertImagesToPDF = async (imageUrls: string[]): Promise<Blob | null> => 
 export default function FreeConsultationsClient({ initialRequests }: { initialRequests: any[] }) {
   const [requests, setRequests] = useState(initialRequests);
   const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
   const [viewingRequest, setViewingRequest] = useState<any>(null);
   const [actionLoading, setActionLoading] = useState<'view' | 'share' | 'zip' | 'download' | null>(null);
 
@@ -408,6 +409,32 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
     }
   };
 
+  const handleDelete = async (id: string, name?: string) => {
+    if (!window.confirm(`Are you sure you want to delete the consultation request for "${name || 'this patient'}"?\nThis action cannot be undone.`)) {
+      return;
+    }
+    setDeletingId(id);
+    try {
+      const res = await fetch(`/api/admin/free-consultations/${id}`, {
+        method: 'DELETE'
+      });
+      if (res.ok) {
+        setRequests(prev => prev.filter(r => r.id !== id));
+        if (viewingRequest?.id === id) {
+          setViewingRequest(null);
+        }
+      } else {
+        const data = await res.json().catch(() => ({}));
+        alert(data.error || 'Failed to delete request');
+      }
+    } catch (err) {
+      console.error('Delete request error:', err);
+      alert('Network error while deleting request');
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
   return (
     <div>
       <style>{`
@@ -536,15 +563,48 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
                   <RemarkInput req={req} onSave={handleRemarksBlur} />
                 </td>
                 <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', textAlign: 'right' }}>
-                  <button onClick={() => setViewingRequest(req)} style={{ padding: '6px 12px', borderRadius: '6px', background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', cursor: 'pointer', fontWeight: 600, fontSize: '13px' }}>
-                    View Details
-                  </button>
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px' }}>
+                    <button 
+                      onClick={() => setViewingRequest(req)} 
+                      style={{ padding: '6px 12px', borderRadius: '6px', background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', cursor: 'pointer', fontWeight: 600, fontSize: '13px', whiteSpace: 'nowrap' }}
+                    >
+                      View Details
+                    </button>
+                    <button
+                      onClick={() => handleDelete(req.id, req.name)}
+                      disabled={deletingId === req.id}
+                      style={{
+                        padding: '6px 10px',
+                        borderRadius: '6px',
+                        background: '#fef2f2',
+                        color: '#dc2626',
+                        border: '1px solid #fecaca',
+                        cursor: deletingId === req.id ? 'not-allowed' : 'pointer',
+                        fontWeight: 600,
+                        fontSize: '13px',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '4px',
+                        whiteSpace: 'nowrap',
+                        opacity: deletingId === req.id ? 0.6 : 1
+                      }}
+                      title="Delete consultation request"
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                        <line x1="10" y1="11" x2="10" y2="17"></line>
+                        <line x1="14" y1="11" x2="14" y2="17"></line>
+                      </svg>
+                      {deletingId === req.id ? 'Deleting...' : 'Delete'}
+                    </button>
+                  </div>
                 </td>
               </tr>
             ))}
             {filteredRequests.length === 0 && (
               <tr>
-                <td colSpan={7} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>No requests found.</td>
+                <td colSpan={8} style={{ padding: '32px', textAlign: 'center', color: '#64748b' }}>No requests found.</td>
               </tr>
             )}
           </tbody>
@@ -807,6 +867,21 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
             </div>
             
             <div className="modal-actions">
+              <button 
+                onClick={() => handleDelete(viewingRequest.id, viewingRequest.name)}
+                className="modal-action-btn"
+                disabled={deletingId === viewingRequest.id || actionLoading !== null}
+                style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', marginRight: 'auto' }}
+                title="Delete this consultation request"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+                {deletingId === viewingRequest.id ? 'Deleting...' : 'Delete Request'}
+              </button>
               <button 
                 onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'view')}
                 className="modal-action-btn"
