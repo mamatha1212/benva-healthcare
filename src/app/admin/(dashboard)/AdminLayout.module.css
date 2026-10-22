@@ -272,3 +272,31 @@
     z-index: 40; /* Below sidebar (z-index 50) */
   }
 }
+
+/* Ensure all date inputs in admin pages have high contrast text and visible placeholder values */
+.layout input[type="date"] {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  color-scheme: light !important;
+  font-weight: 500;
+}
+
+.layout input[type="date"]::-webkit-datetime-edit,
+.layout input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+.layout input[type="date"]::-webkit-datetime-edit-month-field,
+.layout input[type="date"]::-webkit-datetime-edit-day-field,
+.layout input[type="date"]::-webkit-datetime-edit-year-field {
+  color: #0f172a !important;
+}
+
+.layout input[type="date"]::-webkit-datetime-edit-text {
+  color: #475569 !important;
+  font-weight: 600;
+}
+
+.layout input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.85;
+  filter: invert(0.2);
+}
+

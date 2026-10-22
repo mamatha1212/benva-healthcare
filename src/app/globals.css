@@ -98,3 +98,57 @@ html, body {
   0%   { background-position: -200% center; }
   100% { background-position: 200% center; }
 }
+
+/* ─── Universal High-Contrast Date/Time Input Styles ───────── */
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  color: #0f172a !important;
+  background-color: #ffffff !important;
+  color-scheme: light !important;
+  font-weight: 500;
+}
+
+/* Ensure WebKit/Blink (Chrome, Edge, Safari) internal date parts are dark & visible */
+input[type="date"]::-webkit-datetime-edit,
+input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+input[type="date"]::-webkit-datetime-edit-month-field,
+input[type="date"]::-webkit-datetime-edit-day-field,
+input[type="date"]::-webkit-datetime-edit-year-field,
+input[type="time"]::-webkit-datetime-edit,
+input[type="time"]::-webkit-datetime-edit-fields-wrapper,
+input[type="time"]::-webkit-datetime-edit-hour-field,
+input[type="time"]::-webkit-datetime-edit-minute-field,
+input[type="time"]::-webkit-datetime-edit-ampm-field,
+input[type="datetime-local"]::-webkit-datetime-edit,
+input[type="datetime-local"]::-webkit-datetime-edit-fields-wrapper,
+input[type="datetime-local"]::-webkit-datetime-edit-month-field,
+input[type="datetime-local"]::-webkit-datetime-edit-day-field,
+input[type="datetime-local"]::-webkit-datetime-edit-year-field {
+  color: #0f172a !important;
+}
+
+/* Separators / hyphens in date format */
+input[type="date"]::-webkit-datetime-edit-text,
+input[type="datetime-local"]::-webkit-datetime-edit-text {
+  color: #475569 !important;
+  font-weight: 600;
+  padding: 0 1px;
+}
+
+/* Calendar picker icon */
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  opacity: 0.85;
+  filter: invert(0.2);
+  transition: opacity 0.2s ease;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+

@@ -14,6 +14,8 @@ export interface MedicineOrderTransaction {
   grossMrp: number;
   discount: number;
   netRevenue: number;
+  actualCost?: number;
+  profit?: number;
   status: string;
 }
 
@@ -21,6 +23,8 @@ export interface MedicineRevenueSummary {
   totalGrossMrp: number;
   totalDiscount: number;
   totalNetRevenue: number;
+  totalActualCost?: number;
+  totalProfit?: number;
   ordersCount: number;
   activeCount: number;
 }
@@ -58,6 +62,8 @@ export default function MedicineRevenueStatementModal({
       'Gross MRP (INR)',
       'Discounts / Deductions (INR)',
       'Benva Net Revenue - Anni Ponu (INR)',
+      'Actual Cost Afforded (INR)',
+      'Benva Profit (INR)',
       'Status'
     ];
 
@@ -72,6 +78,8 @@ export default function MedicineRevenueStatementModal({
       t.grossMrp.toFixed(2),
       t.discount.toFixed(2),
       t.netRevenue.toFixed(2),
+      (t.actualCost || 0).toFixed(2),
+      (t.profit || 0).toFixed(2),
       `"${t.status || 'ACTIVE'}"`
     ]);
 

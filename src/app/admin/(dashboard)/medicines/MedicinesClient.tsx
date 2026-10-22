@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import MedicineRevenueStatementModal, { MedicineOrderTransaction, MedicineRevenueSummary } from './MedicineRevenueStatementModal';
 
@@ -12,7 +12,9 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
   const searchParams = useSearchParams();
   const router = useRouter();
   const tabFromUrl = searchParams.get('tab');
-  const [currentTab, setCurrentTab] = useState<'orders' | 'upcoming'>(tabFromUrl === 'upcoming' ? 'upcoming' : 'orders');
+  const [currentTab, setCurrentTab] = useState<'orders' | 'inventory' | 'upcoming'>(
+    tabFromUrl === 'upcoming' ? 'upcoming' : tabFromUrl === 'inventory' ? 'inventory' : 'orders'
+  );
   const [reminderFilter, setReminderFilter] = useState<'next_month' | 'next_30_days' | 'next_60_days' | 'all_upcoming' | 'overdue'>('next_month');
   const [editingDueDateOrder, setEditingDueDateOrder] = useState<any | null>(null);
   const [newDueDateValue, setNewDueDateValue] = useState('');
@@ -36,10 +38,17 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
   const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
-  // Pagination States
+  // Pagination & Filter States
   const [ordersPage, setOrdersPage] = useState(1);
   const [remindersPage, setRemindersPage] = useState(1);
   const [pageSize, setPageSize] = useState(10);
+
+  // Medicine Inventory / Directory States
+  const [medSearchTerm, setMedSearchTerm] = useState('');
+  const [medRackFilter, setMedRackFilter] = useState('all');
+  const [medTypeFilter, setMedTypeFilter] = useState('all');
+  const [medsPage, setMedsPage] = useState(1);
+  const [medPageSize, setMedPageSize] = useState(12);
 
   useEffect(() => {
     setOrdersPage(1);
@@ -50,18 +59,26 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
   }, [searchTerm, reminderFilter]);
 
   useEffect(() => {
+    setMedsPage(1);
+  }, [medSearchTerm, medRackFilter, medTypeFilter]);
+
+  useEffect(() => {
     if (tabFromUrl === 'upcoming') {
       setCurrentTab('upcoming');
+    } else if (tabFromUrl === 'inventory') {
+      setCurrentTab('inventory');
     } else if (tabFromUrl === 'orders' || !tabFromUrl) {
       setCurrentTab('orders');
     }
   }, [tabFromUrl]);
 
-  const handleTabChange = (newTab: 'orders' | 'upcoming') => {
+  const handleTabChange = (newTab: 'orders' | 'inventory' | 'upcoming') => {
     setCurrentTab(newTab);
     const params = new URLSearchParams(window.location.search);
     if (newTab === 'upcoming') {
       params.set('tab', 'upcoming');
+    } else if (newTab === 'inventory') {
+      params.set('tab', 'inventory');
     } else {
       params.delete('tab');
     }
@@ -273,14 +290,81 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
   const handleAddMedicine = () => {
     setFormData(prev => ({
       ...prev,
-      medicines: [...prev.medicines, { id: Date.now().toString(), name: '', type: 'Tablet', quantity: '', instructions: '', isSelected: true }]
+      medicines: [
+        ...prev.medicines, 
+        { 
+          id: Date.now().toString(), 
+          name: '', 
+          type: 'Tablet', 
+          customType: '',
+          quantity: '', 
+          rack: '',
+          pack: '',
+          mrp: '',
+          discountPrice: '',
+          instructions: '', 
+          actualPrice: '', 
+          profit: '', 
+          isSelected: true 
+        }
+      ]
     }));
   };
 
   const handleMedicineChange = (index: number, field: string, value: any) => {
     const newMeds = [...formData.medicines];
     newMeds[index] = { ...newMeds[index], [field]: value };
-    setFormData({ ...formData, medicines: newMeds });
+
+    // Auto-calculate profit if discountPrice and actualPrice are present
+    if (field === 'discountPrice' || field === 'actualPrice') {
+      const dPrice = parseFloat(String(field === 'discountPrice' ? value : newMeds[index].discountPrice));
+      const aPrice = parseFloat(String(field === 'actualPrice' ? value : newMeds[index].actualPrice));
+      if (!isNaN(dPrice) && !isNaN(aPrice) && dPrice >= aPrice) {
+        newMeds[index].profit = dPrice - aPrice;
+      }
+    }
+
+    let updatedTotalMrp = formData.totalMrp;
+    let updatedFinal = formData.finalAmount;
+
+    // Automatically recalculate Total MRP if individual medicine MRPs are updated
+    if (field === 'mrp') {
+      const sumMrp = newMeds
+        .filter((m: any) => m.isSelected !== false)
+        .reduce((acc: number, m: any) => acc + (parseFloat(String(m.mrp)) || 0), 0);
+      if (sumMrp > 0) {
+        updatedTotalMrp = sumMrp;
+        const disc = parseFloat(String(formData.discount)) || 0;
+        updatedFinal = Math.max(0, sumMrp - disc);
+      }
+    }
+
+    // Automatically calculate Final Amount if individual medicine discount prices are updated
+    if (field === 'discountPrice') {
+      const sumUserPrice = newMeds
+        .filter((m: any) => m.isSelected !== false)
+        .reduce((acc: number, m: any) => acc + (parseFloat(String(m.discountPrice)) || 0), 0);
+      if (sumUserPrice > 0) {
+        updatedFinal = sumUserPrice;
+        const mrpVal = parseFloat(String(updatedTotalMrp)) || 0;
+        if (mrpVal >= sumUserPrice) {
+          setFormData({
+            ...formData,
+            medicines: newMeds,
+            discount: mrpVal - sumUserPrice,
+            finalAmount: sumUserPrice
+          });
+          return;
+        }
+      }
+    }
+
+    setFormData({ 
+      ...formData, 
+      medicines: newMeds, 
+      totalMrp: updatedTotalMrp, 
+      finalAmount: updatedFinal 
+    });
   };
 
   const handleRemoveMedicine = (index: number) => {
@@ -446,12 +530,42 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         }
       }
     }
+    let medList: any[] = [];
+    if (Array.isArray(order.medicines)) {
+      medList = order.medicines;
+    } else if (typeof order.medicines === 'string') {
+      try {
+        const parsed = JSON.parse(order.medicines);
+        if (Array.isArray(parsed)) medList = parsed;
+        else if (parsed) medList = [parsed];
+      } catch (e) {}
+    }
+    const STANDARD_TYPES = ['Tablet', 'Strip', 'Capsule', 'Syrup', 'Injection', 'Ointment'];
+    const normalizedMeds = medList.map((m: any, idx: number) => {
+      const isCustom = m.type === 'Other' || (m.type && !STANDARD_TYPES.includes(m.type));
+      return {
+        id: m.id || `${Date.now()}-${idx}`,
+        name: m.name || '',
+        type: isCustom ? 'Other' : (m.type || 'Tablet'),
+        customType: m.customType || (isCustom && m.type !== 'Other' ? m.type : ''),
+        quantity: m.quantity || '',
+        rack: m.rack || '',
+        pack: m.pack || '',
+        mrp: m.mrp !== undefined ? m.mrp : '',
+        discountPrice: m.discountPrice !== undefined ? m.discountPrice : '',
+        instructions: m.instructions || '',
+        actualPrice: m.actualPrice !== undefined ? m.actualPrice : '',
+        profit: m.profit !== undefined ? m.profit : '',
+        isSelected: m.isSelected !== false
+      };
+    });
+
     setFormData({
       patientName: order.patientName || '',
       mobile: order.mobile || '',
       address: order.address || '',
       prescriptionUrls: urls,
-      medicines: order.medicines || [],
+      medicines: normalizedMeds,
       totalMrp: order.totalMrp ?? '',
       discount: order.discount ?? '',
       finalAmount: order.finalAmount ?? '',
@@ -699,14 +813,75 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
       doc.setFillColor(brandPrimary[0], brandPrimary[1], brandPrimary[2]);
       doc.rect(margin, y, contentWidth, tableHeadH, 'F');
 
-      doc.setTextColor(255, 255, 255);
-      doc.setFontSize(8.5);
-      doc.setFont('helvetica', 'bold');
-      doc.text('#', margin + 4, y + 5.8);
-      doc.text('Medicine Name / Formulation', margin + 14, y + 5.8);
-      doc.text('Type', margin + 85, y + 5.8);
-      doc.text('Qty', margin + 115, y + 5.8);
-      doc.text('Dosage / Instructions', margin + 140, y + 5.8);
+      // Helper: compute medicine pricing (MRP, Discount, User Price)
+      const getMedPricing = (mItem: any) => {
+        const mrp = parseFloat(String(mItem.mrp)) || 0;
+        const actualCost = parseFloat(String(mItem.actualPrice)) || 0;
+        const explicitProfit = parseFloat(String(mItem.profit)) || 0;
+        const explicitDiscPrice = parseFloat(String(mItem.discountPrice)) || 0;
+        const explicitDiscount = parseFloat(String(mItem.discount)) || 0;
+
+        let discountVal = 0;
+        let userPriceVal = mrp;
+
+        if (explicitDiscount > 0) {
+          discountVal = explicitDiscount;
+          userPriceVal = Math.max(0, mrp - discountVal);
+        } else if (explicitDiscPrice > 0) {
+          userPriceVal = explicitDiscPrice;
+          discountVal = Math.max(0, mrp - userPriceVal);
+        } else if (order.discount > 0 && order.totalMrp > 0 && mrp > 0) {
+          discountVal = mrp * (Number(order.discount) / Number(order.totalMrp));
+          userPriceVal = Math.max(0, mrp - discountVal);
+        } else if (explicitProfit > 0) {
+          discountVal = explicitProfit;
+          userPriceVal = mrp > discountVal ? mrp - discountVal : actualCost || mrp;
+        } else if (mrp > 0 && actualCost > 0 && mrp > actualCost) {
+          discountVal = mrp - actualCost;
+          userPriceVal = actualCost;
+        }
+
+        return {
+          mrpVal: mrp,
+          discountVal: discountVal,
+          userPriceVal: userPriceVal,
+          mrpStr: mrp > 0 ? `Rs.${Number(mrp).toLocaleString('en-IN')}` : '-',
+          discountStr: discountVal > 0 ? `Rs.${Number(discountVal).toLocaleString('en-IN')}` : '-',
+          userPriceStr: userPriceVal > 0 ? `Rs.${Number(userPriceVal).toLocaleString('en-IN')}` : '-'
+        };
+      };
+
+      if (!isPharmacy) {
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(7);
+        doc.setFont('helvetica', 'bold');
+        doc.text('#', margin + 2, y + 5.8);
+        doc.text('Medicine Name', margin + 6, y + 5.8);
+        doc.text('Type', margin + 38, y + 5.8);
+        doc.text('Rack', margin + 51, y + 5.8);
+        doc.text('Pack', margin + 64, y + 5.8);
+        doc.text('Qty', margin + 77, y + 5.8);
+        doc.text('MRP (Rs.)', margin + 88, y + 5.8);
+        doc.text('Discount (Rs.)', margin + 104, y + 5.8);
+        doc.text('User Price (Rs.)', margin + 122, y + 5.8);
+        doc.text('Cost (Rs.)', margin + 140, y + 5.8);
+        doc.text('Profit (Rs.)', margin + 155, y + 5.8);
+        doc.text('Instructions', margin + 169, y + 5.8);
+      } else {
+        // Pharmacy Slip: No Rack, shows MRP, Discount (Rs.) and User Price (Rs.)
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(7.5);
+        doc.setFont('helvetica', 'bold');
+        doc.text('#', margin + 2, y + 5.8);
+        doc.text('Medicine Name / Formulation', margin + 7, y + 5.8);
+        doc.text('Type', margin + 54, y + 5.8);
+        doc.text('Pack (Sheets)', margin + 71, y + 5.8);
+        doc.text('Qty', margin + 92, y + 5.8);
+        doc.text('MRP (Rs.)', margin + 106, y + 5.8);
+        doc.text('Discount (Rs.)', margin + 125, y + 5.8);
+        doc.text('User Price (Rs.)', margin + 145, y + 5.8);
+        doc.text('Dosage / Instructions', margin + 165, y + 5.8);
+      }
 
       y += tableHeadH;
       let meds: any[] = [];
@@ -739,30 +914,139 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
           doc.rect(margin, y, contentWidth, rowH, 'FD');
 
           doc.setFont('helvetica', 'normal');
-          doc.setFontSize(8.5);
+          doc.setFontSize(7.5);
           doc.setTextColor(brandDark[0], brandDark[1], brandDark[2]);
-          doc.text(String(idx + 1), margin + 4, y + 6);
 
-          doc.setFont('helvetica', 'bold');
-          doc.text(String(m.name || '-').slice(0, 36), margin + 14, y + 6);
+          const medTypeStr = (m.type === 'Other' && m.customType?.trim()) ? m.customType.trim() : (m.type || '-');
+          const pricing = getMedPricing(m);
 
-          doc.setFont('helvetica', 'normal');
-          doc.setTextColor(71, 85, 105);
-          doc.text(String(m.type || '-').slice(0, 15), margin + 85, y + 6);
-          doc.text(String(m.quantity || '-').slice(0, 15), margin + 115, y + 6);
-          doc.text(String(m.instructions || '-').slice(0, 26), margin + 140, y + 6);
+          if (!isPharmacy) {
+            // #
+            doc.text(String(idx + 1), margin + 2, y + 6);
+
+            // Medicine Name
+            doc.setFont('helvetica', 'bold');
+            doc.text(String(m.name || '-').slice(0, 18), margin + 6, y + 6);
+
+            // Type
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(71, 85, 105);
+            doc.text(String(medTypeStr).slice(0, 7), margin + 38, y + 6);
+
+            // Rack (Office only)
+            doc.setTextColor(146, 64, 14); // Warm amber
+            doc.text(String(m.rack || '-').slice(0, 6), margin + 51, y + 6);
+
+            // Pack (Sheets)
+            doc.setTextColor(3, 105, 161); // Sky blue
+            doc.text(String(m.pack || '-').slice(0, 7), margin + 64, y + 6);
+
+            // Qty
+            doc.setTextColor(15, 23, 42);
+            doc.setFont('helvetica', 'bold');
+            doc.text(String(m.quantity || '-').slice(0, 5), margin + 77, y + 6);
+
+            // MRP (Rs.)
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(15, 118, 110); // Teal
+            doc.text(pricing.mrpStr.slice(0, 8), margin + 88, y + 6);
+
+            // Discount (Rs.)
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(220, 38, 38); // Red
+            doc.text(pricing.discountStr.slice(0, 9), margin + 104, y + 6);
+
+            // User Price (Rs.)
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(2, 132, 199); // Blue
+            doc.text(pricing.userPriceStr.slice(0, 9), margin + 122, y + 6);
+
+            // Cost (Rs.)
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(55, 48, 163); // Indigo
+            const costVal = m.actualPrice !== undefined && m.actualPrice !== '' && !isNaN(Number(m.actualPrice)) ? `Rs.${Number(m.actualPrice).toLocaleString('en-IN')}` : '-';
+            doc.text(costVal.slice(0, 8), margin + 140, y + 6);
+
+            // Profit (Rs.)
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(21, 128, 61); // Green
+            const profitVal = m.profit !== undefined && m.profit !== '' && !isNaN(Number(m.profit)) ? `+Rs.${Number(m.profit).toLocaleString('en-IN')}` : '-';
+            doc.text(profitVal.slice(0, 8), margin + 155, y + 6);
+
+            // Instructions
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(100, 116, 139);
+            doc.text(String(m.instructions || '-').slice(0, 12), margin + 169, y + 6);
+          } else {
+            // Pharmacy Slip (No Rack, No Cost, No Profit - shows MRP, Discount & User Price)
+            doc.text(String(idx + 1), margin + 2, y + 6);
+
+            doc.setFont('helvetica', 'bold');
+            doc.text(String(m.name || '-').slice(0, 24), margin + 7, y + 6);
+
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(71, 85, 105);
+            doc.text(String(medTypeStr).slice(0, 8), margin + 54, y + 6);
+
+            // Pack (Sheets)
+            doc.setTextColor(3, 105, 161);
+            doc.text(String(m.pack || '-').slice(0, 10), margin + 71, y + 6);
+
+            // Qty
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(15, 23, 42);
+            doc.text(String(m.quantity || '-').slice(0, 6), margin + 92, y + 6);
+
+            // MRP (Rs.)
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(100, 116, 139); // Slate muted
+            doc.text(pricing.mrpStr.slice(0, 9), margin + 106, y + 6);
+
+            // Discount (Rs.)
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(21, 128, 61); // Emerald green for discount
+            doc.text(pricing.discountStr.slice(0, 10), margin + 125, y + 6);
+
+            // User Price (Rs.)
+            doc.setFont('helvetica', 'bold');
+            doc.setTextColor(2, 132, 199); // Highlighted in blue
+            doc.text(pricing.userPriceStr.slice(0, 10), margin + 145, y + 6);
+
+            // Dosage / Instructions
+            doc.setFont('helvetica', 'normal');
+            doc.setTextColor(71, 85, 105);
+            doc.text(String(m.instructions || '-').slice(0, 16), margin + 165, y + 6);
+          }
 
           y += rowH;
         });
       }
 
       // 5. Section 3: Office Billing Card (Only on Office Copy)
-      if (!isPharmacy && (Number(order.totalMrp) > 0 || Number(order.discount) > 0 || Number(order.finalAmount) > 0)) {
+      if (!isPharmacy) {
+        const { actualCost, profit: calcProfit } = getOrderFinancials(order);
+
+        let totalMedMrp = 0;
+        let totalMedDiscount = 0;
+        let totalMedUserPrice = 0;
+        meds.forEach((m: any) => {
+          const pricing = getMedPricing(m);
+          totalMedMrp += pricing.mrpVal;
+          totalMedDiscount += pricing.discountVal;
+          totalMedUserPrice += pricing.userPriceVal;
+        });
+
+        const displayTotalMrp = (order.totalMrp && Number(order.totalMrp) > 0) ? Number(order.totalMrp) : totalMedMrp;
+        const displayDiscount = (order.discount && Number(order.discount) > 0) ? Number(order.discount) : totalMedDiscount;
+        const displayFinalRevenue = (displayDiscount > 0 && displayTotalMrp >= displayDiscount)
+          ? (displayTotalMrp - displayDiscount)
+          : (order.finalAmount && Number(order.finalAmount) > 0 ? Number(order.finalAmount) : totalMedUserPrice);
+
         y += 7;
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(9);
         doc.setTextColor(brandPrimary[0], brandPrimary[1], brandPrimary[2]);
-        doc.text('BILLING & FINANCIAL SUMMARY', margin, y);
+        doc.text('OFFICE BILLING & FINANCIAL SUMMARY', margin, y);
 
         y += 4;
         const billBoxH = 17;
@@ -771,44 +1055,70 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         doc.setLineWidth(0.35);
         doc.roundedRect(margin, y, contentWidth, billBoxH, 2.5, 2.5, 'FD');
 
-        const colW = contentWidth / 3;
+        const colW = contentWidth / 5;
 
-        // Total MRP
+        // 1. Total MRP
         doc.setFont('helvetica', 'normal');
-        doc.setFontSize(7.5);
+        doc.setFontSize(7);
         doc.setTextColor(brandMuted[0], brandMuted[1], brandMuted[2]);
-        doc.text('TOTAL MRP (CATALOG)', margin + 10, y + 6);
+        doc.text('TOTAL MRP', margin + 4, y + 5.5);
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(11);
+        doc.setFontSize(10);
         doc.setTextColor(brandDark[0], brandDark[1], brandDark[2]);
-        doc.text(`Rs. ${Number(order.totalMrp || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, margin + 10, y + 13);
+        doc.text(`Rs. ${displayTotalMrp.toLocaleString('en-IN')}`, margin + 4, y + 12.5);
 
         // Divider 1
         doc.setDrawColor(brandBorder[0], brandBorder[1], brandBorder[2]);
         doc.line(margin + colW, y + 2.5, margin + colW, y + billBoxH - 2.5);
 
-        // Discount
+        // 2. Discount
         doc.setFont('helvetica', 'normal');
-        doc.setFontSize(7.5);
+        doc.setFontSize(7);
         doc.setTextColor(brandMuted[0], brandMuted[1], brandMuted[2]);
-        doc.text('DISCOUNT SAVINGS', margin + colW + 10, y + 6);
+        doc.text('DISCOUNT', margin + colW + 4, y + 5.5);
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(11);
-        doc.setTextColor(22, 101, 52);
-        doc.text(`- Rs. ${Number(order.discount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, margin + colW + 10, y + 13);
+        doc.setFontSize(10);
+        doc.setTextColor(220, 38, 38);
+        doc.text(`-Rs. ${displayDiscount.toLocaleString('en-IN')}`, margin + colW + 4, y + 12.5);
 
         // Divider 2
         doc.line(margin + colW * 2, y + 2.5, margin + colW * 2, y + billBoxH - 2.5);
 
-        // Net Amount
+        // 3. Paid Revenue
         doc.setFont('helvetica', 'normal');
-        doc.setFontSize(7.5);
+        doc.setFontSize(7);
         doc.setTextColor(brandMuted[0], brandMuted[1], brandMuted[2]);
-        doc.text('NET AMOUNT PAID', margin + colW * 2 + 10, y + 6);
+        doc.text('FINAL REVENUE', margin + colW * 2 + 4, y + 5.5);
         doc.setFont('helvetica', 'bold');
-        doc.setFontSize(11.5);
+        doc.setFontSize(10.5);
         doc.setTextColor(brandPrimary[0], brandPrimary[1], brandPrimary[2]);
-        doc.text(`Rs. ${Number(order.finalAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}`, margin + colW * 2 + 10, y + 13);
+        doc.text(`Rs. ${displayFinalRevenue.toLocaleString('en-IN')}`, margin + colW * 2 + 4, y + 12.5);
+
+        // Divider 3
+        doc.line(margin + colW * 3, y + 2.5, margin + colW * 3, y + billBoxH - 2.5);
+
+        // 4. Actual Cost Afforded
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(brandMuted[0], brandMuted[1], brandMuted[2]);
+        doc.text('COST AFFORDED', margin + colW * 3 + 4, y + 5.5);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10);
+        doc.setTextColor(55, 48, 163);
+        doc.text(`Rs. ${actualCost.toLocaleString('en-IN')}`, margin + colW * 3 + 4, y + 12.5);
+
+        // Divider 4
+        doc.line(margin + colW * 4, y + 2.5, margin + colW * 4, y + billBoxH - 2.5);
+
+        // 5. Benva Net Profit
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7);
+        doc.setTextColor(brandMuted[0], brandMuted[1], brandMuted[2]);
+        doc.text('BENVANET PROFIT', margin + colW * 4 + 4, y + 5.5);
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(10.5);
+        doc.setTextColor(21, 128, 61);
+        doc.text(`+Rs. ${calcProfit.toLocaleString('en-IN')}`, margin + colW * 4 + 4, y + 12.5);
 
         y += billBoxH + 4;
       }
@@ -991,6 +1301,8 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
       'Total MRP (INR)',
       'Discount Given (INR)',
       'Final Paid Amount (INR)',
+      'Actual Cost Afforded (INR)',
+      'Benva Profit (INR)',
       'Last Given Date',
       'Next Due Date',
       'Status'
@@ -1005,12 +1317,19 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
 
       const medsString = medList
         .filter((m: any) => m.isSelected !== false)
-        .map((m: any) => `${m.name || 'Medicine'} (${m.type || 'Tab'}: ${m.quantity || '1'}${m.instructions ? ` - ${m.instructions}` : ''})`)
+        .map((m: any) => {
+          const typeStr = (m.type === 'Other' && m.customType?.trim()) ? m.customType.trim() : (m.type || 'Tab');
+          const mrpStr = m.mrp ? ` | MRP: Rs.${m.mrp}` : '';
+          const packStr = m.pack ? ` | Pack: ${m.pack}` : '';
+          const rackStr = m.rack ? ` | Rack: ${m.rack}` : '';
+          return `${m.name || 'Medicine'} (${typeStr}: ${m.quantity || '1'}${mrpStr}${packStr}${rackStr}${m.instructions ? ` - ${m.instructions}` : ''})`;
+        })
         .join(' ; ');
 
       const orderDate = o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-GB') : '-';
       const lastGiven = o.lastGivenDate ? new Date(o.lastGivenDate).toLocaleDateString('en-GB') : '-';
       const nextDue = o.nextDueDate ? new Date(o.nextDueDate).toLocaleDateString('en-GB') : '-';
+      const { actualCost, profit } = getOrderFinancials(o);
 
       return [
         idx + 1,
@@ -1023,6 +1342,8 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         Number(o.totalMrp || 0).toFixed(2),
         Number(o.discount || 0).toFixed(2),
         Number(o.finalAmount || 0).toFixed(2),
+        actualCost.toFixed(2),
+        profit.toFixed(2),
         `"${lastGiven}"`,
         `"${nextDue}"`,
         `"${o.status || 'ACTIVE'}"`
@@ -1189,12 +1510,218 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     }
   };
 
+  // Derive all unique medicines across all orders (Catalog & Rack Directory)
+  const allSavedMedicines = useMemo(() => {
+    const medMap = new Map<string, {
+      name: string;
+      rack: string;
+      pack: string;
+      mrp: string | number;
+      actualPrice: string | number;
+      profit: string | number;
+      type: string;
+      customType?: string;
+      instructions?: string;
+      ordersCount: number;
+      patients: Array<{ patientName: string; uhid: string; date: string; orderId: string }>;
+      lastUpdated: string;
+    }>();
+
+    orders.forEach((ord: any) => {
+      let meds: any[] = [];
+      try {
+        if (typeof ord.medicines === 'string') meds = JSON.parse(ord.medicines);
+        else if (Array.isArray(ord.medicines)) meds = ord.medicines;
+      } catch (e) {}
+
+      meds.forEach((m: any) => {
+        if (!m.name || !m.name.trim()) return;
+        const key = m.name.trim().toLowerCase();
+        const existing = medMap.get(key);
+
+        const currentRack = m.rack !== undefined && m.rack !== '' ? m.rack : (existing ? existing.rack : '');
+        const currentPack = m.pack !== undefined && m.pack !== '' ? m.pack : (existing ? existing.pack : '');
+        const currentMrp = m.mrp !== undefined && m.mrp !== '' ? m.mrp : (existing ? existing.mrp : '');
+        const currentActual = m.actualPrice !== undefined && m.actualPrice !== '' ? m.actualPrice : (existing ? existing.actualPrice : '');
+        const currentProfit = m.profit !== undefined && m.profit !== '' ? m.profit : (existing ? existing.profit : '');
+        const currentType = m.type || (existing ? existing.type : 'Tablet');
+        const currentCustomType = m.customType || (existing ? existing.customType : '');
+
+        const patientEntry = {
+          patientName: ord.patientName || 'Unknown',
+          uhid: ord.uhid || '',
+          date: ord.createdAt ? new Date(ord.createdAt).toLocaleDateString('en-GB') : '',
+          orderId: ord.id
+        };
+
+        if (existing) {
+          if (m.rack) existing.rack = m.rack;
+          if (m.pack) existing.pack = m.pack;
+          if (m.mrp !== undefined && m.mrp !== '') existing.mrp = m.mrp;
+          if (m.actualPrice !== undefined && m.actualPrice !== '') existing.actualPrice = m.actualPrice;
+          if (m.profit !== undefined && m.profit !== '') existing.profit = m.profit;
+          if (m.type) existing.type = m.type;
+          if (m.customType) existing.customType = m.customType;
+          existing.ordersCount += 1;
+          if (!existing.patients.some(p => p.orderId === ord.id)) {
+            existing.patients.push(patientEntry);
+          }
+        } else {
+          medMap.set(key, {
+            name: m.name.trim(),
+            rack: currentRack,
+            pack: currentPack,
+            mrp: currentMrp,
+            actualPrice: currentActual,
+            profit: currentProfit,
+            type: currentType,
+            customType: currentCustomType,
+            instructions: m.instructions || '',
+            ordersCount: 1,
+            patients: [patientEntry],
+            lastUpdated: ord.updatedAt || ord.createdAt || new Date().toISOString()
+          });
+        }
+      });
+    });
+
+    return Array.from(medMap.values()).sort((a, b) => a.name.localeCompare(b.name));
+  }, [orders]);
+
+  // Distinct rack list for filtering
+  const allAvailableRacks = useMemo(() => {
+    const racks = new Set<string>();
+    allSavedMedicines.forEach((m: any) => {
+      if (m.rack && m.rack.trim()) racks.add(m.rack.trim());
+    });
+    return Array.from(racks).sort();
+  }, [allSavedMedicines]);
+
+  // Filtered medicines in directory tab
+  const filteredDirectoryMeds = useMemo(() => {
+    return allSavedMedicines.filter((m: any) => {
+      const q = medSearchTerm.trim().toLowerCase();
+      const matchesSearch = !q || 
+        m.name.toLowerCase().includes(q) || 
+        (m.rack && m.rack.toLowerCase().includes(q)) || 
+        (m.pack && m.pack.toLowerCase().includes(q)) ||
+        (m.type && m.type.toLowerCase().includes(q)) ||
+        (m.customType && m.customType.toLowerCase().includes(q)) ||
+        (m.mrp && String(m.mrp).includes(q)) ||
+        m.patients.some((p: any) => p.patientName.toLowerCase().includes(q) || (p.uhid && p.uhid.toLowerCase().includes(q)));
+
+      const matchesRack = medRackFilter === 'all' || m.rack === medRackFilter;
+      const matchesType = medTypeFilter === 'all' || m.type === medTypeFilter || (medTypeFilter === 'Other' && m.type === 'Other');
+
+      return matchesSearch && matchesRack && matchesType;
+    });
+  }, [allSavedMedicines, medSearchTerm, medRackFilter, medTypeFilter]);
+
+  // Matching medicines from main search bar (for instant quick lookup banner)
+  const matchedMedsFromMainSearch = useMemo(() => {
+    const q = searchTerm.trim().toLowerCase();
+    if (!q) return [];
+    return allSavedMedicines.filter((m: any) => 
+      m.name.toLowerCase().includes(q) || 
+      (m.rack && m.rack.toLowerCase().includes(q)) ||
+      (m.pack && m.pack.toLowerCase().includes(q))
+    );
+  }, [searchTerm, allSavedMedicines]);
+
+  const totalMedsPages = Math.ceil(filteredDirectoryMeds.length / medPageSize) || 1;
+  const paginatedDirectoryMeds = filteredDirectoryMeds.slice(
+    (medsPage - 1) * medPageSize,
+    medsPage * medPageSize
+  );
+
+  const exportMedicinesCatalogCSV = () => {
+    const headers = [
+      'Medicine Name',
+      'Type',
+      'Rack Location',
+      'Pack (Strips / Sheets)',
+      'MRP (INR)',
+      'Cost Afforded (INR)',
+      'Profit (INR)',
+      'Times Prescribed',
+      'Patients Prescribed'
+    ];
+
+    const rows = filteredDirectoryMeds.map((m: any) => [
+      `"${m.name.replace(/"/g, '""')}"`,
+      `"${((m.type === 'Other' && m.customType) ? m.customType : m.type).replace(/"/g, '""')}"`,
+      `"${(m.rack || '-').replace(/"/g, '""')}"`,
+      `"${(m.pack || '-').replace(/"/g, '""')}"`,
+      m.mrp !== undefined && m.mrp !== '' ? Number(m.mrp).toFixed(2) : '0.00',
+      m.actualPrice !== undefined && m.actualPrice !== '' ? Number(m.actualPrice).toFixed(2) : '0.00',
+      m.profit !== undefined && m.profit !== '' ? Number(m.profit).toFixed(2) : '0.00',
+      m.ordersCount,
+      `"${m.patients.map((p: any) => `${p.patientName} (${p.uhid || 'No UHID'})`).join(', ').replace(/"/g, '""')}"`
+    ]);
+
+    const csvContent = 'data:text/csv;charset=utf-8,' + [headers.join(','), ...rows.map((e: any) => e.join(','))].join('\n');
+    const encodedUri = encodeURI(csvContent);
+    const link = document.createElement('a');
+    link.setAttribute('href', encodedUri);
+    link.setAttribute('download', `Benva_Medicine_Catalog_Directory_${new Date().toISOString().split('T')[0]}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handlePrescribeMedicineFromDirectory = (medItem: any) => {
+    resetForm();
+    setFormData(prev => ({
+      ...prev,
+      medicines: [
+        {
+          id: `${Date.now()}-0`,
+          name: medItem.name,
+          type: medItem.type || 'Tablet',
+          customType: medItem.customType || '',
+          quantity: '1',
+          rack: medItem.rack || '',
+          pack: medItem.pack || '',
+          mrp: medItem.mrp || '',
+          discountPrice: '',
+          actualPrice: medItem.actualPrice || '',
+          profit: medItem.profit || '',
+          instructions: medItem.instructions || '',
+          isSelected: true
+        }
+      ],
+      totalMrp: medItem.mrp ? Number(medItem.mrp) : '',
+      finalAmount: medItem.mrp ? Number(medItem.mrp) : ''
+    }));
+    setIsPatientConfirmed(false);
+    setIsAddModalOpen(true);
+  };
+
   const filteredOrders = orders.filter(o => {
+    const term = searchTerm.trim().toLowerCase();
+    let matchesMedicine = false;
+    if (term) {
+      let meds: any[] = [];
+      try {
+        if (Array.isArray(o.medicines)) meds = o.medicines;
+        else if (typeof o.medicines === 'string') meds = JSON.parse(o.medicines);
+      } catch (e) {}
+      matchesMedicine = meds.some((m: any) => 
+        (m.name && m.name.toLowerCase().includes(term)) ||
+        (m.rack && m.rack.toLowerCase().includes(term)) ||
+        (m.pack && m.pack.toLowerCase().includes(term)) ||
+        (m.mrp && String(m.mrp).includes(term))
+      );
+    }
+
     const matchesSearch = 
-      o.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      o.mobile.includes(searchTerm) ||
-      (o.uhid && o.uhid.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (o.consignmentNo && o.consignmentNo.toLowerCase().includes(searchTerm.toLowerCase()));
+      !term ||
+      o.patientName.toLowerCase().includes(term) ||
+      o.mobile.includes(term) ||
+      (o.uhid && o.uhid.toLowerCase().includes(term)) ||
+      (o.consignmentNo && o.consignmentNo.toLowerCase().includes(term)) ||
+      matchesMedicine;
+
     if (!matchesSearch) return false;
 
     const orderDate = new Date(o.createdAt || o.lastGivenDate || 0);
@@ -1211,10 +1738,48 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     return true;
   });
 
+  // Helper to compute order's actual cost and profit
+  const getOrderFinancials = (o: any) => {
+    let meds: any[] = [];
+    try {
+      if (Array.isArray(o.medicines)) meds = o.medicines;
+      else if (typeof o.medicines === 'string') meds = JSON.parse(o.medicines);
+    } catch (e) {}
+
+    let actualCost = 0;
+    let profit = 0;
+    let hasMedActual = false;
+    let hasMedProfit = false;
+    let totalMedMrp = 0;
+
+    meds.forEach((m: any) => {
+      if (m.mrp !== undefined && m.mrp !== '' && !isNaN(Number(m.mrp))) {
+        totalMedMrp += Number(m.mrp);
+      }
+      if (m.actualPrice !== undefined && m.actualPrice !== '' && !isNaN(Number(m.actualPrice))) {
+        actualCost += Number(m.actualPrice);
+        hasMedActual = true;
+      }
+      if (m.profit !== undefined && m.profit !== '' && !isNaN(Number(m.profit))) {
+        profit += Number(m.profit);
+        hasMedProfit = true;
+      }
+    });
+
+    const finalAmt = Number(o.finalAmount) || 0;
+    if (!hasMedProfit && hasMedActual) {
+      profit = Math.max(0, finalAmt - actualCost);
+    }
+
+    return { actualCost, profit, totalMedMrp };
+  };
+
   // Calculate Revenue Metrics (Paina vachey options / Overall Totals)
   const totalNetRevenue = filteredOrders.reduce((sum, o) => sum + (Number(o.finalAmount) || 0), 0);
   const totalGrossMrp = filteredOrders.reduce((sum, o) => sum + (Number(o.totalMrp) || 0), 0);
   const totalDiscount = filteredOrders.reduce((sum, o) => sum + (Number(o.discount) || 0), 0);
+  const totalActualCost = filteredOrders.reduce((sum, o) => sum + getOrderFinancials(o).actualCost, 0);
+  const totalProfit = filteredOrders.reduce((sum, o) => sum + getOrderFinancials(o).profit, 0);
   const totalOrdersCount = filteredOrders.length;
   const activeOrdersCount = filteredOrders.filter(o => o.status === 'ACTIVE').length;
 
@@ -1222,6 +1787,8 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     totalGrossMrp,
     totalDiscount,
     totalNetRevenue,
+    totalActualCost,
+    totalProfit,
     ordersCount: totalOrdersCount,
     activeCount: activeOrdersCount
   };
@@ -1235,10 +1802,17 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
 
     const medsString = medList
       .filter((m: any) => m.isSelected !== false)
-      .map((m: any) => `${m.name || 'Medicine'} (${m.type || 'Tab'}: ${m.quantity || '1'})`)
+      .map((m: any) => {
+        const typeStr = (m.type === 'Other' && m.customType?.trim()) ? m.customType.trim() : (m.type || 'Tab');
+        const mrpStr = m.mrp ? ` | MRP: Rs.${m.mrp}` : '';
+        const packStr = m.pack ? ` | Pack: ${m.pack}` : '';
+        const rackStr = m.rack ? ` | Rack: ${m.rack}` : '';
+        return `${m.name || 'Medicine'} (${typeStr}: ${m.quantity || '1'}${mrpStr}${packStr}${rackStr})`;
+      })
       .join(', ');
 
     const dateStr = o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-GB') : (o.lastGivenDate ? new Date(o.lastGivenDate).toLocaleDateString('en-GB') : '-');
+    const { actualCost, profit } = getOrderFinancials(o);
 
     return {
       sNo: idx + 1,
@@ -1252,6 +1826,8 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
       grossMrp: Number(o.totalMrp) || 0,
       discount: Number(o.discount) || 0,
       netRevenue: Number(o.finalAmount) || 0,
+      actualCost,
+      profit,
       status: o.status || 'ACTIVE'
     };
   });
@@ -1520,7 +2096,13 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
           if (typeof o.medicines === 'string') medList = JSON.parse(o.medicines);
           else if (Array.isArray(o.medicines)) medList = o.medicines;
         } catch (e) {}
-        const medsString = medList.filter((m: any) => m.isSelected !== false).map((m: any) => `${m.name || 'Medicine'} (${m.type || 'Tab'}: ${m.quantity || '1'})`).join('; ');
+        const medsString = medList.filter((m: any) => m.isSelected !== false).map((m: any) => {
+          const typeStr = (m.type === 'Other' && m.customType?.trim()) ? m.customType.trim() : (m.type || 'Tab');
+          const mrpStr = m.mrp ? ` | MRP: Rs.${m.mrp}` : '';
+          const packStr = m.pack ? ` | Pack: ${m.pack}` : '';
+          const rackStr = m.rack ? ` | Rack: ${m.rack}` : '';
+          return `${m.name || 'Medicine'} (${typeStr}: ${m.quantity || '1'}${mrpStr}${packStr}${rackStr})`;
+        }).join('; ');
         const lastGiven = o.lastGivenDate ? new Date(o.lastGivenDate).toLocaleDateString('en-GB') : '-';
         const nextDue = o.nextDueDate ? new Date(o.nextDueDate).toLocaleDateString('en-GB') : '-';
         return [
@@ -1610,6 +2192,11 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
           color: #0284c7;
           box-shadow: 0 2px 8px rgba(2, 132, 199, 0.15);
         }
+        .med-tab-btn.active-inventory {
+          background: white;
+          color: #0f766e;
+          box-shadow: 0 2px 8px rgba(15, 118, 110, 0.18);
+        }
         .med-tab-btn.active-upcoming {
           background: white;
           color: #b45309;
@@ -1676,14 +2263,14 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
           .med-tabs-container {
             width: 100%;
             display: grid;
-            grid-template-columns: 1fr 1fr;
+            grid-template-columns: 1fr 1.2fr 1fr;
             padding: 4px;
             margin-bottom: 14px;
             box-sizing: border-box;
           }
           .med-tab-btn {
-            padding: 8px 6px;
-            font-size: 12px;
+            padding: 8px 4px;
+            font-size: 11px;
             justify-content: center;
             text-align: center;
           }
@@ -1839,7 +2426,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         </div>
       </div>
 
-      {/* ── MAIN TABS: ALL ORDERS vs UPCOMING REMINDERS (NEXT MONTH) ── */}
+      {/* ── MAIN TABS: ALL ORDERS vs MEDICINE DIRECTORY vs UPCOMING REMINDERS ── */}
       <div className="med-tabs-container">
         <button
           type="button"
@@ -1856,6 +2443,24 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
             color: currentTab === 'orders' ? 'white' : '#475569'
           }}>
             {orders.length}
+          </span>
+        </button>
+
+        <button
+          type="button"
+          onClick={() => handleTabChange('inventory')}
+          className={`med-tab-btn ${currentTab === 'inventory' ? 'active-inventory' : ''}`}
+        >
+          <span>💊 Medicine Directory</span>
+          <span style={{
+            fontSize: '11px',
+            fontWeight: 800,
+            padding: '2px 7px',
+            borderRadius: '20px',
+            background: currentTab === 'inventory' ? '#0d9488' : '#ccfbf1',
+            color: currentTab === 'inventory' ? 'white' : '#0f766e'
+          }}>
+            {allSavedMedicines.length}
           </span>
         </button>
 
@@ -1882,20 +2487,49 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         <>
           {/* Benva Revenue Summary Cards (Paina vachey options / Overall Totals) */}
           <div className="metric-cards-grid">
-            {/* 1. Benva Net Revenue (Featured Card - Anni Ponu) */}
+            {/* 1. Benva Net Revenue (Featured Card - With Profit) */}
             <div className="metric-card-box" style={{ background: 'linear-gradient(135deg, #065f46 0%, #047857 100%)', color: 'white', border: '1px solid #059669', boxShadow: '0 4px 14px rgba(4, 120, 87, 0.25)' }}>
               <div style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.6px', opacity: 0.9 }}>
-                ★ Net Revenue (Anni Ponu)
+                ★ Benva Net Revenue (With Profit)
               </div>
               <div className="metric-card-val" style={{ color: 'white' }}>
                 ₹{totalNetRevenue.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: 'rgba(255, 255, 255, 0.2)', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 700, marginTop: '4px' }}>
+                💰 Profit: ₹{totalProfit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
               <div style={{ fontSize: '11px', opacity: 0.85, marginTop: '3px', fontWeight: 500 }}>
                 Total net realized amount
               </div>
             </div>
 
-            {/* 2. Total Gross MRP Billed */}
+            {/* 2. Benva Net Profit */}
+            <div className="metric-card-box" style={{ background: 'white', border: '1.5px solid #86efac', borderLeft: '5px solid #10b981', boxShadow: '0 2px 8px rgba(16, 185, 129, 0.12)' }}>
+              <div style={{ fontSize: '10px', fontWeight: 800, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.5px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                💎 Benva Net Profit
+              </div>
+              <div className="metric-card-val" style={{ color: '#047857' }}>
+                ₹{totalProfit.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <div style={{ fontSize: '11px', color: '#059669', marginTop: '3px', fontWeight: 600 }}>
+                Profit margin after actual medicine costs
+              </div>
+            </div>
+
+            {/* 3. Actual Cost (Afforded) */}
+            <div className="metric-card-box" style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #6366f1', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+              <div style={{ fontSize: '10px', fontWeight: 700, color: '#4f46e5', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                🏷️ Actual Cost (Afforded)
+              </div>
+              <div className="metric-card-val" style={{ color: '#0f274a' }}>
+                ₹{totalActualCost.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+              </div>
+              <div style={{ fontSize: '11px', color: '#6366f1', marginTop: '3px', fontWeight: 500 }}>
+                Wholesale cost paid for medicines
+              </div>
+            </div>
+
+            {/* 4. Total Gross MRP Billed */}
             <div className="metric-card-box" style={{ background: 'white', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
               <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Total Gross MRP
@@ -1903,25 +2537,12 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
               <div className="metric-card-val" style={{ color: '#0f274a' }}>
                 ₹{totalGrossMrp.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
               </div>
-              <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px', fontWeight: 500 }}>
-                Catalog value before disc
-              </div>
-            </div>
-
-            {/* 3. Total Discounts Given */}
-            <div className="metric-card-box" style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #ef4444', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
-              <div style={{ fontSize: '10px', fontWeight: 700, color: '#dc2626', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                Deductions / Discounts
-              </div>
-              <div className="metric-card-val" style={{ color: '#dc2626' }}>
-                -₹{totalDiscount.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
-              </div>
               <div style={{ fontSize: '11px', color: '#dc2626', marginTop: '3px', fontWeight: 500 }}>
-                Deducted from MRP
+                Discount: -₹{totalDiscount.toLocaleString('en-IN')}
               </div>
             </div>
 
-            {/* 4. Total Orders & Fulfillment */}
+            {/* 5. Total Orders & Fulfillment */}
             <div className="metric-card-box" style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #0284c7', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
               <div style={{ fontSize: '10px', fontWeight: 700, color: '#0369a1', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
                 Orders & Fulfillment
@@ -1982,7 +2603,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                 className="date-filter-input"
                 value={fromDate} 
                 onChange={e => { setFromDate(e.target.value); setSelectedPreset('all'); }} 
-                style={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: 'white', color: '#1e293b' }} 
+                style={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: 'white', color: '#0f172a', colorScheme: 'light', fontWeight: 500 }} 
               />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
@@ -1992,7 +2613,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                 className="date-filter-input"
                 value={toDate} 
                 onChange={e => { setToDate(e.target.value); setSelectedPreset('all'); }} 
-                style={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: 'white', color: '#1e293b' }} 
+                style={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: 'white', color: '#0f172a', colorScheme: 'light', fontWeight: 500 }} 
               />
             </div>
             {(fromDate || toDate) && (
@@ -2078,17 +2699,70 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         </div>
 
         {/* Search Input */}
-        <div style={{ position: 'relative', marginBottom: '20px' }}>
+        <div style={{ position: 'relative', marginBottom: matchedMedsFromMainSearch.length > 0 ? '12px' : '20px' }}>
           <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: '#94a3b8', fontSize: '15px' }}>🔍</span>
           <input 
             type="text" 
             className="med-search-input"
-            placeholder="Search patient, mobile, UHID, or consignment..."
+            placeholder="Search patient, mobile, UHID, medicine name (e.g. medicine1), rack (e.g. m1), or consignment..."
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
             style={{ width: '100%', padding: '11px 12px 11px 38px', borderRadius: '8px', border: '1px solid #cbd5e1', fontSize: '14px', outline: 'none' }}
           />
         </div>
+
+        {/* Live Matched Medicine Quick Details Card (If searched for medicine) */}
+        {matchedMedsFromMainSearch.length > 0 && (
+          <div style={{ background: '#f0fdf4', border: '1.5px solid #86efac', borderRadius: '12px', padding: '14px 18px', marginBottom: '20px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', boxShadow: '0 2px 8px rgba(16,185,129,0.12)' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <span style={{ fontSize: '13px', fontWeight: 800, color: '#15803d', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                💊 Medicine Details Found:
+              </span>
+              {matchedMedsFromMainSearch.slice(0, 3).map((m: any) => (
+                <div key={m.name} style={{ background: 'white', border: '1px solid #bbf7d0', padding: '6px 12px', borderRadius: '8px', fontSize: '13px', display: 'flex', gap: '10px', alignItems: 'center', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+                  <strong style={{ color: '#0f172a' }}>{m.name}</strong>
+                  <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '4px', fontWeight: 800, fontSize: '12px' }}>
+                    🗄️ Rack: {m.rack || 'Not set'}
+                  </span>
+                  <span style={{ background: '#e0f2fe', color: '#0369a1', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, fontSize: '12px' }}>
+                    📦 Strips: {m.pack ? `${m.pack} sheets` : 'Not set'}
+                  </span>
+                  <span style={{ background: '#ccfbf1', color: '#0f766e', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, fontSize: '12px' }}>
+                    💵 MRP: ₹{m.mrp || '0'}
+                  </span>
+                  {m.actualPrice && (
+                    <span style={{ background: '#ede9fe', color: '#5b21b6', padding: '2px 8px', borderRadius: '4px', fontWeight: 600, fontSize: '12px' }}>
+                      🏷️ Cost: ₹{m.actualPrice}
+                    </span>
+                  )}
+                </div>
+              ))}
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                setMedSearchTerm(searchTerm);
+                handleTabChange('inventory');
+              }}
+              style={{
+                background: '#15803d',
+                color: 'white',
+                border: 'none',
+                padding: '8px 14px',
+                borderRadius: '6px',
+                fontSize: '12px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                boxShadow: '0 2px 6px rgba(21,128,61,0.3)',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px'
+              }}
+            >
+              Open in Medicine Table →
+            </button>
+          </div>
+        )}
 
         {/* Table Container for Desktop */}
         <div className="desktop-table-view" style={{ overflowX: 'auto' }}>
@@ -2098,7 +2772,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                 <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', width: '45px' }}>#</th>
                 <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', minWidth: '180px' }}>Patient Details</th>
                 <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', minWidth: '160px' }}>Consignment & Tracking</th>
-                <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', minWidth: '190px' }}>Billing (Anni Ponu)</th>
+                <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', minWidth: '190px' }}>Billing & Profit (Benva)</th>
                 <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', minWidth: '110px' }}>Order & Due</th>
                 <th style={{ padding: '12px 14px', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', width: '80px' }}>Status</th>
                 <th style={{ padding: '12px 14px', textAlign: 'right', color: '#475569', fontWeight: 700, fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px', borderBottom: '2px solid #e2e8f0', minWidth: '230px' }}>Actions & Slips</th>
@@ -2224,22 +2898,42 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                         </div>
                       </td>
 
-                      {/* Billing Breakdown (Anni Ponu Each User Dantlo) */}
+                      {/* Billing Breakdown & Benva Profit */}
                       <td style={{ padding: '16px 14px' }}>
-                        <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '6px', padding: '5px 8px', marginBottom: '6px' }}>
-                          <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#047857', fontWeight: 800, letterSpacing: '0.4px' }}>
-                            ★ Anni Ponu (Benva Revenue)
-                          </div>
-                          <div style={{ fontSize: '15px', color: '#065f46', fontWeight: 800 }}>
-                            ₹{Number(order.finalAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                          </div>
-                        </div>
-                        <div style={{ fontSize: '12px', color: '#64748b' }}>
-                          MRP: <span style={{ color: '#0f172a', fontWeight: 600 }}>₹{Number(order.totalMrp || 0).toLocaleString('en-IN')}</span>
-                        </div>
-                        <div style={{ fontSize: '12px', color: '#dc2626' }}>
-                          Disc: <span style={{ fontWeight: 600 }}>-₹{Number(order.discount || 0).toLocaleString('en-IN')}</span>
-                        </div>
+                        {(() => {
+                          const { actualCost, profit } = getOrderFinancials(order);
+                          return (
+                            <>
+                              <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '6px', padding: '5px 8px', marginBottom: '5px' }}>
+                                <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#047857', fontWeight: 800, letterSpacing: '0.4px' }}>
+                                  ★ Benva Revenue
+                                </div>
+                                <div style={{ fontSize: '15px', color: '#065f46', fontWeight: 800 }}>
+                                  ₹{Number(order.finalAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                                </div>
+                              </div>
+
+                              {profit > 0 && (
+                                <div style={{ background: '#f0fdf4', border: '1px solid #86efac', borderRadius: '4px', padding: '2px 7px', marginBottom: '4px', fontSize: '11px', color: '#15803d', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                  <span>💰 Profit:</span> <span>+₹{profit.toLocaleString('en-IN')}</span>
+                                </div>
+                              )}
+
+                              {actualCost > 0 && (
+                                <div style={{ fontSize: '11px', color: '#4338ca', marginBottom: '3px', fontWeight: 600 }}>
+                                  🏷️ Cost: ₹{actualCost.toLocaleString('en-IN')}
+                                </div>
+                              )}
+
+                              <div style={{ fontSize: '11px', color: '#64748b' }}>
+                                MRP: <span style={{ color: '#0f172a', fontWeight: 600 }}>₹{Number(order.totalMrp || 0).toLocaleString('en-IN')}</span>
+                                {Number(order.discount || 0) > 0 && (
+                                  <span style={{ color: '#dc2626', marginLeft: '4px' }}>(-₹{Number(order.discount || 0).toLocaleString('en-IN')})</span>
+                                )}
+                              </div>
+                            </>
+                          );
+                        })()}
                       </td>
 
                       <td style={{ padding: '16px 14px', fontSize: '12px' }}>
@@ -2450,21 +3144,42 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                     </div>
                   )}
 
-                  {/* Revenue / Anni Ponu Highlight Box */}
-                  <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '8px', padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#047857', fontWeight: 800, letterSpacing: '0.4px' }}>
-                        ★ Anni Ponu (Benva Revenue)
+                  {/* Revenue / Benva Profit Highlight Box */}
+                  {(() => {
+                    const { actualCost, profit } = getOrderFinancials(order);
+                    return (
+                      <div style={{ background: '#ecfdf5', border: '1px solid #a7f3d0', borderRadius: '8px', padding: '10px 12px' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                          <div>
+                            <div style={{ fontSize: '10px', textTransform: 'uppercase', color: '#047857', fontWeight: 800, letterSpacing: '0.4px' }}>
+                              ★ Benva Revenue
+                            </div>
+                            <div style={{ fontSize: '17px', color: '#065f46', fontWeight: 800 }}>
+                              ₹{Number(order.finalAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                            </div>
+                          </div>
+                          <div style={{ textAlign: 'right', fontSize: '11px' }}>
+                            <div style={{ color: '#64748b' }}>MRP: <strong style={{ color: '#1e293b' }}>₹{Number(order.totalMrp || 0).toLocaleString('en-IN')}</strong></div>
+                            <div style={{ color: '#dc2626' }}>Disc: <strong>-₹{Number(order.discount || 0).toLocaleString('en-IN')}</strong></div>
+                          </div>
+                        </div>
+                        {(profit > 0 || actualCost > 0) && (
+                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '6px', paddingTop: '6px', borderTop: '1px dashed #a7f3d0', fontSize: '11px', flexWrap: 'wrap' }}>
+                            {profit > 0 && (
+                              <span style={{ background: '#dcfce7', color: '#15803d', fontWeight: 800, padding: '2px 6px', borderRadius: '4px', border: '1px solid #86efac' }}>
+                                💰 Profit: +₹{profit.toLocaleString('en-IN')}
+                              </span>
+                            )}
+                            {actualCost > 0 && (
+                              <span style={{ color: '#4338ca', fontWeight: 600 }}>
+                                🏷️ Cost: ₹{actualCost.toLocaleString('en-IN')}
+                              </span>
+                            )}
+                          </div>
+                        )}
                       </div>
-                      <div style={{ fontSize: '17px', color: '#065f46', fontWeight: 800 }}>
-                        ₹{Number(order.finalAmount || 0).toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                      </div>
-                    </div>
-                    <div style={{ textAlign: 'right', fontSize: '11px' }}>
-                      <div style={{ color: '#64748b' }}>MRP: <strong style={{ color: '#1e293b' }}>₹{Number(order.totalMrp || 0).toLocaleString('en-IN')}</strong></div>
-                      <div style={{ color: '#dc2626' }}>Disc: <strong>-₹{Number(order.discount || 0).toLocaleString('en-IN')}</strong></div>
-                    </div>
-                  </div>
+                    );
+                  })()}
 
                   {/* Consignment & Due Date */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '8px 10px', borderRadius: '8px', fontSize: '12px', flexWrap: 'wrap', gap: '6px' }}>
@@ -2533,6 +3248,433 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         {renderPagination(ordersPage, totalOrdersPages, filteredOrders.length, setOrdersPage)}
       </div>
       </>
+    )}
+
+    {currentTab === 'inventory' && (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+        {/* Banner with Stats */}
+        <div style={{ background: 'linear-gradient(135deg, #042f2e 0%, #0f766e 100%)', border: '1px solid #14b8a6', borderRadius: '14px', padding: '20px 24px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', boxShadow: '0 4px 16px rgba(15, 118, 110, 0.25)' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' }}>
+              💊
+            </div>
+            <div>
+              <h2 style={{ margin: 0, fontSize: '19px', fontWeight: 800, color: 'white', letterSpacing: '-0.3px' }}>
+                Master Medicine Directory & Rack Locator
+              </h2>
+              <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#ccfbf1', opacity: 0.95 }}>
+                Real-time medicine catalog: search any medicine to view its <strong>Rack location</strong>, <strong>MRP</strong>, <strong>No of strips/sheets</strong>, and afford cost.
+              </p>
+            </div>
+          </div>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flexWrap: 'wrap' }}>
+            <button
+              onClick={exportMedicinesCatalogCSV}
+              style={{
+                background: 'white',
+                color: '#0f766e',
+                border: 'none',
+                padding: '10px 18px',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.1)'
+              }}
+            >
+              📊 Export Inventory CSV
+            </button>
+            <button
+              onClick={() => { resetForm(); setIsAddModalOpen(true); }}
+              style={{
+                background: '#14b8a6',
+                color: 'white',
+                border: '1px solid #2dd4bf',
+                padding: '10px 18px',
+                borderRadius: '8px',
+                fontSize: '13px',
+                fontWeight: 700,
+                cursor: 'pointer',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+              }}
+            >
+              + Prescribe New Medicine
+            </button>
+          </div>
+        </div>
+
+        {/* Metric Cards for Inventory */}
+        <div className="metric-cards-grid">
+          <div className="metric-card-box" style={{ background: 'linear-gradient(135deg, #0f766e 0%, #0d9488 100%)', color: 'white', boxShadow: '0 4px 14px rgba(13, 148, 136, 0.25)' }}>
+            <div style={{ fontSize: '10px', fontWeight: 800, textTransform: 'uppercase', letterSpacing: '0.6px', opacity: 0.9 }}>
+              💊 Total Cataloged Medicines
+            </div>
+            <div className="metric-card-val" style={{ color: 'white' }}>
+              {allSavedMedicines.length} Medicine{allSavedMedicines.length === 1 ? '' : 's'}
+            </div>
+            <div style={{ fontSize: '11px', opacity: 0.9, marginTop: '3px' }}>
+              All saved in database
+            </div>
+          </div>
+
+          <div className="metric-card-box" style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #f59e0b', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+            <div style={{ fontSize: '10px', fontWeight: 700, color: '#b45309', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              🗄️ Active Racks in Pharmacy
+            </div>
+            <div className="metric-card-val" style={{ color: '#92400e' }}>
+              {allAvailableRacks.length} Rack{allAvailableRacks.length === 1 ? '' : 's'}
+            </div>
+            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px' }}>
+              {allAvailableRacks.join(', ') || 'None assigned yet'}
+            </div>
+          </div>
+
+          <div className="metric-card-box" style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #0284c7', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+            <div style={{ fontSize: '10px', fontWeight: 700, color: '#0369a1', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              📦 Total Prescription Rows
+            </div>
+            <div className="metric-card-val" style={{ color: '#0f274a' }}>
+              {allSavedMedicines.reduce((sum: number, m: any) => sum + m.ordersCount, 0)} Prescriptions
+            </div>
+            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px' }}>
+              Across {orders.length} patient orders
+            </div>
+          </div>
+
+          <div className="metric-card-box" style={{ background: 'white', border: '1px solid #e2e8f0', borderLeft: '4px solid #10b981', boxShadow: '0 1px 3px rgba(0,0,0,0.04)' }}>
+            <div style={{ fontSize: '10px', fontWeight: 700, color: '#047857', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+              💰 Average Medicine MRP
+            </div>
+            <div className="metric-card-val" style={{ color: '#065f46' }}>
+              ₹{allSavedMedicines.length > 0 
+                ? (allSavedMedicines.reduce((acc: number, m: any) => acc + (Number(m.mrp) || 0), 0) / allSavedMedicines.length).toFixed(1)
+                : '0.0'}
+            </div>
+            <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px' }}>
+              Based on cataloged MRP
+            </div>
+          </div>
+        </div>
+
+        {/* Search & Filter Toolbar */}
+        <div className="med-table-card" style={{ background: 'white', borderRadius: '14px', padding: '24px', boxShadow: '0 4px 16px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px', alignItems: 'center', justifyContent: 'space-between', marginBottom: '20px' }}>
+            {/* Search Input */}
+            <div style={{ position: 'relative', flex: 1, minWidth: '280px' }}>
+              <input
+                type="text"
+                placeholder="🔍 Search medicine name, rack (e.g. m1), MRP, no of strips..."
+                value={medSearchTerm}
+                onChange={e => { setMedSearchTerm(e.target.value); setMedsPage(1); }}
+                style={{
+                  width: '100%',
+                  padding: '11px 38px 11px 16px',
+                  borderRadius: '10px',
+                  border: '1.5px solid #cbd5e1',
+                  fontSize: '14px',
+                  color: '#0f172a',
+                  fontWeight: 500,
+                  background: '#f8fafc',
+                  outline: 'none'
+                }}
+              />
+              {medSearchTerm && (
+                <button
+                  type="button"
+                  onClick={() => { setMedSearchTerm(''); setMedsPage(1); }}
+                  style={{
+                    position: 'absolute',
+                    right: '12px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: '#cbd5e1',
+                    border: 'none',
+                    borderRadius: '50%',
+                    width: '20px',
+                    height: '20px',
+                    fontSize: '12px',
+                    color: '#334155',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Filter by Rack */}
+            <div style={{ minWidth: '160px' }}>
+              <select
+                value={medRackFilter}
+                onChange={e => { setMedRackFilter(e.target.value); setMedsPage(1); }}
+                style={{
+                  width: '100%',
+                  padding: '11px 14px',
+                  borderRadius: '10px',
+                  border: '1.5px solid #cbd5e1',
+                  background: 'white',
+                  color: '#0f172a',
+                  fontWeight: 600,
+                  fontSize: '13px'
+                }}
+              >
+                <option value="all">🗄️ All Racks ({allAvailableRacks.length})</option>
+                {allAvailableRacks.map((r: string) => (
+                  <option key={r} value={r}>Rack: {r}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Filter by Type */}
+            <div style={{ minWidth: '140px' }}>
+              <select
+                value={medTypeFilter}
+                onChange={e => { setMedTypeFilter(e.target.value); setMedsPage(1); }}
+                style={{
+                  width: '100%',
+                  padding: '11px 14px',
+                  borderRadius: '10px',
+                  border: '1.5px solid #cbd5e1',
+                  background: 'white',
+                  color: '#0f172a',
+                  fontWeight: 600,
+                  fontSize: '13px'
+                }}
+              >
+                <option value="all">💊 All Formulations</option>
+                <option value="Tablet">Tablet</option>
+                <option value="Strip">Strip</option>
+                <option value="Capsule">Capsule</option>
+                <option value="Syrup">Syrup</option>
+                <option value="Injection">Injection</option>
+                <option value="Ointment">Ointment</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Results Summary Bar */}
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '14px', fontSize: '13px', color: '#64748b' }}>
+            <div>
+              Showing <strong>{filteredDirectoryMeds.length}</strong> medicine{filteredDirectoryMeds.length === 1 ? '' : 's'}
+              {(medSearchTerm || medRackFilter !== 'all' || medTypeFilter !== 'all') && (
+                <button
+                  type="button"
+                  onClick={() => { setMedSearchTerm(''); setMedRackFilter('all'); setMedTypeFilter('all'); setMedsPage(1); }}
+                  style={{ marginLeft: '10px', background: 'none', border: 'none', color: '#0284c7', textDecoration: 'underline', cursor: 'pointer', fontWeight: 600 }}
+                >
+                  Clear filters
+                </button>
+              )}
+            </div>
+            <div>
+              Page <strong>{medsPage}</strong> of <strong>{totalMedsPages}</strong>
+            </div>
+          </div>
+
+          {/* Table View (Desktop) */}
+          <div className="desktop-table-view" style={{ overflowX: 'auto' }}>
+            <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0', color: '#0f172a' }}>
+              <thead>
+                <tr style={{ background: '#f8fafc', color: '#475569', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0', borderRadius: '8px 0 0 0' }}>#</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>Medicine Name</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>Type</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>🗄️ Rack Location</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>📦 Pack (No of Strips)</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>💵 MRP (₹)</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>🏷️ Cost (₹)</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>💰 Profit (₹)</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>👥 Prescribed In</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'right', borderBottom: '2px solid #e2e8f0', borderRadius: '0 8px 0 0' }}>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                {paginatedDirectoryMeds.length === 0 ? (
+                  <tr>
+                    <td colSpan={10} style={{ textAlign: 'center', padding: '48px 20px', color: '#94a3b8' }}>
+                      <div style={{ fontSize: '36px', marginBottom: '8px' }}>🔍</div>
+                      <div style={{ fontWeight: 700, fontSize: '15px', color: '#475569' }}>No medicines found</div>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '13px' }}>
+                        {medSearchTerm ? `No matches for "${medSearchTerm}". Try another name or rack.` : 'Add a medicine order to populate the directory.'}
+                      </p>
+                    </td>
+                  </tr>
+                ) : (
+                  paginatedDirectoryMeds.map((m: any, idx: number) => {
+                    const rowNum = (medsPage - 1) * medPageSize + idx + 1;
+                    const typeLabel = (m.type === 'Other' && m.customType) ? m.customType : m.type;
+                    return (
+                      <tr 
+                        key={m.name} 
+                        style={{ borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.15s' }}
+                        onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8fafc'}
+                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                      >
+                        <td style={{ padding: '14px', fontSize: '12px', color: '#64748b', fontWeight: 600 }}>{rowNum}</td>
+                        <td style={{ padding: '14px' }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                            <span style={{ fontSize: '16px' }}>💊</span>
+                            <div>
+                              <strong style={{ fontSize: '14px', color: '#0f172a', display: 'block' }}>{m.name}</strong>
+                              {m.instructions && (
+                                <span style={{ fontSize: '11px', color: '#64748b', fontStyle: 'italic' }}>
+                                  Instructions: {m.instructions}
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+                        <td style={{ padding: '14px' }}>
+                          <span style={{ background: '#f1f5f9', color: '#475569', padding: '3px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 600 }}>
+                            {typeLabel || 'Tablet'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px' }}>
+                          {m.rack ? (
+                            <span style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              🗄️ {m.rack}
+                            </span>
+                          ) : (
+                            <span style={{ color: '#94a3b8', fontSize: '12px', fontStyle: 'italic' }}>Not assigned</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '14px' }}>
+                          {m.pack ? (
+                            <span style={{ background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                              📦 {m.pack} sheets
+                            </span>
+                          ) : (
+                            <span style={{ color: '#94a3b8', fontSize: '12px' }}>-</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '14px' }}>
+                          <span style={{ color: '#0f766e', fontWeight: 700, fontSize: '13px' }}>
+                            {m.mrp !== undefined && m.mrp !== '' ? `₹${Number(m.mrp).toLocaleString('en-IN')}` : '-'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px' }}>
+                          <span style={{ color: '#4338ca', fontWeight: 600, fontSize: '13px' }}>
+                            {m.actualPrice !== undefined && m.actualPrice !== '' ? `₹${Number(m.actualPrice).toLocaleString('en-IN')}` : '-'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px' }}>
+                          {m.profit !== undefined && m.profit !== '' ? (
+                            <span style={{ color: '#15803d', fontWeight: 800, fontSize: '13px' }}>
+                              +₹{Number(m.profit).toLocaleString('en-IN')}
+                            </span>
+                          ) : (
+                            <span style={{ color: '#94a3b8', fontSize: '12px' }}>-</span>
+                          )}
+                        </td>
+                        <td style={{ padding: '14px' }}>
+                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxWidth: '240px' }}>
+                            {m.patients.slice(0, 2).map((p: any, pIdx: number) => (
+                              <span 
+                                key={pIdx} 
+                                style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#334155', padding: '2px 7px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}
+                                title={`Prescribed on ${p.date || 'Recent'}`}
+                              >
+                                👤 {p.patientName} {p.uhid ? `(${p.uhid.slice(-4)})` : ''}
+                              </span>
+                            ))}
+                            {m.patients.length > 2 && (
+                              <span style={{ background: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 700 }}>
+                                +{m.patients.length - 2} more
+                              </span>
+                            )}
+                          </div>
+                        </td>
+                        <td style={{ padding: '14px', textAlign: 'right' }}>
+                          <button
+                            type="button"
+                            onClick={() => handlePrescribeMedicineFromDirectory(m)}
+                            style={{
+                              background: '#0284c7',
+                              color: 'white',
+                              border: 'none',
+                              padding: '6px 12px',
+                              borderRadius: '6px',
+                              fontSize: '11px',
+                              fontWeight: 700,
+                              cursor: 'pointer',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px',
+                              boxShadow: '0 1px 3px rgba(2,132,199,0.3)'
+                            }}
+                          >
+                            + Prescribe
+                          </button>
+                        </td>
+                      </tr>
+                    );
+                  })
+                )}
+              </tbody>
+            </table>
+          </div>
+
+          {/* Mobile Card View */}
+          <div className="mobile-cards-view" style={{ display: 'none', flexDirection: 'column', gap: '12px' }}>
+            {paginatedDirectoryMeds.map((m: any) => {
+              const typeLabel = (m.type === 'Other' && m.customType) ? m.customType : m.type;
+              return (
+                <div key={m.name} style={{ background: '#f8fafc', border: '1.5px solid #e2e8f0', borderRadius: '10px', padding: '14px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div>
+                      <strong style={{ fontSize: '15px', color: '#0f172a' }}>💊 {m.name}</strong>
+                      <span style={{ marginLeft: '8px', background: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                        {typeLabel}
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handlePrescribeMedicineFromDirectory(m)}
+                      style={{ background: '#0284c7', color: 'white', border: 'none', padding: '5px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                    >
+                      + Prescribe
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', fontSize: '12px' }}>
+                    <div style={{ background: '#fef3c7', padding: '6px 8px', borderRadius: '6px', color: '#92400e', fontWeight: 700 }}>
+                      🗄️ Rack: <strong>{m.rack || 'Not set'}</strong>
+                    </div>
+                    <div style={{ background: '#e0f2fe', padding: '6px 8px', borderRadius: '6px', color: '#0369a1', fontWeight: 700 }}>
+                      📦 Strips: <strong>{m.pack ? `${m.pack} sheets` : 'Not set'}</strong>
+                    </div>
+                    <div style={{ background: '#f0fdfa', padding: '6px 8px', borderRadius: '6px', color: '#0f766e', fontWeight: 700 }}>
+                      💵 MRP: <strong>₹{m.mrp || '0'}</strong>
+                    </div>
+                    <div style={{ background: '#f0fdf4', padding: '6px 8px', borderRadius: '6px', color: '#15803d', fontWeight: 700 }}>
+                      💰 Profit: <strong>+₹{m.profit || '0'}</strong>
+                    </div>
+                  </div>
+
+                  {m.patients.length > 0 && (
+                    <div style={{ fontSize: '11px', color: '#64748b', borderTop: '1px solid #e2e8f0', paddingTop: '6px' }}>
+                      Prescribed to: {m.patients.map((p: any) => p.patientName).join(', ')}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+
+          {/* Pagination */}
+          {renderPagination(medsPage, totalMedsPages, filteredDirectoryMeds.length, setMedsPage)}
+        </div>
+      </div>
     )}
 
     {currentTab === 'upcoming' && (
@@ -2840,7 +3982,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                             <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
                               {activeMeds.slice(0, 3).map((m: any, mIdx: number) => (
                                 <div key={mIdx} style={{ fontSize: '12px', color: '#334155', background: '#f1f5f9', padding: '3px 8px', borderRadius: '5px', display: 'inline-block' }}>
-                                  💊 <strong>{m.name || 'Medicine'}</strong> {m.quantity ? `× ${m.quantity}` : ''} {m.instructions ? `(${m.instructions})` : ''}
+                                  💊 <strong>{m.name || 'Medicine'}</strong> {m.quantity ? `× ${m.quantity}` : ''} {m.mrp ? `[MRP: ₹${m.mrp}]` : ''} {m.pack ? `(${m.pack})` : ''} {m.rack ? `[Rack: ${m.rack}]` : ''} {m.instructions ? `(${m.instructions})` : ''}
                                 </div>
                               ))}
                               {activeMeds.length > 3 && (
@@ -3474,58 +4616,104 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, color: '#334155' }}>Last Given Date</label>
-                    <input type="date" value={formData.lastGivenDate} onChange={e => setFormData({...formData, lastGivenDate: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                    <input 
+                      type="date" 
+                      value={formData.lastGivenDate} 
+                      onChange={e => setFormData({...formData, lastGivenDate: e.target.value})} 
+                      style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#0f172a', backgroundColor: '#ffffff', colorScheme: 'light', fontSize: '14px', fontWeight: 500 }} 
+                    />
                   </div>
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, color: '#334155' }}>Next Due Date</label>
-                    <input type="date" value={formData.nextDueDate} onChange={e => setFormData({...formData, nextDueDate: e.target.value})} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
+                    <input 
+                      type="date" 
+                      value={formData.nextDueDate} 
+                      onChange={e => setFormData({...formData, nextDueDate: e.target.value})} 
+                      style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#0f172a', backgroundColor: '#ffffff', colorScheme: 'light', fontSize: '14px', fontWeight: 500 }} 
+                    />
                   </div>
                 </div>
 
-                {/* Billing & Discount Card */}
-                <div style={{ background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '16px', marginBottom: '20px' }}>
-                  <h4 style={{ margin: '0 0 12px 0', fontSize: '14px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    💳 Billing & Discount Details
-                  </h4>
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '16px' }}>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600, fontSize: '13px', color: '#475569' }}>Total MRP (₹)</label>
-                      <input 
-                        type="number" 
-                        min="0" 
-                        step="any"
-                        placeholder="e.g. 1500" 
-                        value={formData.totalMrp} 
-                        onChange={e => handleMrpChange(e.target.value)} 
-                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: 600 }} 
-                      />
+                {/* Billing & Discount Card with Profit Breakdown */}
+                {(() => {
+                  const modalActualCost = formData.medicines.reduce((sum, m) => sum + (Number(m.actualPrice) || 0), 0);
+                  const modalMedicineProfit = formData.medicines.reduce((sum, m) => sum + (Number(m.profit) || 0), 0);
+                  const finalPaid = Number(formData.finalAmount) || 0;
+                  const calculatedProfit = modalMedicineProfit > 0 ? modalMedicineProfit : (modalActualCost > 0 ? Math.max(0, finalPaid - modalActualCost) : 0);
+
+                  return (
+                    <div style={{ background: '#f8fafc', border: '1.5px solid #cbd5e1', borderRadius: '10px', padding: '16px', marginBottom: '20px' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
+                        <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                          💳 Billing & Profit Details
+                        </h4>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                          {modalActualCost > 0 && (
+                            <span style={{ fontSize: '12px', background: '#e0e7ff', color: '#4338ca', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, border: '1px solid #c7d2fe' }}>
+                              🏷️ Afforded Cost: ₹{modalActualCost.toLocaleString('en-IN')}
+                            </span>
+                          )}
+                          {calculatedProfit > 0 && (
+                            <span style={{ fontSize: '12px', background: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: '6px', fontWeight: 800, border: '1px solid #86efac' }}>
+                              💰 Benva Profit: ₹{calculatedProfit.toLocaleString('en-IN')}
+                            </span>
+                          )}
+                        </div>
+                      </div>
+
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '14px' }}>
+                        <div>
+                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600, fontSize: '13px', color: '#475569' }}>Total MRP (₹)</label>
+                          <input 
+                            type="number" 
+                            min="0" 
+                            step="any"
+                            placeholder="e.g. 1500" 
+                            value={formData.totalMrp} 
+                            onChange={e => handleMrpChange(e.target.value)} 
+                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: 600, color: '#0f172a', backgroundColor: '#ffffff', colorScheme: 'light' }} 
+                          />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600, fontSize: '13px', color: '#475569' }}>Discount Given (₹)</label>
+                          <input 
+                            type="number" 
+                            min="0" 
+                            step="any"
+                            placeholder="e.g. 300" 
+                            value={formData.discount} 
+                            onChange={e => handleDiscountChange(e.target.value)} 
+                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#16a34a', fontWeight: 600, backgroundColor: '#ffffff', colorScheme: 'light' }} 
+                          />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700, fontSize: '13px', color: '#065f46' }}>Final Paid Amount (₹)</label>
+                          <input 
+                            type="number" 
+                            min="0" 
+                            step="any"
+                            placeholder="e.g. 1200" 
+                            value={formData.finalAmount} 
+                            onChange={e => setFormData({ ...formData, finalAmount: e.target.value })} 
+                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1.5px solid #10b981', background: '#ecfdf5', color: '#065f46', fontWeight: 800, colorScheme: 'light' }} 
+                          />
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600, fontSize: '13px', color: '#4338ca' }}>Actual Cost Afforded (₹)</label>
+                          <div style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #c7d2fe', background: '#eef2ff', color: '#3730a3', fontWeight: 700, fontSize: '14px' }}>
+                            ₹{modalActualCost.toLocaleString('en-IN')}
+                          </div>
+                        </div>
+                        <div>
+                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700, fontSize: '13px', color: '#15803d' }}>Benva Total Profit (₹)</label>
+                          <div style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1.5px solid #86efac', background: '#f0fdf4', color: '#15803d', fontWeight: 800, fontSize: '15px' }}>
+                            +₹{calculatedProfit.toLocaleString('en-IN')}
+                          </div>
+                        </div>
+                      </div>
                     </div>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600, fontSize: '13px', color: '#475569' }}>Discount Given (₹)</label>
-                      <input 
-                        type="number" 
-                        min="0" 
-                        step="any"
-                        placeholder="e.g. 300" 
-                        value={formData.discount} 
-                        onChange={e => handleDiscountChange(e.target.value)} 
-                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#16a34a', fontWeight: 600 }} 
-                      />
-                    </div>
-                    <div>
-                      <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600, fontSize: '13px', color: '#475569' }}>Final Paid Amount (₹)</label>
-                      <input 
-                        type="number" 
-                        min="0" 
-                        step="any"
-                        placeholder="e.g. 1200" 
-                        value={formData.finalAmount} 
-                        onChange={e => setFormData({ ...formData, finalAmount: e.target.value })} 
-                        style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#ecfdf5', color: '#065f46', fontWeight: 700 }} 
-                      />
-                    </div>
-                  </div>
-                </div>
+                  );
+                })()}
 
                 {/* Consignment & Courier Tracking Section */}
                 <div style={{ background: '#f0f9ff', border: '1.5px solid #bae6fd', borderRadius: '10px', padding: '16px', marginBottom: '24px' }}>
@@ -3781,32 +4969,210 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                   </div>
                   
                   {formData.medicines.map((med, i) => (
-                    <div key={med.id} style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '15px', background: '#f8fafc', padding: '15px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                      <div>
-                        <input type="checkbox" checked={med.isSelected !== false} onChange={e => handleMedicineChange(i, 'isSelected', e.target.checked)} title="Include in Pharmacy PDF" style={{ width: '20px', height: '20px', cursor: 'pointer' }} />
+                    <div key={med.id} style={{ background: '#f8fafc', padding: '14px 16px', borderRadius: '10px', border: '1.5px solid #e2e8f0', marginBottom: '14px', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+                      {/* Top: Medicine Identity */}
+                      <div style={{ display: 'flex', gap: '10px', alignItems: 'center', marginBottom: '10px', flexWrap: 'wrap' }}>
+                        <div style={{ display: 'flex', alignItems: 'center' }}>
+                          <input 
+                            type="checkbox" 
+                            checked={med.isSelected !== false} 
+                            onChange={e => handleMedicineChange(i, 'isSelected', e.target.checked)} 
+                            title="Include in Pharmacy Slip" 
+                            style={{ width: '20px', height: '20px', cursor: 'pointer' }} 
+                          />
+                        </div>
+                        <div style={{ flex: 3, minWidth: '180px' }}>
+                          <input 
+                            type="text" 
+                            placeholder="Medicine Name (e.g. Glycomet GP 1)" 
+                            value={med.name} 
+                            list={`med-directory-datalist-${i}`}
+                            onChange={e => {
+                              const val = e.target.value;
+                              handleMedicineChange(i, 'name', val);
+                              const matched = allSavedMedicines.find((m: any) => m.name.toLowerCase() === val.trim().toLowerCase());
+                              if (matched) {
+                                if (matched.rack && !med.rack) handleMedicineChange(i, 'rack', matched.rack);
+                                if (matched.pack && !med.pack) handleMedicineChange(i, 'pack', matched.pack);
+                                if (matched.mrp && !med.mrp) handleMedicineChange(i, 'mrp', matched.mrp);
+                                if (matched.actualPrice && !med.actualPrice) handleMedicineChange(i, 'actualPrice', matched.actualPrice);
+                                if (matched.profit && !med.profit) handleMedicineChange(i, 'profit', matched.profit);
+                                if (matched.type && med.type === 'Tablet') handleMedicineChange(i, 'type', matched.type);
+                                if (matched.customType && !med.customType) handleMedicineChange(i, 'customType', matched.customType);
+                              }
+                            }} 
+                            style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: 600, color: '#0f172a', background: 'white' }} 
+                          />
+                          <datalist id={`med-directory-datalist-${i}`}>
+                            {allSavedMedicines.map((m: any) => (
+                              <option key={m.name} value={m.name}>
+                                {`Rack: ${m.rack || 'N/A'} | Strips: ${m.pack || 'N/A'} | MRP: ₹${m.mrp || '0'}`}
+                              </option>
+                            ))}
+                          </datalist>
+                        </div>
+                        <div style={{ flex: med.type === 'Other' ? 1.2 : 1.5, minWidth: '105px' }}>
+                          <select 
+                            value={med.type} 
+                            onChange={e => {
+                              const newType = e.target.value;
+                              handleMedicineChange(i, 'type', newType);
+                              if (newType !== 'Other') {
+                                handleMedicineChange(i, 'customType', '');
+                              }
+                            }} 
+                            style={{ width: '100%', padding: '9px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white', color: '#0f172a' }}
+                          >
+                            <option>Tablet</option>
+                            <option>Strip</option>
+                            <option>Capsule</option>
+                            <option>Syrup</option>
+                            <option>Injection</option>
+                            <option>Ointment</option>
+                            <option>Other</option>
+                          </select>
+                        </div>
+                        {med.type === 'Other' && (
+                          <div style={{ flex: 1.8, minWidth: '150px' }}>
+                            <input 
+                              type="text" 
+                              placeholder="Specify type (e.g. Drops, Inhaler)" 
+                              value={med.customType || ''} 
+                              onChange={e => handleMedicineChange(i, 'customType', e.target.value)} 
+                              autoFocus
+                              style={{ 
+                                width: '100%', 
+                                padding: '9px 12px', 
+                                borderRadius: '6px', 
+                                border: '1.5px solid #0284c7', 
+                                background: '#f0f9ff', 
+                                color: '#0369a1', 
+                                fontWeight: 700, 
+                                fontSize: '13px' 
+                              }} 
+                            />
+                          </div>
+                        )}
+                        <div style={{ flex: 1.5, minWidth: '110px' }}>
+                          <input 
+                            type="text" 
+                            placeholder="Qty (e.g. 10 / 2 Strips)" 
+                            value={med.quantity} 
+                            onChange={e => handleMedicineChange(i, 'quantity', e.target.value)} 
+                            style={{ width: '100%', padding: '9px 12px', borderRadius: '6px', border: '1px solid #cbd5e1', background: 'white', color: '#0f172a' }} 
+                          />
+                        </div>
+                        <div>
+                          <button 
+                            type="button" 
+                            onClick={() => handleRemoveMedicine(i)} 
+                            style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca', padding: '8px 12px', borderRadius: '6px', cursor: 'pointer', fontWeight: 700, fontSize: '13px' }}
+                            title="Remove Medicine Row"
+                          >
+                            ✕ Remove
+                          </button>
+                        </div>
                       </div>
-                      <div style={{ flex: 2 }}>
-                        <input type="text" placeholder="Medicine Name" value={med.name} onChange={e => handleMedicineChange(i, 'name', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <select value={med.type} onChange={e => handleMedicineChange(i, 'type', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}>
-                          <option>Tablet</option>
-                          <option>Strip</option>
-                          <option>Capsule</option>
-                          <option>Syrup</option>
-                          <option>Injection</option>
-                          <option>Ointment</option>
-                          <option>Other</option>
-                        </select>
-                      </div>
-                      <div style={{ flex: 1 }}>
-                        <input type="text" placeholder="Quantity (e.g. 2 Strips)" value={med.quantity} onChange={e => handleMedicineChange(i, 'quantity', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-                      </div>
-                      <div style={{ flex: 2 }}>
-                        <input type="text" placeholder="Instructions (Optional)" value={med.instructions} onChange={e => handleMedicineChange(i, 'instructions', e.target.value)} style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
-                      </div>
-                      <div>
-                        <button type="button" onClick={() => handleRemoveMedicine(i)} style={{ background: '#ef4444', color: 'white', border: 'none', padding: '10px', borderRadius: '6px', cursor: 'pointer' }}>X</button>
+
+                      {/* Under Each Medicine: MRP, Discount Price (For User), Actual Cost, Profit For Us, Rack, Pack (No of Sheets), and Instructions */}
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', background: 'white', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', alignItems: 'center' }}>
+                        <div>
+                          <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#0f766e', marginBottom: '4px' }}>
+                            💵 MRP (₹)
+                          </label>
+                          <input 
+                            type="number" 
+                            step="any"
+                            min="0"
+                            placeholder="Catalog MRP ₹" 
+                            value={med.mrp ?? ''} 
+                            onChange={e => handleMedicineChange(i, 'mrp', e.target.value)} 
+                            style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #99f6e4', background: '#f0fdfa', color: '#115e59', fontWeight: 700, fontSize: '13px' }} 
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#0284c7', marginBottom: '4px' }}>
+                            🏷️ Discount Price (For User ₹)
+                          </label>
+                          <input 
+                            type="number" 
+                            step="any"
+                            min="0"
+                            placeholder="Price user pays ₹" 
+                            value={med.discountPrice ?? ''} 
+                            onChange={e => handleMedicineChange(i, 'discountPrice', e.target.value)} 
+                            style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #7dd3fc', background: '#f0f9ff', color: '#0369a1', fontWeight: 700, fontSize: '13px' }} 
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#4338ca', marginBottom: '4px' }}>
+                            🏷️ Actual Price (We Afford ₹)
+                          </label>
+                          <input 
+                            type="number" 
+                            step="any"
+                            min="0"
+                            placeholder="Cost we afford ₹" 
+                            value={med.actualPrice ?? ''} 
+                            onChange={e => handleMedicineChange(i, 'actualPrice', e.target.value)} 
+                            style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #c7d2fe', background: '#f5f7ff', color: '#3730a3', fontWeight: 700, fontSize: '13px' }} 
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#15803d', marginBottom: '4px' }}>
+                            💰 Profit For Us (₹)
+                          </label>
+                          <input 
+                            type="number" 
+                            step="any"
+                            placeholder="Profit for us ₹" 
+                            value={med.profit ?? ''} 
+                            onChange={e => handleMedicineChange(i, 'profit', e.target.value)} 
+                            style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #86efac', background: '#f0fdf4', color: '#15803d', fontWeight: 700, fontSize: '13px' }} 
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#b45309', marginBottom: '4px' }}>
+                            🗄️ Rack
+                          </label>
+                          <input 
+                            type="text" 
+                            placeholder="e.g. Rack A-12 / R-3" 
+                            value={med.rack || ''} 
+                            onChange={e => handleMedicineChange(i, 'rack', e.target.value)} 
+                            style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #fde68a', background: '#fffbeb', color: '#92400e', fontWeight: 700, fontSize: '13px' }} 
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#0369a1', marginBottom: '4px' }}>
+                            📦 Pack (No of Sheets)
+                          </label>
+                          <input 
+                            type="text" 
+                            placeholder="e.g. 10 sheets / 10x10" 
+                            value={med.pack || ''} 
+                            onChange={e => handleMedicineChange(i, 'pack', e.target.value)} 
+                            style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #bae6fd', background: '#f0f9ff', color: '#0369a1', fontWeight: 700, fontSize: '13px' }} 
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
+                            📝 Instructions / Frequency (Optional)
+                          </label>
+                          <input 
+                            type="text" 
+                            placeholder="e.g. 1-0-1 after food" 
+                            value={med.instructions} 
+                            onChange={e => handleMedicineChange(i, 'instructions', e.target.value)} 
+                            style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#334155', fontSize: '13px' }} 
+                          />
+                        </div>
                       </div>
                     </div>
                   ))}
@@ -4009,7 +5375,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                 type="date"
                 value={newDueDateValue}
                 onChange={e => setNewDueDateValue(e.target.value)}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '7px', border: '1.5px solid #0284c7', fontSize: '14px', outline: 'none' }}
+                style={{ width: '100%', padding: '10px 12px', borderRadius: '7px', border: '1.5px solid #0284c7', fontSize: '14px', outline: 'none', color: '#0f172a', backgroundColor: '#ffffff', colorScheme: 'light', fontWeight: 500 }}
               />
             </div>
 
