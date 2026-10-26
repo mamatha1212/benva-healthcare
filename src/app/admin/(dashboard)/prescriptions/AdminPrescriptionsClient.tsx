@@ -37,6 +37,8 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
   const [editData, setEditData] = useState<any>(null);
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
+  const [submittingId, setSubmittingId] = useState<string | null>(null);
+  const [isBulkSubmitting, setIsBulkSubmitting] = useState(false);
 
   const filteredPrescriptions = prescriptions.filter(p => {
     const matchesSearch = 
@@ -117,6 +119,54 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
     setIsSavingEdit(false);
   };
 
+  const draftCount = prescriptions.filter(p => p.status !== 'SUBMITTED').length;
+
+  const handleMarkSubmitted = async (fileId: string) => {
+    setSubmittingId(fileId);
+    try {
+      const res = await fetch(`/api/admin/prescriptions/${fileId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'SUBMITTED' })
+      });
+      if (res.ok) {
+        setPrescriptions(prev => prev.map(p => p.id === fileId ? { ...p, status: 'SUBMITTED' } : p));
+      } else {
+        alert('Failed to mark prescription as submitted.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error updating status.');
+    } finally {
+      setSubmittingId(null);
+    }
+  };
+
+  const handleBulkSubmitDrafts = async () => {
+    if (draftCount === 0) {
+      alert('All prescriptions are already submitted!');
+      return;
+    }
+    if (!confirm(`Are you sure you want to mark all ${draftCount} draft prescription(s) as Submitted to Admin?`)) return;
+
+    setIsBulkSubmitting(true);
+    try {
+      const res = await fetch('/api/admin/prescriptions/bulk-submit', { method: 'POST' });
+      if (res.ok) {
+        const data = await res.json();
+        setPrescriptions(prev => prev.map(p => ({ ...p, status: 'SUBMITTED' })));
+        alert(`Successfully submitted ${data.count || draftCount} prescription(s) to admin!`);
+      } else {
+        alert('Failed to bulk submit prescriptions.');
+      }
+    } catch (e) {
+      console.error(e);
+      alert('Error submitting drafts.');
+    } finally {
+      setIsBulkSubmitting(false);
+    }
+  };
+
   return (
     <div style={{ padding: 'clamp(12px, 3vw, 24px)', background: '#f8fafc', minHeight: '100vh', fontFamily: 'inherit' }}>
       <div style={{ background: 'white', borderRadius: '12px', padding: 'clamp(16px, 4vw, 32px)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
@@ -140,59 +190,89 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
           </div>
         </div>
 
-        {/* Filter Tabs */}
-        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
-          <button 
-            type="button"
-            onClick={() => setStatusFilter('ALL')} 
-            style={{ 
-              padding: '6px 16px', 
-              borderRadius: '20px', 
-              border: 'none', 
-              background: statusFilter === 'ALL' ? '#02559d' : '#f1f5f9', 
-              color: statusFilter === 'ALL' ? 'white' : '#475569', 
-              fontWeight: 600, 
-              fontSize: '13px', 
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-          >
-            All ({prescriptions.length})
-          </button>
-          <button 
-            type="button"
-            onClick={() => setStatusFilter('SUBMITTED')} 
-            style={{ 
-              padding: '6px 16px', 
-              borderRadius: '20px', 
-              border: 'none', 
-              background: statusFilter === 'SUBMITTED' ? '#16a34a' : '#f1f5f9', 
-              color: statusFilter === 'SUBMITTED' ? 'white' : '#475569', 
-              fontWeight: 600, 
-              fontSize: '13px', 
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-          >
-            Submitted ({prescriptions.filter(p => p.status === 'SUBMITTED').length})
-          </button>
-          <button 
-            type="button"
-            onClick={() => setStatusFilter('DRAFT')} 
-            style={{ 
-              padding: '6px 16px', 
-              borderRadius: '20px', 
-              border: 'none', 
-              background: statusFilter === 'DRAFT' ? '#d97706' : '#f1f5f9', 
-              color: statusFilter === 'DRAFT' ? 'white' : '#475569', 
-              fontWeight: 600, 
-              fontSize: '13px', 
-              cursor: 'pointer',
-              transition: 'all 0.2s'
-            }}
-          >
-            Drafts / Saved ({prescriptions.filter(p => p.status !== 'SUBMITTED').length})
-          </button>
+        {/* Filter Tabs and Bulk Submit */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
+            <button 
+              type="button"
+              onClick={() => setStatusFilter('ALL')} 
+              style={{ 
+                padding: '6px 16px', 
+                borderRadius: '20px', 
+                border: 'none', 
+                background: statusFilter === 'ALL' ? '#02559d' : '#f1f5f9', 
+                color: statusFilter === 'ALL' ? 'white' : '#475569', 
+                fontWeight: 600, 
+                fontSize: '13px', 
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              All ({prescriptions.length})
+            </button>
+            <button 
+              type="button"
+              onClick={() => setStatusFilter('SUBMITTED')} 
+              style={{ 
+                padding: '6px 16px', 
+                borderRadius: '20px', 
+                border: 'none', 
+                background: statusFilter === 'SUBMITTED' ? '#16a34a' : '#f1f5f9', 
+                color: statusFilter === 'SUBMITTED' ? 'white' : '#475569', 
+                fontWeight: 600, 
+                fontSize: '13px', 
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              Submitted ({prescriptions.filter(p => p.status === 'SUBMITTED').length})
+            </button>
+            <button 
+              type="button"
+              onClick={() => setStatusFilter('DRAFT')} 
+              style={{ 
+                padding: '6px 16px', 
+                borderRadius: '20px', 
+                border: 'none', 
+                background: statusFilter === 'DRAFT' ? '#d97706' : '#f1f5f9', 
+                color: statusFilter === 'DRAFT' ? 'white' : '#475569', 
+                fontWeight: 600, 
+                fontSize: '13px', 
+                cursor: 'pointer',
+                transition: 'all 0.2s'
+              }}
+            >
+              Drafts / Saved ({draftCount})
+            </button>
+          </div>
+
+          {draftCount > 0 && (
+            <button
+              type="button"
+              onClick={handleBulkSubmitDrafts}
+              disabled={isBulkSubmitting}
+              title="Submit all existing doctor drafts to admin"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '8px',
+                padding: '8px 18px',
+                borderRadius: '8px',
+                border: 'none',
+                background: '#16a34a',
+                color: 'white',
+                fontWeight: 600,
+                fontSize: '13px',
+                cursor: isBulkSubmitting ? 'not-allowed' : 'pointer',
+                opacity: isBulkSubmitting ? 0.7 : 1,
+                boxShadow: '0 2px 4px rgba(22, 163, 74, 0.25)',
+                transition: 'all 0.2s'
+              }}
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+              {isBulkSubmitting ? 'Submitting...' : `Submit All Drafts (${draftCount})`}
+            </button>
+          )}
         </div>
 
         <div style={{ borderRadius: '8px', border: '1px solid #e2e8f0', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
@@ -235,6 +315,29 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                     {file.createdAt ? new Date(file.createdAt).toLocaleString() : 'Unknown Date'}
                   </td>
                   <td style={{ padding: '16px 24px', textAlign: 'right', whiteSpace: 'nowrap' }}>
+                    {file.status !== 'SUBMITTED' && (
+                      <button
+                        type="button"
+                        onClick={() => handleMarkSubmitted(file.id)}
+                        disabled={submittingId === file.id}
+                        title="Mark as Submitted to Admin"
+                        style={{
+                          background: '#16a34a',
+                          border: 'none',
+                          padding: '8px 14px',
+                          borderRadius: '6px',
+                          fontSize: '13px',
+                          fontWeight: 600,
+                          color: 'white',
+                          cursor: submittingId === file.id ? 'not-allowed' : 'pointer',
+                          opacity: submittingId === file.id ? 0.7 : 1,
+                          transition: 'all 0.2s',
+                          marginRight: '8px'
+                        }}
+                      >
+                        {submittingId === file.id ? 'Submitting...' : 'Mark Submitted'}
+                      </button>
+                    )}
                     <button 
                       onClick={() => handleViewPrescription(file)}
                       style={{ background: '#3b82f6', border: 'none', padding: '8px 16px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, color: 'white', cursor: 'pointer', transition: 'all 0.2s', marginRight: '8px' }}

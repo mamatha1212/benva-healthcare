@@ -31,15 +31,19 @@ export async function PUT(
   try {
     const { id } = await params;
     const body = await request.json();
-    const { fileUrl } = body;
+    const { fileUrl, status } = body;
 
-    if (!fileUrl) {
-      return NextResponse.json({ error: 'fileUrl is required' }, { status: 400 });
+    const updateData: any = {};
+    if (fileUrl !== undefined) updateData.fileUrl = fileUrl;
+    if (status !== undefined) updateData.status = status;
+
+    if (Object.keys(updateData).length === 0) {
+      return NextResponse.json({ error: 'fileUrl or status is required' }, { status: 400 });
     }
 
     const updated = await prisma.patientFile.update({
       where: { id: id },
-      data: { fileUrl }
+      data: updateData
     });
 
     return NextResponse.json(updated);

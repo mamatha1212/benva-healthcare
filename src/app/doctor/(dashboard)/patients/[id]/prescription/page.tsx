@@ -319,28 +319,41 @@ export default function PrescriptionPage() {
     return true;
   };
 
-  const saveDraft = async (): Promise<string | null> => {
+  const [activeFileId, setActiveFileId] = useState<string | null>(searchParams?.get('fileId') || null);
+
+  useEffect(() => {
+    const fId = searchParams?.get('fileId') || null;
+    if (fId) setActiveFileId(fId);
+  }, [searchParams]);
+
+  const saveDraft = async (status: 'DRAFT' | 'SUBMITTED' = 'DRAFT'): Promise<string | null> => {
     if (!patientId) return null;
     if (!validateMedicines()) return null;
     setIsSaving(true);
     try {
       const data = { ...formData, medicines };
-      const method = fileId ? 'PUT' : 'POST';
-      const url = fileId
-        ? `/api/doctor/patients/${patientId}/files/${fileId}`
+      const currentFileId = activeFileId || fileId;
+      const method = currentFileId ? 'PUT' : 'POST';
+      const url = currentFileId
+        ? `/api/doctor/patients/${patientId}/files/${currentFileId}`
         : `/api/doctor/patients/${patientId}/files`;
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          fileName: fileId ? undefined : `Prescription_${formData.consultationDate}.txt`,
+          fileName: currentFileId ? undefined : `Prescription_${formData.consultationDate}.txt`,
           fileType: 'PRESCRIPTION',
-          fileContent: JSON.stringify(data)
+          fileContent: JSON.stringify(data),
+          status
         })
       });
       if (!res.ok) throw new Error('Failed');
       const saved = await res.json();
-      return saved.id || fileId || null;
+      const savedId = saved.id || currentFileId || null;
+      if (savedId) {
+        setActiveFileId(savedId);
+      }
+      return savedId;
     } catch (e) {
       alert('Failed to save prescription.');
       return null;
@@ -350,23 +363,24 @@ export default function PrescriptionPage() {
   };
 
   const handleSaveToRecord = async () => {
-    const id = await saveDraft();
+    const id = await saveDraft('DRAFT');
     if (id) {
       router.push(`/doctor/patients/${patientId}`);
     }
   };
 
   const handleSaveAndView = async () => {
-    const id = await saveDraft();
+    const id = await saveDraft('DRAFT');
     if (!id) return;
     // Save succeeded — now generate and view PDF
-    await handleViewPDF();
+    await handleViewPDF(id);
   };
 
   const handleSaveAndDownload = async () => {
-    const id = await saveDraft();
+    // Automatically submit to admin when downloading
+    const id = await saveDraft('SUBMITTED');
     if (!id) return;
-    // Save succeeded — now generate and download PDF
+    // Save & submit succeeded — now generate and download PDF
     await generatePDF();
   };
 
@@ -458,7 +472,7 @@ export default function PrescriptionPage() {
     }, 150);
   };
 
-  const handleViewPDF = async () => {
+  const handleViewPDF = async (targetId?: string | null) => {
     const element = pdfRef.current;
     if (!element) return;
     
@@ -480,6 +494,7 @@ export default function PrescriptionPage() {
         const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
         const file = new File([pdfBlob], opt.filename, { type: 'application/pdf' });
         const pdfUrl = URL.createObjectURL(file);
+        const resolvedFileId = targetId || activeFileId || fileId || '';
         
         const newWindow = window.open('', '_blank');
         if (newWindow) {
@@ -494,16 +509,29 @@ export default function PrescriptionPage() {
               <body style="margin:0; overflow:hidden; display:flex; flex-direction:column; height:100vh; background-color:#333;">
                 <div style="background-color:#1e293b; padding:12px 20px; display:flex; justify-content:space-between; align-items:center; color:white; font-family:sans-serif; border-bottom:1px solid #0f172a; z-index:10;">
                   <div style="font-size:14px; opacity:0.9;">Viewing: <strong style="color:#38bdf8;">${opt.filename}</strong></div>
-                  <button onclick="
+                  <button id="dlBtn" onclick="
                     const a = document.createElement('a');
                     a.href = '${pdfUrl}';
                     a.download = '${opt.filename}';
                     document.body.appendChild(a);
                     a.click();
                     document.body.removeChild(a);
-                  " style="background:#38bdf8; color:#0f172a; border:none; padding:8px 16px; border-radius:6px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:8px; font-size:14px; box-shadow:0 2px 4px rgba(0,0,0,0.2); transition:all 0.2s;">
+                    if ('${resolvedFileId}') {
+                      fetch('/api/doctor/patients/${patientId}/files/${resolvedFileId}', {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ status: 'SUBMITTED' })
+                      }).then(function() {
+                        const btn = document.getElementById('dlBtn');
+                        if (btn) {
+                          btn.innerHTML = '✓ Submitted to Admin & Downloaded';
+                          btn.style.background = '#059669';
+                        }
+                      }).catch(function(e) {});
+                    }
+                  " style="background:#059669; color:white; border:none; padding:8px 16px; border-radius:6px; font-weight:600; cursor:pointer; display:flex; align-items:center; gap:8px; font-size:14px; box-shadow:0 2px 4px rgba(0,0,0,0.2); transition:all 0.2s;">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                    Download Prescription
+                    Submit &amp; Download PDF
                   </button>
                 </div>
                 <iframe width="100%" style="flex:1; border:none; background-color:#525659;" src="${pdfUrl}#toolbar=0" frameborder="0"></iframe>
@@ -602,6 +630,16 @@ export default function PrescriptionPage() {
                 Cancel
               </button>
               <button
+                type="button"
+                onClick={handleSaveToRecord}
+                disabled={isSaving || isGenerating}
+                className="rx-btn"
+                style={{ backgroundColor: '#f8fafc', color: '#334155', border: '1px solid #cbd5e1', opacity: (isSaving || isGenerating) ? 0.7 : 1, cursor: (isSaving || isGenerating) ? 'not-allowed' : 'pointer' }}
+              >
+                {isSaving ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : <>Save Draft</>}
+              </button>
+              <button
+                type="button"
                 onClick={handleSaveAndView}
                 disabled={isSaving || isGenerating}
                 className="rx-btn"
@@ -613,17 +651,24 @@ export default function PrescriptionPage() {
                 </>}
               </button>
               <button
+                type="button"
                 onClick={handleSaveAndDownload}
                 disabled={isSaving || isGenerating}
                 className="rx-btn"
-                style={{ backgroundColor: '#dbeafe', color: '#1d4ed8', opacity: (isSaving || isGenerating) ? 0.7 : 1, cursor: (isSaving || isGenerating) ? 'not-allowed' : 'pointer' }}
+                style={{ backgroundColor: '#059669', color: 'white', fontWeight: 600, opacity: (isSaving || isGenerating) ? 0.7 : 1, cursor: (isSaving || isGenerating) ? 'not-allowed' : 'pointer', boxShadow: '0 2px 4px rgba(5,150,105,0.2)' }}
               >
-                {isSaving ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : isGenerating ? <><Loader2 size={14} className="animate-spin" /> Generating...</> : <>
+                {isSaving ? <><Loader2 size={14} className="animate-spin" /> Submitting...</> : isGenerating ? <><Loader2 size={14} className="animate-spin" /> Downloading...</> : <>
                   <Download size={14} />
-                  Save &amp; Download
+                  Submit &amp; Download PDF
                 </>}
               </button>
-              <button onClick={handleSubmitToAdmin} disabled={isSaving} className="rx-btn rx-btn-full" style={{ backgroundColor: '#10b981', color: 'white', opacity: isSaving ? 0.7 : 1, cursor: isSaving ? 'not-allowed' : 'pointer' }}>
+              <button 
+                type="button"
+                onClick={handleSubmitToAdmin} 
+                disabled={isSaving} 
+                className="rx-btn rx-btn-full" 
+                style={{ backgroundColor: '#0284c7', color: 'white', opacity: isSaving ? 0.7 : 1, cursor: isSaving ? 'not-allowed' : 'pointer' }}
+              >
                 Submit to Admin
               </button>
             </>
@@ -935,6 +980,16 @@ export default function PrescriptionPage() {
                 Cancel
               </button>
               <button
+                type="button"
+                onClick={handleSaveToRecord}
+                disabled={isSaving || isGenerating}
+                className="rx-btn"
+                style={{ backgroundColor: '#f8fafc', color: '#334155', border: '1px solid #cbd5e1', opacity: (isSaving || isGenerating) ? 0.7 : 1, cursor: (isSaving || isGenerating) ? 'not-allowed' : 'pointer' }}
+              >
+                {isSaving ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : <>Save Draft</>}
+              </button>
+              <button
+                type="button"
                 onClick={handleSaveAndView}
                 disabled={isSaving || isGenerating}
                 className="rx-btn"
@@ -946,17 +1001,24 @@ export default function PrescriptionPage() {
                 </>}
               </button>
               <button
+                type="button"
                 onClick={handleSaveAndDownload}
                 disabled={isSaving || isGenerating}
                 className="rx-btn"
-                style={{ backgroundColor: '#dbeafe', color: '#1d4ed8', opacity: (isSaving || isGenerating) ? 0.7 : 1, cursor: (isSaving || isGenerating) ? 'not-allowed' : 'pointer' }}
+                style={{ backgroundColor: '#059669', color: 'white', fontWeight: 600, opacity: (isSaving || isGenerating) ? 0.7 : 1, cursor: (isSaving || isGenerating) ? 'not-allowed' : 'pointer', boxShadow: '0 2px 4px rgba(5,150,105,0.2)' }}
               >
-                {isSaving ? <><Loader2 size={14} className="animate-spin" /> Saving...</> : isGenerating ? <><Loader2 size={14} className="animate-spin" /> Generating...</> : <>
+                {isSaving ? <><Loader2 size={14} className="animate-spin" /> Submitting...</> : isGenerating ? <><Loader2 size={14} className="animate-spin" /> Downloading...</> : <>
                   <Download size={14} />
-                  Save &amp; Download
+                  Submit &amp; Download PDF
                 </>}
               </button>
-              <button onClick={handleSubmitToAdmin} disabled={isSaving} className="rx-btn rx-btn-full" style={{ backgroundColor: '#10b981', color: 'white', opacity: isSaving ? 0.7 : 1, cursor: isSaving ? 'not-allowed' : 'pointer' }}>
+              <button 
+                type="button"
+                onClick={handleSubmitToAdmin} 
+                disabled={isSaving} 
+                className="rx-btn rx-btn-full" 
+                style={{ backgroundColor: '#0284c7', color: 'white', opacity: isSaving ? 0.7 : 1, cursor: isSaving ? 'not-allowed' : 'pointer' }}
+              >
                 Submit to Admin
               </button>
             </>
