@@ -420,7 +420,13 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
             text: `Benva Healthcare Consultation Record\nPatient: ${patientName}\nPhone: ${patientPhone}\nProblem: ${viewingRequest?.problem || 'N/A'}`
           });
         } else {
-          const message = `*Benva Healthcare Consultation Record*\n*Patient:* ${patientName}\n*Phone:* ${patientPhone}\n*Problem:* ${viewingRequest?.problem || 'N/A'}`;
+          let message = `*Benva Healthcare Consultation Record*\n*Patient:* ${patientName}\n*Phone:* ${patientPhone}\n*Problem:* ${viewingRequest?.problem || 'N/A'}`;
+          if (reportUrls) {
+            const urls = reportUrls.split(',').map((u: string) => u.trim()).filter(Boolean);
+            if (urls.length > 0) {
+              message += `\n\n*Uploaded Reports (${urls.length}):*\n` + urls.map((u: string, idx: number) => `${idx + 1}. ${u}`).join('\n');
+            }
+          }
           const waUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(message)}`;
           window.open(waUrl, '_blank');
         }
@@ -674,7 +680,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
 
       {viewingRequest && (
         <div style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '680px', color: '#0f172a', maxHeight: '90vh', overflowY: 'auto', position: 'relative' }}>
+          <div style={{ background: 'white', padding: '32px', borderRadius: '16px', width: '100%', maxWidth: '780px', color: '#0f172a', maxHeight: '92vh', overflowY: 'auto', position: 'relative' }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
               <h2 style={{ margin: 0, fontSize: '20px' }}>Consultation Request Details</h2>
               <button onClick={() => setViewingRequest(null)} style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#64748b' }}>&times;</button>
@@ -710,9 +716,31 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
               .view-grid > div {
                 padding: 16px;
               }
-              .modal-actions { margin-top: 24px; display: flex; justify-content: flex-end; gap: 10px; flex-wrap: wrap; }
-              .modal-action-btn { padding: 10px 16px; border-radius: 8px; font-weight: 600; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; font-size: 13px; border: none; transition: opacity 0.2s, transform 0.1s; }
-              .modal-action-btn:hover:not(:disabled) { opacity: 0.92; }
+              .modal-actions {
+                margin-top: 24px;
+                padding-top: 20px;
+                border-top: 1px solid #e2e8f0;
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                gap: 12px;
+                flex-wrap: wrap;
+              }
+              .modal-action-btn {
+                padding: 9px 15px;
+                border-radius: 8px;
+                font-weight: 600;
+                cursor: pointer;
+                display: inline-flex;
+                align-items: center;
+                justify-content: center;
+                gap: 6px;
+                font-size: 13px;
+                border: none;
+                transition: all 0.15s ease;
+                white-space: nowrap;
+              }
+              .modal-action-btn:hover:not(:disabled) { opacity: 0.92; transform: translateY(-1px); }
               .modal-action-btn:active:not(:disabled) { transform: scale(0.98); }
               .modal-action-btn:disabled { opacity: 0.6; cursor: not-allowed; }
               @media (max-width: 640px) {
@@ -723,13 +751,19 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
                   flex-direction: column;
                 }
                 .modal-actions {
-                  display: grid;
+                  flex-direction: column;
+                  align-items: stretch;
+                  gap: 12px;
+                }
+                .modal-actions-right {
+                  display: grid !important;
                   grid-template-columns: 1fr 1fr;
                   gap: 8px;
+                  width: 100%;
                 }
                 .modal-action-btn {
                   width: 100%;
-                  padding: 10px 6px;
+                  padding: 10px 8px;
                   font-size: 12px;
                 }
                 .modal-action-btn svg {
@@ -928,71 +962,84 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
             </div>
             
             <div className="modal-actions">
-              <button 
-                onClick={() => handleDelete(viewingRequest.id, viewingRequest.name)}
-                className="modal-action-btn"
-                disabled={deletingId === viewingRequest.id || actionLoading !== null}
-                style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca', marginRight: 'auto' }}
-                title="Delete this consultation request"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polyline points="3 6 5 6 21 6"></polyline>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                  <line x1="10" y1="11" x2="10" y2="17"></line>
-                  <line x1="14" y1="11" x2="14" y2="17"></line>
-                </svg>
-                {deletingId === viewingRequest.id ? 'Deleting...' : 'Delete Request'}
-              </button>
-              <button 
-                onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'view', viewingRequest.reportUrl)}
-                className="modal-action-btn"
-                disabled={actionLoading !== null}
-                style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1' }}
-                title="View consultation and merged PDF reports in browser"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
-                {actionLoading === 'view' ? 'Opening...' : 'View'}
-              </button>
-              <button 
-                onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'share', viewingRequest.reportUrl)}
-                className="modal-action-btn"
-                disabled={actionLoading !== null}
-                style={{ background: '#10b981', color: 'white' }}
-                title="Share merged reports and images via WhatsApp / device sharing"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-                {actionLoading === 'share' ? 'Sharing...' : 'Share (2 PDFs)'}
-              </button>
-              <button 
-                onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'zip', viewingRequest.reportUrl)}
-                className="modal-action-btn"
-                disabled={actionLoading !== null}
-                style={{ background: '#6366f1', color: 'white' }}
-                title="Download ZIP with consolidated PDF reports and images (no individual file clutter)"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><polyline points="8 14 12 18 16 14"></polyline><line x1="12" y1="10" x2="12" y2="18"></line></svg>
-                {actionLoading === 'zip' ? 'Creating ZIP...' : 'Download ZIP'}
-              </button>
-              <button 
-                onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Complete_All_In_One.pdf`, 'master', viewingRequest.reportUrl)}
-                className="modal-action-btn"
-                disabled={actionLoading !== null}
-                style={{ background: '#059669', color: 'white', fontWeight: 700 }}
-                title="Download 1 single combined PDF with Consultation + All PDF reports + All Photos merged"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-                {actionLoading === 'master' ? 'Merging All...' : 'Download Master PDF'}
-              </button>
-              <button 
-                onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'download')}
-                className="modal-action-btn"
-                disabled={actionLoading !== null}
-                style={{ background: '#3b82f6', color: 'white' }}
-                title="Download patient consultation form only"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                {actionLoading === 'download' ? 'Downloading...' : 'Consultation Only'}
-              </button>
+              <div>
+                <button 
+                  onClick={() => handleDelete(viewingRequest.id, viewingRequest.name)}
+                  className="modal-action-btn"
+                  disabled={deletingId === viewingRequest.id || actionLoading !== null}
+                  style={{ background: '#fef2f2', color: '#dc2626', border: '1px solid #fecaca' }}
+                  title="Delete this consultation request"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="3 6 5 6 21 6"></polyline>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                    <line x1="10" y1="11" x2="10" y2="17"></line>
+                    <line x1="14" y1="11" x2="14" y2="17"></line>
+                  </svg>
+                  {deletingId === viewingRequest.id ? 'Deleting...' : 'Delete'}
+                </button>
+              </div>
+
+              <div className="modal-actions-right" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                <button 
+                  onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'view', viewingRequest.reportUrl)}
+                  className="modal-action-btn"
+                  disabled={actionLoading !== null}
+                  style={{ background: '#f8fafc', color: '#334155', border: '1px solid #cbd5e1' }}
+                  title="View consultation and merged PDF reports in browser"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                  {actionLoading === 'view' ? 'Opening...' : 'View'}
+                </button>
+
+                <button 
+                  onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'share', viewingRequest.reportUrl)}
+                  className="modal-action-btn"
+                  disabled={actionLoading !== null}
+                  style={{ background: '#10b981', color: 'white' }}
+                  title="Share consultation record & reports via WhatsApp or device"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
+                  {actionLoading === 'share' ? 'Sharing...' : 'Share'}
+                </button>
+
+                <button 
+                  onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'download')}
+                  className="modal-action-btn"
+                  disabled={actionLoading !== null}
+                  style={{ background: '#2563eb', color: 'white' }}
+                  title="Download patient consultation form only"
+                >
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                  {actionLoading === 'download' ? 'Downloading...' : 'Consultation File'}
+                </button>
+
+                {viewingRequest.reportUrl && (
+                  <button 
+                    onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Complete_All_In_One.pdf`, 'master', viewingRequest.reportUrl)}
+                    className="modal-action-btn"
+                    disabled={actionLoading !== null}
+                    style={{ background: '#0d9488', color: 'white', fontWeight: 600 }}
+                    title="Download 1 single PDF with Consultation + All PDF reports + All Photos merged"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                    {actionLoading === 'master' ? 'Merging...' : 'Complete PDF'}
+                  </button>
+                )}
+
+                {viewingRequest.reportUrl && (
+                  <button 
+                    onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'zip', viewingRequest.reportUrl)}
+                    className="modal-action-btn"
+                    disabled={actionLoading !== null}
+                    style={{ background: '#6366f1', color: 'white' }}
+                    title="Download ZIP folder containing consolidated PDF reports and images"
+                  >
+                    <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><polyline points="8 14 12 18 16 14"></polyline><line x1="12" y1="10" x2="12" y2="18"></line></svg>
+                    {actionLoading === 'zip' ? 'Creating ZIP...' : 'Download ZIP'}
+                  </button>
+                )}
+              </div>
             </div>
           </div>
         </div>
