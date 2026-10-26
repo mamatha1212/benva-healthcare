@@ -67,7 +67,8 @@ const convertImagesToPDF = async (imageUrls: string[]): Promise<Blob | null> => 
         if (!res.ok) continue;
         const blob = await res.blob();
 
-        if (!blob.type.startsWith('image/')) continue;
+        const isImage = blob.type.startsWith('image/') || /\.(jpe?g|png|webp|gif|bmp)(\?.*)?$/i.test(url);
+        if (!isImage) continue;
 
         const img = await loadImageElement(blob);
         const naturalW = img.naturalWidth || img.width;
@@ -116,12 +117,39 @@ const convertImagesToPDF = async (imageUrls: string[]): Promise<Blob | null> => 
   }
 };
 
+const mergePdfBlobs = async (blobs: Blob[]): Promise<Blob> => {
+  const validBlobs = blobs.filter(Boolean);
+  if (validBlobs.length === 0) {
+    return new Blob([], { type: 'application/pdf' });
+  }
+  if (validBlobs.length === 1) {
+    return validBlobs[0];
+  }
+
+  const { PDFDocument } = await import('pdf-lib');
+  const mergedPdf = await PDFDocument.create();
+
+  for (const blob of validBlobs) {
+    try {
+      const buffer = await blob.arrayBuffer();
+      const pdf = await PDFDocument.load(buffer, { ignoreEncryption: true });
+      const copiedPages = await mergedPdf.copyPages(pdf, pdf.getPageIndices());
+      copiedPages.forEach((page) => mergedPdf.addPage(page));
+    } catch (err) {
+      console.warn('Failed to merge a PDF segment:', err);
+    }
+  }
+
+  const mergedPdfBytes = await mergedPdf.save();
+  return new Blob([mergedPdfBytes], { type: 'application/pdf' });
+};
+
 export default function FreeConsultationsClient({ initialRequests }: { initialRequests: any[] }) {
   const [requests, setRequests] = useState(initialRequests);
   const [loadingId, setLoadingId] = useState<string | null>(null);
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [viewingRequest, setViewingRequest] = useState<any>(null);
-  const [actionLoading, setActionLoading] = useState<'view' | 'share' | 'zip' | 'download' | null>(null);
+  const [actionLoading, setActionLoading] = useState<'view' | 'share' | 'zip' | 'download' | 'master' | null>(null);
 
   // Filters
   const [fromDate, setFromDate] = useState('');
@@ -149,7 +177,12 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
     return true;
   });
 
-  const handleDownloadPDF = async (targetId: string, filename: string, action: 'download' | 'view' | 'share' | 'zip' = 'download', reportUrls?: string) => {
+  const handleDownloadPDF = async (
+    targetId: string,
+    filename: string,
+    action: 'download' | 'view' | 'share' | 'zip' | 'master' = 'download',
+    reportUrls?: string
+  ) => {
     const element = document.getElementById(targetId);
     if (!element) return;
     
@@ -183,17 +216,115 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
       // @ts-ignore
       const html2pdf = (await import('html2pdf.js')).default;
       
+      // For general table export, standard download
+      if (targetId === 'consultations-table') {
+        if (action === 'download') {
+          await html2pdf().set(opt).from(clone).save();
+        }
+        return;
+      }
+
+      // Generate the consultation form PDF blob
+      const pdfBlob: Blob = await html2pdf().set(opt).from(clone).output('blob');
+      const patientName = viewingRequest?.name ? viewingRequest.name.replace(/\s+/g, '_') : 'Patient';
+      const patientPhone = viewingRequest?.phone || '';
+
+      // Prepare consolidated blobs
+      let consultationAndReportsBlob = pdfBlob;
+      let imagesPdfBlob: Blob | null = null;
+      let masterBlob = pdfBlob;
+
+      if (reportUrls) {
+        const urls = reportUrls.split(',').map((u: string) => u.trim()).filter(Boolean);
+        const imageUrls: string[] = [];
+        const existingPdfUrls: string[] = [];
+
+        for (const u of urls) {
+          const clean = u.split('?')[0].toLowerCase();
+          if (clean.endsWith('.pdf')) {
+            existingPdfUrls.push(u);
+          } else {
+            imageUrls.push(u);
+          }
+        }
+
+        // 1. Fetch all PDF reports
+        const uploadedPdfBlobs: Blob[] = [];
+        for (let i = 0; i < existingPdfUrls.length; i++) {
+          try {
+            const res = await fetch(existingPdfUrls[i]);
+            if (res.ok) {
+              const b = await res.blob();
+              uploadedPdfBlobs.push(b);
+            }
+          } catch (err) {
+            console.warn(`Failed to fetch PDF report ${i + 1}:`, err);
+          }
+        }
+
+        // 2. Convert all images into a single consolidated multi-page PDF
+        if (imageUrls.length > 0) {
+          try {
+            imagesPdfBlob = await convertImagesToPDF(imageUrls);
+          } catch (err) {
+            console.warn('Failed to convert images to PDF:', err);
+          }
+        }
+
+        // 3. Merge Consultation Form + all uploaded PDF reports into 1 single PDF
+        if (uploadedPdfBlobs.length > 0) {
+          try {
+            consultationAndReportsBlob = await mergePdfBlobs([pdfBlob, ...uploadedPdfBlobs]);
+          } catch (err) {
+            console.warn('Failed to merge consultation with uploaded PDFs:', err);
+            consultationAndReportsBlob = pdfBlob;
+          }
+        }
+
+        // 4. Create Master All-in-One PDF (Consultation + Uploaded PDFs + Converted Images)
+        const allMasterBlobs = [pdfBlob, ...uploadedPdfBlobs];
+        if (imagesPdfBlob) {
+          allMasterBlobs.push(imagesPdfBlob);
+        }
+        if (allMasterBlobs.length > 1) {
+          try {
+            masterBlob = await mergePdfBlobs(allMasterBlobs);
+          } catch (err) {
+            console.warn('Failed to create master all-in-one PDF:', err);
+            masterBlob = consultationAndReportsBlob;
+          }
+        }
+      }
+
       if (action === 'download') {
-        await html2pdf().set(opt).from(clone).save();
+        const url = URL.createObjectURL(pdfBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${patientName}_Consultation.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
+      } else if (action === 'master') {
+        const url = URL.createObjectURL(masterBlob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `${patientName}_Complete_Consultation_Record.pdf`;
+        document.body.appendChild(a);
+        a.click();
+        document.body.removeChild(a);
+        setTimeout(() => URL.revokeObjectURL(url), 1000);
       } else if (action === 'view') {
-        const url = await html2pdf().set(opt).from(clone).output('bloburl');
+        const previewBlob = consultationAndReportsBlob || pdfBlob;
+        const previewFilename = `${patientName}_Consultation_&_Reports.pdf`;
+        const url = URL.createObjectURL(previewBlob);
         const win = window.open('', '_blank');
         if (win) {
           win.document.write(`
             <!DOCTYPE html>
             <html>
               <head>
-                <title>${filename}</title>
+                <title>${previewFilename}</title>
                 <style>
                   body { margin: 0; overflow: hidden; background-color: #525659; display: flex; flex-direction: column; height: 100vh; }
                   .custom-toolbar { background: #323639; padding: 10px 24px; display: flex; justify-content: space-between; align-items: center; box-shadow: 0 2px 5px rgba(0,0,0,0.2); z-index: 10; }
@@ -205,8 +336,8 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
               </head>
               <body>
                 <div class="custom-toolbar">
-                  <div class="title">${filename}</div>
-                  <a href="${url}" download="${filename}" class="download-btn">Download PDF</a>
+                  <div class="title">${previewFilename}</div>
+                  <a href="${url}" download="${previewFilename}" class="download-btn">Download PDF</a>
                 </div>
                 <iframe src="${url}#toolbar=0"></iframe>
               </body>
@@ -217,8 +348,6 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
           window.open(url, '_blank');
         }
       } else if (action === 'zip') {
-        const pdfBlob: Blob = await html2pdf().set(opt).from(clone).output('blob');
-        
         let JSZip;
         try {
           JSZip = (await import('jszip')).default;
@@ -228,58 +357,20 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
         }
         const zip = new JSZip();
         
-        // Add PDF to zip
-        zip.file(filename, pdfBlob);
-        
-        // Add client uploaded files as PDFs
-        if (reportUrls) {
-          const urls = reportUrls.split(',').map((u: string) => u.trim()).filter(Boolean);
-          const imageUrls: string[] = [];
+        // 1. Consultation Form + All Uploaded PDFs merged into 1 PDF
+        zip.file(`${patientName}_Consultation_&_Reports.pdf`, consultationAndReportsBlob);
 
-          for (let i = 0; i < urls.length; i++) {
-            const url = urls[i];
-            const ext = url.split('.').pop()?.split('?')[0]?.toLowerCase();
+        // 2. All Uploaded Photos merged into 1 PDF (if any)
+        if (imagesPdfBlob) {
+          zip.file(`${patientName}_Medical_Images.pdf`, imagesPdfBlob);
+        }
 
-            if (ext === 'pdf') {
-              try {
-                const fetchRes = await fetch(url);
-                if (fetchRes.ok) {
-                  const attachmentBlob = await fetchRes.blob();
-                  zip.file(`Attachment_${i + 1}.pdf`, attachmentBlob);
-                }
-              } catch (fetchErr) {
-                console.warn(`Failed to fetch attachment ${i + 1}`, fetchErr);
-              }
-            } else {
-              imageUrls.push(url);
-              try {
-                // Convert individual image to PDF
-                const singleImagePdf = await convertImagesToPDF([url]);
-                if (singleImagePdf) {
-                  zip.file(`Attachment_${i + 1}.pdf`, singleImagePdf);
-                }
-              } catch (imgErr) {
-                console.warn(`Failed to convert image ${i + 1} to PDF`, imgErr);
-              }
-            }
-          }
-
-          // Also compile all images together into a single multi-page PDF document
-          if (imageUrls.length > 0) {
-            try {
-              const allImagesPdf = await convertImagesToPDF(imageUrls);
-              if (allImagesPdf) {
-                const patientName = viewingRequest?.name ? viewingRequest.name.replace(/\s+/g, '_') : 'Patient';
-                zip.file(`${patientName}_Medical_Reports.pdf`, allImagesPdf);
-              }
-            } catch (err) {
-              console.warn('Failed to compile all images to PDF for zip', err);
-            }
-          }
+        // 3. Complete Master All-in-One PDF (if reports or images exist)
+        if (masterBlob !== pdfBlob) {
+          zip.file(`${patientName}_Complete_Single_File.pdf`, masterBlob);
         }
         
         const zipBlob = await zip.generateAsync({ type: 'blob' });
-        const patientName = viewingRequest?.name ? viewingRequest.name.replace(/\s+/g, '_') : 'Patient';
         const zipFilename = `${patientName}_Documents.zip`;
         
         const url = URL.createObjectURL(zipBlob);
@@ -291,67 +382,37 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
         document.body.removeChild(a);
         setTimeout(() => URL.revokeObjectURL(url), 1000);
       } else if (action === 'share') {
-        const pdfBlob: Blob = await html2pdf().set(opt).from(clone).output('blob');
-        const patientName = viewingRequest?.name ? viewingRequest.name.replace(/\s+/g, '_') : 'Patient';
-        const patientPhone = viewingRequest?.phone || '';
+        const shareFiles: File[] = [];
 
-        const consultationFile = new File([pdfBlob], `${patientName}_Consultation.pdf`, { type: 'application/pdf' });
-        const shareFiles: File[] = [consultationFile];
+        // File 1: Merged Consultation + PDF Reports
+        shareFiles.push(
+          new File([consultationAndReportsBlob], `${patientName}_Consultation_&_Reports.pdf`, {
+            type: 'application/pdf'
+          })
+        );
 
-        if (reportUrls) {
-          const urls = reportUrls.split(',').map((u: string) => u.trim()).filter(Boolean);
-          const imageUrls: string[] = [];
-          const existingPdfUrls: string[] = [];
-
-          for (const u of urls) {
-            const ext = u.split('.').pop()?.split('?')[0]?.toLowerCase();
-            if (ext === 'pdf') {
-              existingPdfUrls.push(u);
-            } else {
-              imageUrls.push(u);
-            }
-          }
-
-          // Convert all uploaded images into a single multi-page PDF document
-          if (imageUrls.length > 0) {
-            const imagesPdfBlob = await convertImagesToPDF(imageUrls);
-            if (imagesPdfBlob) {
-              const reportsPdfFile = new File(
-                [imagesPdfBlob],
-                `${patientName}_Medical_Reports.pdf`,
-                { type: 'application/pdf' }
-              );
-              shareFiles.push(reportsPdfFile);
-            }
-          }
-
-          // Also include any files client uploaded that were already PDFs
-          for (let i = 0; i < existingPdfUrls.length; i++) {
-            try {
-              const res = await fetch(existingPdfUrls[i]);
-              if (res.ok) {
-                const blob = await res.blob();
-                shareFiles.push(new File([blob], `Uploaded_Report_${i + 1}.pdf`, { type: 'application/pdf' }));
-              }
-            } catch (err) {
-              console.warn('Failed to fetch existing PDF report', err);
-            }
-          }
+        // File 2: Merged Medical Images (if photos exist)
+        if (imagesPdfBlob) {
+          shareFiles.push(
+            new File([imagesPdfBlob], `${patientName}_Medical_Images.pdf`, {
+              type: 'application/pdf'
+            })
+          );
         }
 
         const shareData = {
           title: `${patientName} - Consultation & Reports`,
-          text: `Benva Healthcare Patient Consultation & Medical Reports for ${patientName} (${patientPhone})`,
+          text: `Benva Healthcare Patient Record for ${patientName} (${patientPhone})\nProblem: ${viewingRequest?.problem || 'N/A'}`,
           files: shareFiles
         };
 
         if (navigator.canShare && navigator.canShare(shareData)) {
           await navigator.share(shareData);
-        } else if (navigator.canShare && navigator.canShare({ files: [consultationFile] })) {
+        } else if (navigator.canShare && navigator.canShare({ files: [shareFiles[0]] })) {
           await navigator.share({
             title: `${patientName} - Consultation Record`,
             text: `Benva Healthcare Patient Consultation Record for ${patientName}`,
-            files: [consultationFile]
+            files: [shareFiles[0]]
           });
         } else if (navigator.share) {
           await navigator.share({
@@ -851,7 +912,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
                           <td style={{ padding: '20px', background: '#f8fafc', border: '1px solid #e2e8f0' }}>
                             <div style={{ fontSize: '12px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>Medical Reports Attached</div>
                             <div style={{ whiteSpace: 'pre-wrap', fontSize: '15px', lineHeight: '1.6', color: '#334155', fontWeight: 500 }}>
-                              {viewingRequest.reportUrl.split(',').length} File(s) Attached (Included in ZIP folder)
+                              {viewingRequest.reportUrl.split(',').length} File(s) Attached (Consolidated in ZIP / Master PDF)
                             </div>
                           </td>
                         </tr>
@@ -883,10 +944,11 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
                 {deletingId === viewingRequest.id ? 'Deleting...' : 'Delete Request'}
               </button>
               <button 
-                onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'view')}
+                onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'view', viewingRequest.reportUrl)}
                 className="modal-action-btn"
                 disabled={actionLoading !== null}
                 style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1' }}
+                title="View consultation and merged PDF reports in browser"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
                 {actionLoading === 'view' ? 'Opening...' : 'View'}
@@ -896,28 +958,40 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
                 className="modal-action-btn"
                 disabled={actionLoading !== null}
                 style={{ background: '#10b981', color: 'white' }}
+                title="Share merged reports and images via WhatsApp / device sharing"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="18" cy="5" r="3"></circle><circle cx="6" cy="12" r="3"></circle><circle cx="18" cy="19" r="3"></circle><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"></line><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"></line></svg>
-                {actionLoading === 'share' ? 'Sharing...' : 'Share'}
+                {actionLoading === 'share' ? 'Sharing...' : 'Share (2 PDFs)'}
               </button>
               <button 
                 onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'zip', viewingRequest.reportUrl)}
                 className="modal-action-btn"
                 disabled={actionLoading !== null}
                 style={{ background: '#6366f1', color: 'white' }}
-                title="Download ZIP with consultation PDF and attached client files"
+                title="Download ZIP with consolidated PDF reports and images (no individual file clutter)"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"></path><polyline points="8 14 12 18 16 14"></polyline><line x1="12" y1="10" x2="12" y2="18"></line></svg>
                 {actionLoading === 'zip' ? 'Creating ZIP...' : 'Download ZIP'}
+              </button>
+              <button 
+                onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Complete_All_In_One.pdf`, 'master', viewingRequest.reportUrl)}
+                className="modal-action-btn"
+                disabled={actionLoading !== null}
+                style={{ background: '#059669', color: 'white', fontWeight: 700 }}
+                title="Download 1 single combined PDF with Consultation + All PDF reports + All Photos merged"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+                {actionLoading === 'master' ? 'Merging All...' : 'Download Master PDF'}
               </button>
               <button 
                 onClick={() => handleDownloadPDF('patient-details-pdf', `${viewingRequest.name.replace(/\s+/g, '_')}_Consultation.pdf`, 'download')}
                 className="modal-action-btn"
                 disabled={actionLoading !== null}
                 style={{ background: '#3b82f6', color: 'white' }}
+                title="Download patient consultation form only"
               >
                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                {actionLoading === 'download' ? 'Downloading...' : 'Download PDF'}
+                {actionLoading === 'download' ? 'Downloading...' : 'Consultation Only'}
               </button>
             </div>
           </div>
