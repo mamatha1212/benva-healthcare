@@ -57,6 +57,15 @@ export async function POST(request: Request) {
       uploadedDocs = data.documents || [];
     }
 
+    // Find photoUrl from uploadedDocs or payload
+    const photoUrl = (data.photoUrl as string) || 
+      uploadedDocs.find((d: any) => 
+        d.name === 'Passport Size Photograph' || 
+        d.name === 'passportPhotoUrl' || 
+        d.name?.toLowerCase().includes('passport') || 
+        d.name?.toLowerCase().includes('photo')
+      )?.url || null;
+
     const application = await prisma.doctorApplication.create({
       data: {
         fullName: (data.fullName as string) || '',
@@ -68,6 +77,7 @@ export async function POST(request: Request) {
         address: (data.address as string) || '',
         city: (data.city as string) || '',
         state: (data.state as string) || '',
+        photoUrl: photoUrl,
         medicalQualification: (data.medicalQualification as string) || '',
         medicalCollege: (data.medicalCollege as string) || '',
         yearOfGraduation: (data.yearOfGraduation as string) || '',

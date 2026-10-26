@@ -175,12 +175,28 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
               window.location.href = '/admin/medicines';
             }
           }}
-          className={`${styles.navItem} ${pathname.includes('/admin/medicines') && searchParams.get('tab') !== 'upcoming' ? styles.active : ''}`}
+          className={`${styles.navItem} ${pathname.includes('/admin/medicines') && searchParams.get('tab') !== 'upcoming' && searchParams.get('tab') !== 'inventory' ? styles.active : ''}`}
         >
           <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M10.5 20.5l-6-6M4.5 14.5l6-6M10.5 8.5l9-9a2.12 2.12 0 013 3l-9 9M16.5 11.5l6 6M10.5 14.5l6-6M4 22l4-4" />
           </svg>
           Medicines
+        </Link>
+        <Link
+          href="/admin/medicines?tab=inventory"
+          onClick={(e) => {
+            if (window.location.pathname === '/admin/medicines' && window.location.search.includes('tab=inventory')) {
+              e.preventDefault();
+              window.location.href = '/admin/medicines?tab=inventory';
+            }
+          }}
+          className={`${styles.navItem} ${pathname.includes('/admin/medicines') && searchParams.get('tab') === 'inventory' ? styles.active : ''}`}
+        >
+          <svg className={styles.navIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m10.5 20.5 10-10a4.95 4.95 0 1 0-7-7l-10 10a4.95 4.95 0 1 0 7 7Z" />
+            <path d="m8.5 8.5 7 7" />
+          </svg>
+          Medicine Directory
         </Link>
         <Link
           href="/admin/medicines?tab=upcoming"

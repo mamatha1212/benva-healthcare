@@ -30,6 +30,7 @@ const getFormattedPrescription = (rawText: string) => {
 
 export default function AdminPrescriptionsClient({ initialPrescriptions }: { initialPrescriptions: any[] }) {
   const [prescriptions, setPrescriptions] = useState(initialPrescriptions);
+  const [statusFilter, setStatusFilter] = useState<'ALL' | 'SUBMITTED' | 'DRAFT'>('ALL');
   const [searchTerm, setSearchTerm] = useState('');
   const [viewingFile, setViewingFile] = useState<{ text: string, fileInfo: any } | null>(null);
   const [editingFile, setEditingFile] = useState<any>(null);
@@ -37,10 +38,16 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
   const [isSavingEdit, setIsSavingEdit] = useState(false);
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
 
-  const filteredPrescriptions = prescriptions.filter(p => 
-    p.patient.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    p.patient.consultant?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredPrescriptions = prescriptions.filter(p => {
+    const matchesSearch = 
+      p.patient.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+      p.patient.consultant?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    if (!matchesSearch) return false;
+    if (statusFilter === 'SUBMITTED') return p.status === 'SUBMITTED';
+    if (statusFilter === 'DRAFT') return p.status !== 'SUBMITTED';
+    return true;
+  });
 
   const handleViewPrescription = (file: any) => {
     if (file.fileUrl.startsWith('data:')) {
@@ -115,8 +122,8 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
       <div style={{ background: 'white', borderRadius: '12px', padding: 'clamp(16px, 4vw, 32px)', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '32px', flexWrap: 'wrap', gap: '16px' }}>
           <div style={{ flex: '1 1 min(100%, 400px)' }}>
-            <h1 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: 'bold', color: '#0f172a' }}>Submitted Prescriptions</h1>
-            <p style={{ margin: 0, color: '#64748b', fontSize: '15px' }}>View medical notes and prescriptions finalized by doctors.</p>
+            <h1 style={{ margin: '0 0 8px 0', fontSize: '24px', fontWeight: 'bold', color: '#0f172a' }}>Prescriptions</h1>
+            <p style={{ margin: 0, color: '#64748b', fontSize: '15px' }}>View all medical notes and prescriptions created by doctors.</p>
           </div>
           
           <div style={{ position: 'relative', flex: '1 1 300px', maxWidth: '100%' }}>
@@ -133,13 +140,69 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
           </div>
         </div>
 
+        {/* Filter Tabs */}
+        <div style={{ display: 'flex', gap: '8px', marginBottom: '20px', flexWrap: 'wrap' }}>
+          <button 
+            type="button"
+            onClick={() => setStatusFilter('ALL')} 
+            style={{ 
+              padding: '6px 16px', 
+              borderRadius: '20px', 
+              border: 'none', 
+              background: statusFilter === 'ALL' ? '#02559d' : '#f1f5f9', 
+              color: statusFilter === 'ALL' ? 'white' : '#475569', 
+              fontWeight: 600, 
+              fontSize: '13px', 
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            All ({prescriptions.length})
+          </button>
+          <button 
+            type="button"
+            onClick={() => setStatusFilter('SUBMITTED')} 
+            style={{ 
+              padding: '6px 16px', 
+              borderRadius: '20px', 
+              border: 'none', 
+              background: statusFilter === 'SUBMITTED' ? '#16a34a' : '#f1f5f9', 
+              color: statusFilter === 'SUBMITTED' ? 'white' : '#475569', 
+              fontWeight: 600, 
+              fontSize: '13px', 
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            Submitted ({prescriptions.filter(p => p.status === 'SUBMITTED').length})
+          </button>
+          <button 
+            type="button"
+            onClick={() => setStatusFilter('DRAFT')} 
+            style={{ 
+              padding: '6px 16px', 
+              borderRadius: '20px', 
+              border: 'none', 
+              background: statusFilter === 'DRAFT' ? '#d97706' : '#f1f5f9', 
+              color: statusFilter === 'DRAFT' ? 'white' : '#475569', 
+              fontWeight: 600, 
+              fontSize: '13px', 
+              cursor: 'pointer',
+              transition: 'all 0.2s'
+            }}
+          >
+            Drafts / Saved ({prescriptions.filter(p => p.status !== 'SUBMITTED').length})
+          </button>
+        </div>
+
         <div style={{ borderRadius: '8px', border: '1px solid #e2e8f0', overflowX: 'auto', WebkitOverflowScrolling: 'touch' }}>
           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', minWidth: '700px' }}>
             <thead>
               <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #e2e8f0' }}>
                 <th style={{ padding: '16px 24px', color: '#64748b', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Patient</th>
                 <th style={{ padding: '16px 24px', color: '#64748b', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Doctor</th>
-                <th style={{ padding: '16px 24px', color: '#64748b', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date Submitted</th>
+                <th style={{ padding: '16px 24px', color: '#64748b', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Status</th>
+                <th style={{ padding: '16px 24px', color: '#64748b', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Date</th>
                 <th style={{ padding: '16px 24px', color: '#64748b', fontSize: '13px', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', textAlign: 'right' }}>Actions</th>
               </tr>
             </thead>
@@ -154,6 +217,19 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                     <span style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', background: '#e0e7ff', color: '#4338ca', padding: '4px 10px', borderRadius: '16px', fontSize: '13px', fontWeight: 600 }}>
                       Dr. {file?.patient?.consultant || 'Unknown'}
                     </span>
+                  </td>
+                  <td style={{ padding: '16px 24px' }}>
+                    {file.status === 'SUBMITTED' ? (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#dcfce7', color: '#166534', padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 600 }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#16a34a' }}></span>
+                        Submitted
+                      </span>
+                    ) : (
+                      <span style={{ display: 'inline-flex', alignItems: 'center', gap: '5px', background: '#fef3c7', color: '#92400e', padding: '3px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 600 }}>
+                        <span style={{ width: '6px', height: '6px', borderRadius: '50%', background: '#d97706' }}></span>
+                        Draft
+                      </span>
+                    )}
                   </td>
                   <td suppressHydrationWarning style={{ padding: '16px 24px', color: '#475569', fontSize: '14px' }}>
                     {file.createdAt ? new Date(file.createdAt).toLocaleString() : 'Unknown Date'}
@@ -182,13 +258,13 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
               ))}
               {filteredPrescriptions.length === 0 && (
                 <tr>
-                  <td colSpan={4} style={{ padding: '64px 24px', textAlign: 'center' }}>
+                  <td colSpan={5} style={{ padding: '64px 24px', textAlign: 'center' }}>
                     <div style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '64px', height: '64px', borderRadius: '50%', background: '#f1f5f9', color: '#94a3b8', marginBottom: '16px' }}>
                       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
                     </div>
-                    <h3 style={{ color: '#0f172a', fontSize: '16px', fontWeight: 600, margin: '0 0 8px 0' }}>No Submitted Prescriptions</h3>
+                    <h3 style={{ color: '#0f172a', fontSize: '16px', fontWeight: 600, margin: '0 0 8px 0' }}>No Prescriptions Found</h3>
                     <p style={{ color: '#64748b', margin: 0, maxWidth: '300px', marginLeft: 'auto', marginRight: 'auto', fontSize: '14px' }}>
-                      {searchTerm ? 'No prescriptions match your search.' : 'There are no finalized prescriptions submitted by doctors yet.'}
+                      {searchTerm ? 'No prescriptions match your search.' : 'There are no prescriptions recorded yet.'}
                     </p>
                   </td>
                 </tr>

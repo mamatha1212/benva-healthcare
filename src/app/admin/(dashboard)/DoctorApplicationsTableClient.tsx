@@ -3,28 +3,156 @@
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
-import { User, FileText, Award, CreditCard, Paperclip, X } from 'lucide-react';
+import modalStyles from './DoctorApplicationsModal.module.css';
+import { 
+  User, 
+  FileText, 
+  Award, 
+  CreditCard, 
+  Paperclip, 
+  X, 
+  Phone, 
+  Mail, 
+  MessageSquare, 
+  MapPin, 
+  Calendar, 
+  ExternalLink, 
+  Printer, 
+  Edit3, 
+  ShieldCheck, 
+  Stethoscope, 
+  CheckCircle2, 
+  AlertCircle, 
+  Check, 
+  Copy,
+  Building,
+  GraduationCap
+} from 'lucide-react';
 
-const DetailItem = ({ label, value, isEditing, name, onChange, type = 'text', options }: { label: string, value: React.ReactNode, isEditing?: boolean, name?: string, onChange?: any, type?: string, options?: string[] }) => (
-  <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-    <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#94a3b8', fontWeight: 700, letterSpacing: '0.08em' }}>{label}</span>
-    {isEditing ? (
-      type === 'select' && options ? (
-        <select name={name} value={value as string || ''} onChange={onChange} style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e0', fontSize: '14px', width: '100%', boxSizing: 'border-box' }}>
-          {options.map(o => <option key={o} value={o}>{o}</option>)}
-        </select>
-      ) : type === 'textarea' ? (
-        <textarea name={name} value={value as string || ''} onChange={onChange} style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e0', fontSize: '14px', minHeight: '80px', width: '100%', boxSizing: 'border-box' }} />
-      ) : type === 'readonly' ? (
-        <span style={{ fontSize: '15px', color: '#1e293b', fontWeight: 500, lineHeight: '1.4' }}>{value || '-'}</span>
+interface DetailTileProps {
+  label: string;
+  value: React.ReactNode;
+  icon?: React.ReactNode;
+  isEditing?: boolean;
+  name?: string;
+  onChange?: (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => void;
+  type?: 'text' | 'select' | 'textarea' | 'date' | 'email' | 'number' | 'readonly';
+  options?: string[];
+  fullWidth?: boolean;
+  isMono?: boolean;
+  action?: { label: string; href?: string; onClick?: () => void };
+}
+
+const DetailTile = ({
+  label,
+  value,
+  icon,
+  isEditing,
+  name,
+  onChange,
+  type = 'text',
+  options,
+  fullWidth,
+  isMono,
+  action
+}: DetailTileProps) => {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = (text: string) => {
+    navigator.clipboard.writeText(text);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  return (
+    <div className={`${modalStyles.detailTile} ${fullWidth ? modalStyles.tileFullWidth : ''}`}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <span className={modalStyles.tileLabel}>
+          {icon}
+          {label}
+        </span>
+        {!isEditing && typeof value === 'string' && value && value !== '-' && isMono && (
+          <button
+            type="button"
+            onClick={() => handleCopy(value)}
+            style={{
+              background: 'none',
+              border: 'none',
+              padding: '2px 6px',
+              fontSize: '11px',
+              color: copied ? '#16a34a' : '#94a3b8',
+              cursor: 'pointer',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '4px'
+            }}
+            title="Copy to clipboard"
+          >
+            {copied ? <Check size={12} /> : <Copy size={12} />}
+            {copied ? 'Copied' : 'Copy'}
+          </button>
+        )}
+      </div>
+
+      {isEditing ? (
+        type === 'select' && options ? (
+          <select
+            name={name}
+            value={value as string || ''}
+            onChange={onChange}
+            className={modalStyles.editInput}
+          >
+            {options.map(o => <option key={o} value={o}>{o}</option>)}
+          </select>
+        ) : type === 'textarea' ? (
+          <textarea
+            name={name}
+            value={value as string || ''}
+            onChange={onChange}
+            className={modalStyles.editInput}
+            style={{ minHeight: '80px', resize: 'vertical' }}
+          />
+        ) : type === 'readonly' ? (
+          <span className={`${modalStyles.tileValue} ${isMono ? modalStyles.tileMono : ''}`}>
+            {value || '-'}
+          </span>
+        ) : (
+          <input
+            type={type}
+            name={name}
+            value={value as string || ''}
+            onChange={onChange}
+            className={modalStyles.editInput}
+          />
+        )
       ) : (
-        <input type={type} name={name} value={value as string || ''} onChange={onChange} style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e0', fontSize: '14px', width: '100%', boxSizing: 'border-box' }} />
-      )
-    ) : (
-      <span style={{ fontSize: '15px', color: '#1e293b', fontWeight: 500, lineHeight: '1.4' }}>{value || '-'}</span>
-    )}
-  </div>
-);
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
+          <span className={`${modalStyles.tileValue} ${isMono ? modalStyles.tileMono : ''}`}>
+            {value || '-'}
+          </span>
+          {action && action.href && (
+            <a
+              href={action.href}
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{
+                fontSize: '11px',
+                fontWeight: 700,
+                color: '#0284c7',
+                textDecoration: 'none',
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '3px'
+              }}
+            >
+              {action.label} <ExternalLink size={11} />
+            </a>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
 
 export default function DoctorApplicationsTableClient({
   applications,
@@ -42,6 +170,7 @@ export default function DoctorApplicationsTableClient({
   const [editForm, setEditForm] = useState<any>(null);
   const [appToDelete, setAppToDelete] = useState<string | null>(null);
   const [localApps, setLocalApps] = useState<any[]>(applications);
+  const [activeModalTab, setActiveModalTab] = useState<'all' | 'personal' | 'medical' | 'clinical' | 'payment' | 'documents'>('all');
 
   const handleInputChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     setEditForm({ ...editForm, [e.target.name]: e.target.value });
@@ -54,8 +183,9 @@ export default function DoctorApplicationsTableClient({
       if (res.ok) {
         setLocalApps(prev => prev.filter(a => a.id !== appToDelete));
         setAppToDelete(null);
+        if (selectedApp?.id === appToDelete) setSelectedApp(null);
         router.refresh();
-      } else alert('Failed to delete');
+      } else alert('Failed to delete application.');
     } catch (err) { alert('Network error'); }
   };
 
@@ -73,18 +203,16 @@ export default function DoctorApplicationsTableClient({
         setSelectedApp(editForm);
         setIsEditing(false);
         router.refresh();
-      } else alert('Failed to update');
+      } else alert('Failed to update application.');
     } catch (err) { alert('Network error'); }
     setIsUpdating(false);
   };
 
-  // Sync if prop changes
   React.useEffect(() => {
     setLocalApps(applications);
   }, [applications]);
 
   const handleStatusChange = async (id: string, newStatus: string) => {
-    if (!window.confirm(`Are you sure you want to change status to ${newStatus}?`)) return;
     setIsUpdating(true);
     try {
       const res = await fetch('/api/admin/doctor-applications/status', {
@@ -94,6 +222,9 @@ export default function DoctorApplicationsTableClient({
       });
       if (res.ok) {
         setLocalApps(prev => prev.map(app => app.id === id ? { ...app, status: newStatus } : app));
+        if (selectedApp && selectedApp.id === id) {
+          setSelectedApp((prev: any) => ({ ...prev, status: newStatus }));
+        }
         router.refresh();
       } else {
         const errData = await res.json().catch(() => null);
@@ -106,238 +237,686 @@ export default function DoctorApplicationsTableClient({
     }
   };
 
+  const cleanPhone = (phone?: string) => (phone || '').replace(/[^0-9]/g, '');
+
   if (localApps.length === 0) {
     return <div className={styles.emptyState}>No doctor applications found.</div>;
   }
 
+  // Get photo if available in documents or photoUrl field
+  const passportPhoto = selectedApp?.documents?.find((d: any) => 
+    d.name === 'Passport Size Photograph' || d.name?.toLowerCase().includes('passport') || d.name?.toLowerCase().includes('photo')
+  )?.url || selectedApp?.photoUrl;
+
+  const docCount = selectedApp?.documents?.length || 0;
+
   return (
     <div>
+      {/* ── DELETE CONFIRMATION MODAL ── */}
       {appToDelete && (
-        <div style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.6)',
-          backdropFilter: 'blur(4px)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 10000,
-          padding: '20px'
-        }}>
-          <div style={{ background: 'white', borderRadius: '16px', width: '100%', maxWidth: '400px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
-            <div style={{ padding: '24px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
+        <div className={modalStyles.modalOverlay}>
+          <div style={{ background: 'white', borderRadius: '16px', width: '100%', maxWidth: '420px', overflow: 'hidden', boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)' }}>
+            <div style={{ padding: '28px 24px', display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center' }}>
               <div style={{ width: '64px', height: '64px', borderRadius: '50%', background: '#fef2f2', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#ef4444', marginBottom: '16px' }}>
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M3 6h18"></path><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"></path><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"></path></svg>
+                <AlertCircle size={32} strokeWidth={2.5} />
               </div>
-              <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: '#0f172a', fontWeight: '800' }}>Delete Application?</h3>
-              <p style={{ margin: '0 0 24px 0', color: '#64748b', fontSize: '15px', lineHeight: '1.5' }}>Are you sure you want to permanently delete this doctor application? This action cannot be undone.</p>
+              <h3 style={{ margin: '0 0 8px 0', fontSize: '20px', color: '#0f172a', fontWeight: '800' }}>Delete Doctor Application?</h3>
+              <p style={{ margin: '0 0 24px 0', color: '#64748b', fontSize: '14px', lineHeight: '1.5' }}>
+                Are you sure you want to permanently delete this application? All submitted documents and details will be removed.
+              </p>
               <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
-                <button onClick={() => setAppToDelete(null)} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: '#f1f5f9', color: '#475569', border: 'none', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}>Cancel</button>
-                <button onClick={confirmDelete} style={{ flex: 1, padding: '12px', borderRadius: '8px', background: '#ef4444', color: 'white', border: 'none', fontWeight: '600', cursor: 'pointer', transition: 'all 0.2s' }}>Delete</button>
+                <button 
+                  onClick={() => setAppToDelete(null)} 
+                  className={modalStyles.btnSecondary}
+                  style={{ flex: 1, justifyContent: 'center' }}
+                >
+                  Cancel
+                </button>
+                <button 
+                  onClick={confirmDelete} 
+                  className={modalStyles.btnDanger}
+                  style={{ flex: 1, justifyContent: 'center' }}
+                >
+                  Delete
+                </button>
               </div>
             </div>
           </div>
         </div>
       )}
 
+      {/* ── HIGH-END APPLICANT DETAILS & EDIT MODAL ── */}
       {selectedApp && (
-        <div style={{
-          position: 'fixed',
-          top: 0, left: 0, right: 0, bottom: 0,
-          backgroundColor: 'rgba(15, 23, 42, 0.6)',
-          backdropFilter: 'blur(4px)',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          zIndex: 9999,
-          padding: '20px'
+        <div className={modalStyles.modalOverlay} onClick={(e) => {
+          if (e.target === e.currentTarget) {
+            setSelectedApp(null);
+            setIsEditing(false);
+          }
         }}>
-          <div style={{
-            background: '#f8fafc',
-            borderRadius: '16px',
-            width: '100%',
-            maxWidth: '850px',
-            maxHeight: '90vh',
-            overflowY: 'auto',
-            boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
-            display: 'flex',
-            flexDirection: 'column'
-          }}>
-            {/* Header */}
-            <div className={styles.modalHeader}>
-              <div>
-                <h2 style={{ fontSize: '24px', fontWeight: '800', color: '#0f172a', margin: 0, letterSpacing: '-0.03em' }}>{isEditing ? 'Edit Application' : 'Applicant Details'}</h2>
-                <p style={{ margin: '4px 0 0 0', color: '#64748b', fontSize: '14px' }}>{isEditing ? 'Make changes to the application below.' : 'Review the doctor\'s full application below.'}</p>
+          <div className={modalStyles.modalContainer}>
+            {/* HERO PROFILE BANNER */}
+            <div className={modalStyles.heroBanner}>
+              <div className={modalStyles.bannerTopRow}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
+                  <span className={modalStyles.categoryTag}>
+                    <Stethoscope size={14} /> DOCTOR ONBOARDING APPLICATION
+                  </span>
+                  <span style={{ fontSize: '12px', color: '#94a3b8' }}>
+                    Applied {selectedApp.createdAt ? new Date(selectedApp.createdAt).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
+                  </span>
+                </div>
+                <button
+                  onClick={() => { setSelectedApp(null); setIsEditing(false); }}
+                  className={modalStyles.closeButton}
+                  title="Close Window"
+                >
+                  <X size={18} strokeWidth={2.5} />
+                </button>
               </div>
-              <button 
-                onClick={() => setSelectedApp(null)}
-                style={{ background: 'white', border: '1px solid #e2e8f0', width: '40px', height: '40px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', cursor: 'pointer', color: '#64748b', transition: 'all 0.2s', boxShadow: '0 1px 2px rgba(0,0,0,0.05)', flexShrink: 0 }}
-                onMouseOver={(e) => { e.currentTarget.style.background = '#f8fafc'; e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = '#ef4444'; }}
-                onMouseOut={(e) => { e.currentTarget.style.background = 'white'; e.currentTarget.style.color = '#64748b'; e.currentTarget.style.borderColor = '#e2e8f0'; }}
-              >
-                <X size={20} strokeWidth={2.5} />
-              </button>
-            </div>
-            
-            {/* Content Body */}
-            <div className={styles.modalContent}>
-              
-              {/* Section 1: Basic Details */}
-              <div className={styles.modalSection}>
-                <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0f172a', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ background: '#eff6ff', padding: '8px', borderRadius: '10px', color: '#3b82f6', display: 'flex' }}><User size={18} strokeWidth={2.5} /></div> Basic Details
-                </h3>
-                
-                <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap-reverse' }}>
-                  <div style={{ flex: '1 1 250px' }} className={styles.modalGrid}>
-                    <DetailItem label="Full Name" name="fullName" value={isEditing ? editForm?.fullName : selectedApp.fullName} isEditing={isEditing} onChange={handleInputChange} />
-                    <DetailItem label="Title" name="title" value={isEditing ? editForm?.title : selectedApp.title} isEditing={isEditing} onChange={handleInputChange} />
-                    <DetailItem label="Gender" name="gender" value={isEditing ? editForm?.gender : selectedApp.gender} isEditing={isEditing} onChange={handleInputChange} type="select" options={['male', 'female', 'other']} />
-                    <DetailItem label="Date of Birth" name="dob" type="date" value={isEditing ? editForm?.dob : selectedApp.dob} isEditing={isEditing} onChange={handleInputChange} />
-                    <DetailItem label="Mobile Number" name="mobile" value={isEditing ? editForm?.mobile : selectedApp.mobile} isEditing={isEditing} onChange={handleInputChange} />
-                    <DetailItem label="Email Address" name="email" value={isEditing ? editForm?.email : selectedApp.email} isEditing={isEditing} onChange={handleInputChange} type="email" />
-                    <DetailItem label="Address" name="address" value={isEditing ? editForm?.address : selectedApp.address} isEditing={isEditing} onChange={handleInputChange} />
-                    <DetailItem label="City" name="city" value={isEditing ? editForm?.city : selectedApp.city} isEditing={isEditing} onChange={handleInputChange} />
-                    <DetailItem label="State" name="state" value={isEditing ? editForm?.state : selectedApp.state} isEditing={isEditing} onChange={handleInputChange} />
+
+              <div className={modalStyles.profileHero}>
+                {/* Doctor Avatar / Photo */}
+                <div className={modalStyles.avatarContainer}>
+                  {passportPhoto ? (
+                    <img src={passportPhoto} alt={selectedApp.fullName} className={modalStyles.avatarImg} />
+                  ) : (
+                    <span className={modalStyles.avatarFallback}>
+                      {selectedApp.fullName ? selectedApp.fullName.replace(/^Dr\.?\s*/i, '').slice(0, 2).toUpperCase() : 'DR'}
+                    </span>
+                  )}
+                </div>
+
+                {/* Doctor Info */}
+                <div className={modalStyles.doctorIdentity}>
+                  <div className={modalStyles.doctorNameRow}>
+                    <h2 className={modalStyles.doctorName}>
+                      {isEditing ? editForm?.fullName : selectedApp.fullName}
+                    </h2>
+                    <span style={{ color: '#38bdf8', display: 'flex', alignItems: 'center' }} title="Verified Application">
+                      <CheckCircle2 size={18} />
+                    </span>
+                    <span className={`${modalStyles.statusPill} ${
+                      selectedApp.status === 'ACCEPTED' ? modalStyles.statusAccepted :
+                      selectedApp.status === 'REJECTED' ? modalStyles.statusRejected :
+                      modalStyles.statusPending
+                    }`}>
+                      {selectedApp.status === 'ACCEPTED' ? '✓ Accepted Doctor' :
+                       selectedApp.status === 'REJECTED' ? '✕ Application Rejected' :
+                       '⏳ Pending Review'}
+                    </span>
                   </div>
 
-                  {(() => {
-                    const passportPhoto = selectedApp.documents?.find((d: any) => d.name === 'Passport Size Photograph');
-                    if (passportPhoto) {
-                      return (
-                        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                          <div style={{ width: '130px', height: '130px', borderRadius: '50%', overflow: 'hidden', border: '4px solid #eff6ff', boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1)' }}>
-                            <img src={passportPhoto.url} alt="Passport" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                          </div>
-                        </div>
-                      );
-                    }
-                    return null;
-                  })()}
+                  <p className={modalStyles.doctorTitle}>
+                    {isEditing ? editForm?.title : selectedApp.title} • {isEditing ? editForm?.primarySpecialization : selectedApp.primarySpecialization}
+                  </p>
+
+                  <div className={modalStyles.metaTagsRow}>
+                    <span className={modalStyles.metaChip}>
+                      <Award size={13} style={{ color: '#fbbf24' }} /> {selectedApp.experience || '0'} Years Exp
+                    </span>
+                    <span className={modalStyles.metaChip}>
+                      <MapPin size={13} style={{ color: '#f87171' }} /> {selectedApp.city}, {selectedApp.state}
+                    </span>
+                    <span className={modalStyles.metaChip}>
+                      ⚡ Telemedicine: {selectedApp.telemedicine ? 'Available' : 'No'}
+                    </span>
+                  </div>
+                </div>
+
+                {/* Header Direct Quick Actions */}
+                <div className={modalStyles.quickActionsBar}>
+                  {selectedApp.mobile && (
+                    <>
+                      <a
+                        href={`https://wa.me/91${cleanPhone(selectedApp.mobile)}?text=${encodeURIComponent(`Hello Dr. ${selectedApp.fullName}, we are contacting you regarding your onboarding application at Benva Healthcare.`)}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className={`${modalStyles.actionBtn} ${modalStyles.actionWhatsApp}`}
+                        title="Chat on WhatsApp"
+                      >
+                        <MessageSquare size={14} /> WhatsApp
+                      </a>
+                      <a
+                        href={`tel:${selectedApp.mobile}`}
+                        className={`${modalStyles.actionBtn} ${modalStyles.actionCall}`}
+                        title="Call Doctor"
+                      >
+                        <Phone size={14} /> Call
+                      </a>
+                    </>
+                  )}
+                  {selectedApp.email && (
+                    <a
+                      href={`mailto:${selectedApp.email}?subject=Benva%20Healthcare%20Doctor%20Application`}
+                      className={`${modalStyles.actionBtn} ${modalStyles.actionEmail}`}
+                      title="Send Email"
+                    >
+                      <Mail size={14} /> Email
+                    </a>
+                  )}
+                  <button
+                    type="button"
+                    onClick={() => window.print()}
+                    className={`${modalStyles.actionBtn} ${modalStyles.actionCall}`}
+                    title="Print Application"
+                  >
+                    <Printer size={14} /> Print
+                  </button>
                 </div>
               </div>
+            </div>
 
-              {/* Section 2: Registration */}
-              <div className={styles.modalSection}>
-                <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0f172a', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ background: '#ecfdf5', padding: '8px', borderRadius: '10px', color: '#10b981', display: 'flex' }}><FileText size={18} strokeWidth={2.5} /></div> Registration Details
-                </h3>
-                <div className={styles.modalGrid}>
-                  <DetailItem label="Medical Qualification" name="medicalQualification" value={isEditing ? editForm?.medicalQualification : selectedApp.medicalQualification} isEditing={isEditing} onChange={handleInputChange} />
-                  <DetailItem label="College/University" name="medicalCollege" value={isEditing ? editForm?.medicalCollege : selectedApp.medicalCollege} isEditing={isEditing} onChange={handleInputChange} />
-                  <DetailItem label="Graduation Year" name="yearOfGraduation" value={isEditing ? editForm?.yearOfGraduation : selectedApp.yearOfGraduation} isEditing={isEditing} onChange={handleInputChange} />
-                  <DetailItem label="Post Graduation Year" name="yearOfPostGraduation" value={isEditing ? editForm?.yearOfPostGraduation : selectedApp.yearOfPostGraduation || '-'} isEditing={isEditing} onChange={handleInputChange} />
-                  <DetailItem label="Council Reg No." name="medicalCouncilReg" value={isEditing ? editForm?.medicalCouncilReg : selectedApp.medicalCouncilReg} isEditing={isEditing} onChange={handleInputChange} />
-                  <DetailItem label="Registering Authority" name="registeringAuthority" value={isEditing ? editForm?.registeringAuthority : selectedApp.registeringAuthority} isEditing={isEditing} onChange={handleInputChange} />
-                  <DetailItem label="Registration Status" name="registrationStatus" value={isEditing ? editForm?.registrationStatus : selectedApp.registrationStatus} isEditing={isEditing} onChange={handleInputChange} type="select" options={['active', 'expired', 'pending', 'suspended']} />
+            {/* TAB NAVIGATION BAR */}
+            <div className={modalStyles.tabsNav}>
+              <button
+                type="button"
+                onClick={() => setActiveModalTab('all')}
+                className={`${modalStyles.tabBtn} ${activeModalTab === 'all' ? modalStyles.tabBtnActive : ''}`}
+              >
+                All Sections
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveModalTab('personal')}
+                className={`${modalStyles.tabBtn} ${activeModalTab === 'personal' ? modalStyles.tabBtnActive : ''}`}
+              >
+                <User size={14} /> Personal & Contact
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveModalTab('medical')}
+                className={`${modalStyles.tabBtn} ${activeModalTab === 'medical' ? modalStyles.tabBtnActive : ''}`}
+              >
+                <FileText size={14} /> Medical & Council
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveModalTab('clinical')}
+                className={`${modalStyles.tabBtn} ${activeModalTab === 'clinical' ? modalStyles.tabBtnActive : ''}`}
+              >
+                <Award size={14} /> Specialization & Focus
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveModalTab('payment')}
+                className={`${modalStyles.tabBtn} ${activeModalTab === 'payment' ? modalStyles.tabBtnActive : ''}`}
+              >
+                <CreditCard size={14} /> Banking & Signature
+              </button>
+              <button
+                type="button"
+                onClick={() => setActiveModalTab('documents')}
+                className={`${modalStyles.tabBtn} ${activeModalTab === 'documents' ? modalStyles.tabBtnActive : ''}`}
+              >
+                <Paperclip size={14} /> Proofs & Documents
+                <span className={modalStyles.tabBadge}>{docCount}</span>
+              </button>
+            </div>
+
+            {/* MODAL SCROLLABLE BODY */}
+            <div className={modalStyles.modalBody}>
+              {/* SECTION 1: PERSONAL & CONTACT */}
+              {(activeModalTab === 'all' || activeModalTab === 'personal') && (
+                <div className={modalStyles.sectionCard}>
+                  <div className={modalStyles.sectionHeader}>
+                    <div className={modalStyles.sectionIconWrapper} style={{ background: '#eff6ff', color: '#2563eb' }}>
+                      <User size={18} strokeWidth={2.5} />
+                    </div>
+                    <h3 className={modalStyles.sectionTitle}>Personal & Contact Details</h3>
+                  </div>
+
+                  <div className={modalStyles.detailGrid}>
+                    <DetailTile 
+                      label="Full Name" 
+                      name="fullName" 
+                      value={isEditing ? editForm?.fullName : selectedApp.fullName} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                    />
+                    <DetailTile 
+                      label="Professional Title / Suffix" 
+                      name="title" 
+                      value={isEditing ? editForm?.title : selectedApp.title} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                    />
+                    <DetailTile 
+                      label="Gender" 
+                      name="gender" 
+                      value={isEditing ? editForm?.gender : (selectedApp.gender ? selectedApp.gender.charAt(0).toUpperCase() + selectedApp.gender.slice(1) : '-')} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                      type="select" 
+                      options={['male', 'female', 'other']} 
+                    />
+                    <DetailTile 
+                      label="Date of Birth" 
+                      name="dob" 
+                      type="date" 
+                      icon={<Calendar size={12} />}
+                      value={isEditing ? editForm?.dob : selectedApp.dob} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                    />
+                    <DetailTile 
+                      label="Mobile Number" 
+                      name="mobile" 
+                      icon={<Phone size={12} />}
+                      value={isEditing ? editForm?.mobile : selectedApp.mobile} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                      isMono
+                      action={!isEditing && selectedApp.mobile ? { label: 'Call', href: `tel:${selectedApp.mobile}` } : undefined}
+                    />
+                    <DetailTile 
+                      label="Email Address" 
+                      name="email" 
+                      icon={<Mail size={12} />}
+                      type="email" 
+                      value={isEditing ? editForm?.email : selectedApp.email} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                      action={!isEditing && selectedApp.email ? { label: 'Mail', href: `mailto:${selectedApp.email}` } : undefined}
+                    />
+                    <DetailTile 
+                      label="Full Residential / Clinic Address" 
+                      name="address" 
+                      icon={<MapPin size={12} />}
+                      value={isEditing ? editForm?.address : selectedApp.address} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                      fullWidth 
+                    />
+                    <DetailTile 
+                      label="City" 
+                      name="city" 
+                      value={isEditing ? editForm?.city : selectedApp.city} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                    />
+                    <DetailTile 
+                      label="State" 
+                      name="state" 
+                      value={isEditing ? editForm?.state : selectedApp.state} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* Section 3: Specialization */}
-              <div className={styles.modalSection}>
-                <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0f172a', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ background: '#f5f3ff', padding: '8px', borderRadius: '10px', color: '#8b5cf6', display: 'flex' }}><Award size={18} strokeWidth={2.5} /></div> Specialization & Experience
-                </h3>
-                <div className={styles.modalGrid}>
-                  <DetailItem label="Primary Specialization" name="primarySpecialization" value={isEditing ? editForm?.primarySpecialization : selectedApp.primarySpecialization} isEditing={isEditing} onChange={handleInputChange} />
-                  <DetailItem label="Secondary Specialization" name="secondarySpecialization" value={isEditing ? editForm?.secondarySpecialization : selectedApp.secondarySpecialization || '-'} isEditing={isEditing} onChange={handleInputChange} />
-                  <DetailItem label="Clinical Focus" name="clinicalFocus" value={isEditing ? editForm?.clinicalFocus : selectedApp.clinicalFocus || '-'} isEditing={isEditing} onChange={handleInputChange} type="textarea" />
-                  <DetailItem label="Years of Experience" name="experience" value={isEditing ? editForm?.experience : selectedApp.experience} isEditing={isEditing} onChange={handleInputChange} type="number" />
-                  <DetailItem label="Languages Spoken" name="languages" value={isEditing ? editForm?.languages : selectedApp.languages} isEditing={isEditing} onChange={handleInputChange} />
-                  <DetailItem label="Telemedicine" name="telemedicine" value={isEditing ? (editForm?.telemedicine ? 'Yes' : 'No') : (selectedApp.telemedicine ? 'Yes' : 'No')} isEditing={isEditing} onChange={(e: any) => setEditForm({...editForm, telemedicine: e.target.value === 'Yes'})} type="select" options={['Yes', 'No']} />
+              {/* SECTION 2: MEDICAL QUALIFICATION & REGISTRATION */}
+              {(activeModalTab === 'all' || activeModalTab === 'medical') && (
+                <div className={modalStyles.sectionCard}>
+                  <div className={modalStyles.sectionHeader}>
+                    <div className={modalStyles.sectionIconWrapper} style={{ background: '#ecfdf5', color: '#059669' }}>
+                      <GraduationCap size={18} strokeWidth={2.5} />
+                    </div>
+                    <h3 className={modalStyles.sectionTitle}>Medical Qualifications & Registration</h3>
+                  </div>
+
+                  <div className={modalStyles.detailGrid}>
+                    <DetailTile 
+                      label="Medical Qualification" 
+                      name="medicalQualification" 
+                      value={isEditing ? editForm?.medicalQualification : selectedApp.medicalQualification} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                    />
+                    <DetailTile 
+                      label="Medical College / University" 
+                      name="medicalCollege" 
+                      icon={<Building size={12} />}
+                      value={isEditing ? editForm?.medicalCollege : selectedApp.medicalCollege} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                      fullWidth
+                    />
+                    <DetailTile 
+                      label="Year of Graduation" 
+                      name="yearOfGraduation" 
+                      value={isEditing ? editForm?.yearOfGraduation : selectedApp.yearOfGraduation} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                    />
+                    <DetailTile 
+                      label="Post Graduation Year" 
+                      name="yearOfPostGraduation" 
+                      value={isEditing ? editForm?.yearOfPostGraduation : selectedApp.yearOfPostGraduation || '-'} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                    />
+                    <DetailTile 
+                      label="Medical Council Registration No." 
+                      name="medicalCouncilReg" 
+                      value={isEditing ? editForm?.medicalCouncilReg : selectedApp.medicalCouncilReg} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                      isMono
+                    />
+                    <DetailTile 
+                      label="Registering Authority / Council" 
+                      name="registeringAuthority" 
+                      value={isEditing ? editForm?.registeringAuthority : selectedApp.registeringAuthority} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                    />
+                    <DetailTile 
+                      label="Registration Status" 
+                      name="registrationStatus" 
+                      value={isEditing ? editForm?.registrationStatus : selectedApp.registrationStatus} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                      type="select" 
+                      options={['active', 'expired', 'pending', 'suspended']} 
+                    />
+                  </div>
                 </div>
-              </div>
+              )}
 
-              {/* Section 4: Payment */}
-              <div className={styles.modalSection}>
-                <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0f172a', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ background: '#fffbeb', padding: '8px', borderRadius: '10px', color: '#f59e0b', display: 'flex' }}><CreditCard size={18} strokeWidth={2.5} /></div> Payment & Signature
-                </h3>
-                <div className={styles.modalGrid}>
-                  <DetailItem label="Account Name" name="accountName" value={isEditing ? editForm?.accountName : selectedApp.accountName} isEditing={isEditing} onChange={handleInputChange} />
-                  <DetailItem label="Bank Name" name="bankName" value={isEditing ? editForm?.bankName : selectedApp.bankName} isEditing={isEditing} onChange={handleInputChange} />
-                  <DetailItem label="Account Number" name="accountNumber" value={isEditing ? editForm?.accountNumber : selectedApp.accountNumber} isEditing={isEditing} onChange={handleInputChange} />
-                  <DetailItem label="IFSC Code" name="ifscCode" value={isEditing ? editForm?.ifscCode : selectedApp.ifscCode} isEditing={isEditing} onChange={handleInputChange} />
-                  <DetailItem label="PAN Number" name="panNumber" value={isEditing ? editForm?.panNumber : selectedApp.panNumber} isEditing={isEditing} onChange={handleInputChange} />
-                  <DetailItem label="Branch Name" name="branchName" value={isEditing ? editForm?.branchName : selectedApp.branchName} isEditing={isEditing} onChange={handleInputChange} />
-                  <div style={{ gridColumn: '1 / -1', background: '#f8fafc', padding: '20px', borderRadius: '12px', marginTop: '8px', border: '1px dashed #cbd5e1' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '24px', flexWrap: 'wrap' }}>
-                      <DetailItem label="Digital Signature" name="signatureName" value={isEditing ? editForm?.signatureName : selectedApp.signatureName} isEditing={isEditing} onChange={handleInputChange} />
-                      <DetailItem label="Signature Date" value={selectedApp.signatureDate} isEditing={isEditing} type="readonly" />
+              {/* SECTION 3: SPECIALIZATION & CLINICAL EXPERIENCE */}
+              {(activeModalTab === 'all' || activeModalTab === 'clinical') && (
+                <div className={modalStyles.sectionCard}>
+                  <div className={modalStyles.sectionHeader}>
+                    <div className={modalStyles.sectionIconWrapper} style={{ background: '#f5f3ff', color: '#7c3aed' }}>
+                      <Award size={18} strokeWidth={2.5} />
+                    </div>
+                    <h3 className={modalStyles.sectionTitle}>Specialization & Clinical Experience</h3>
+                  </div>
+
+                  <div className={modalStyles.detailGrid}>
+                    <DetailTile 
+                      label="Primary Specialization" 
+                      name="primarySpecialization" 
+                      value={isEditing ? editForm?.primarySpecialization : selectedApp.primarySpecialization} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                    />
+                    <DetailTile 
+                      label="Secondary Specialization" 
+                      name="secondarySpecialization" 
+                      value={isEditing ? editForm?.secondarySpecialization : selectedApp.secondarySpecialization || '-'} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                    />
+                    <DetailTile 
+                      label="Total Years of Experience" 
+                      name="experience" 
+                      value={isEditing ? editForm?.experience : `${selectedApp.experience} Years`} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                      type="number" 
+                    />
+                    <DetailTile 
+                      label="Languages Spoken" 
+                      name="languages" 
+                      value={isEditing ? editForm?.languages : selectedApp.languages} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                    />
+                    <DetailTile 
+                      label="Telemedicine Available" 
+                      name="telemedicine" 
+                      value={isEditing ? (editForm?.telemedicine ? 'Yes' : 'No') : (selectedApp.telemedicine ? 'Yes (Online Consultations)' : 'No (In-Clinic Only)')} 
+                      isEditing={isEditing} 
+                      onChange={(e) => setEditForm({...editForm, telemedicine: e.target.value === 'Yes'})} 
+                      type="select" 
+                      options={['Yes', 'No']} 
+                    />
+                    <DetailTile 
+                      label="Clinical Focus & Expertise" 
+                      name="clinicalFocus" 
+                      value={isEditing ? editForm?.clinicalFocus : selectedApp.clinicalFocus || '-'} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                      type="textarea" 
+                      fullWidth 
+                    />
+                  </div>
+                </div>
+              )}
+
+              {/* SECTION 4: PAYMENT DETAILS & SIGNATURE */}
+              {(activeModalTab === 'all' || activeModalTab === 'payment') && (
+                <div className={modalStyles.sectionCard}>
+                  <div className={modalStyles.sectionHeader}>
+                    <div className={modalStyles.sectionIconWrapper} style={{ background: '#fffbeb', color: '#d97706' }}>
+                      <CreditCard size={18} strokeWidth={2.5} />
+                    </div>
+                    <h3 className={modalStyles.sectionTitle}>Banking, Payout & Digital Signature</h3>
+                  </div>
+
+                  <div className={modalStyles.detailGrid}>
+                    <DetailTile 
+                      label="Account Holder Name" 
+                      name="accountName" 
+                      value={isEditing ? editForm?.accountName : selectedApp.accountName} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                    />
+                    <DetailTile 
+                      label="Bank Name" 
+                      name="bankName" 
+                      value={isEditing ? editForm?.bankName : selectedApp.bankName} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                    />
+                    <DetailTile 
+                      label="Account Number" 
+                      name="accountNumber" 
+                      value={isEditing ? editForm?.accountNumber : selectedApp.accountNumber} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                      isMono 
+                    />
+                    <DetailTile 
+                      label="IFSC Code" 
+                      name="ifscCode" 
+                      value={isEditing ? editForm?.ifscCode : selectedApp.ifscCode} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                      isMono 
+                    />
+                    <DetailTile 
+                      label="PAN Card Number" 
+                      name="panNumber" 
+                      value={isEditing ? editForm?.panNumber : selectedApp.panNumber} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                      isMono 
+                    />
+                    <DetailTile 
+                      label="Bank Branch" 
+                      name="branchName" 
+                      value={isEditing ? editForm?.branchName : selectedApp.branchName} 
+                      isEditing={isEditing} 
+                      onChange={handleInputChange} 
+                    />
+                  </div>
+
+                  {/* VERIFIED DIGITAL SIGNATURE BADGE */}
+                  <div className={modalStyles.signatureCertificate}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                      <div style={{ background: '#16a34a', color: 'white', padding: '10px', borderRadius: '50%', display: 'flex' }}>
+                        <ShieldCheck size={24} />
+                      </div>
+                      <div>
+                        <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#166534', fontWeight: 800, letterSpacing: '0.08em', display: 'block' }}>
+                          Verified Digital Signature
+                        </span>
+                        <p className={modalStyles.signatureDoctorName}>
+                          {isEditing ? editForm?.signatureName : selectedApp.signatureName || selectedApp.fullName}
+                        </p>
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <span style={{ fontSize: '11px', textTransform: 'uppercase', color: '#166534', fontWeight: 700, display: 'block' }}>
+                        Submission Timestamp
+                      </span>
+                      <span style={{ fontSize: '13px', color: '#15803d', fontWeight: 700 }}>
+                        {selectedApp.signatureDate || (selectedApp.createdAt ? new Date(selectedApp.createdAt).toLocaleDateString() : '-')}
+                      </span>
                     </div>
                   </div>
                 </div>
-              </div>
-              
-              {/* Section 5: Documents */}
-              <div className={styles.modalSection}>
-                <h3 style={{ fontSize: '18px', fontWeight: '700', color: '#0f172a', marginBottom: '24px', display: 'flex', alignItems: 'center', gap: '10px' }}>
-                  <div style={{ background: '#fdf2f8', padding: '8px', borderRadius: '10px', color: '#ec4899', display: 'flex' }}><Paperclip size={18} strokeWidth={2.5} /></div> Submitted Proofs / Documents
-                </h3>
-                {selectedApp.documents && selectedApp.documents.length > 0 ? (
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '12px' }}>
-                    {selectedApp.documents.map((doc: any, i: number) => (
-                      <a 
-                        key={i} 
-                        href={doc.url} 
-                        target="_blank" 
-                        rel="noopener noreferrer" 
-                        style={{ 
-                          display: 'flex', 
-                          alignItems: 'center', 
-                          gap: '10px', 
-                          padding: '12px 20px', 
-                          background: 'white', 
-                          border: '1px solid #e2e8f0', 
-                          borderRadius: '12px', 
-                          textDecoration: 'none', 
-                          color: '#334155',
-                          fontSize: '14px',
-                          fontWeight: '600',
-                          transition: 'all 0.2s',
-                          boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
-                        }}
-                        onMouseOver={(e) => { e.currentTarget.style.borderColor = '#3b82f6'; e.currentTarget.style.color = '#3b82f6'; e.currentTarget.style.transform = 'translateY(-2px)'; e.currentTarget.style.boxShadow = '0 4px 6px -1px rgba(59,130,246,0.1)'; }}
-                        onMouseOut={(e) => { e.currentTarget.style.borderColor = '#e2e8f0'; e.currentTarget.style.color = '#334155'; e.currentTarget.style.transform = 'translateY(0)'; e.currentTarget.style.boxShadow = '0 1px 2px rgba(0,0,0,0.05)'; }}
-                      >
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"></path><polyline points="13 2 13 9 20 9"></polyline></svg>
-                        {doc.name}
-                      </a>
-                    ))}
+              )}
+
+              {/* SECTION 5: SUBMITTED DOCUMENTS */}
+              {(activeModalTab === 'all' || activeModalTab === 'documents') && (
+                <div className={modalStyles.sectionCard}>
+                  <div className={modalStyles.sectionHeader}>
+                    <div className={modalStyles.sectionIconWrapper} style={{ background: '#fdf2f8', color: '#db2777' }}>
+                      <Paperclip size={18} strokeWidth={2.5} />
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', width: '100%' }}>
+                      <h3 className={modalStyles.sectionTitle}>Submitted Proofs & Documents</h3>
+                      <span style={{ fontSize: '12px', fontWeight: 700, color: '#db2777', background: '#fce7f3', padding: '3px 10px', borderRadius: '12px' }}>
+                        {docCount} {docCount === 1 ? 'Attachment' : 'Attachments'}
+                      </span>
+                    </div>
                   </div>
-                ) : (
-                  <div style={{ padding: '32px', textAlign: 'center', background: '#f8fafc', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
-                    <p style={{ margin: 0, color: '#64748b', fontSize: '15px' }}>No documents were attached to this application.</p>
-                  </div>
-                )}
-              </div>
+
+                  {selectedApp.documents && selectedApp.documents.length > 0 ? (
+                    <div className={modalStyles.docGrid}>
+                      {selectedApp.documents.map((doc: any, i: number) => {
+                        const isPdf = (doc.url || '').toLowerCase().includes('.pdf');
+                        return (
+                          <div key={i} className={modalStyles.docCard}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', overflow: 'hidden' }}>
+                              <div style={{
+                                width: '38px',
+                                height: '38px',
+                                borderRadius: '8px',
+                                background: isPdf ? '#fee2e2' : '#eff6ff',
+                                color: isPdf ? '#dc2626' : '#2563eb',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                flexShrink: 0
+                              }}>
+                                <FileText size={20} />
+                              </div>
+                              <div style={{ overflow: 'hidden' }}>
+                                <p style={{ margin: 0, fontSize: '13.5px', fontWeight: 700, color: '#0f172a', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                                  {doc.name || `Document #${i + 1}`}
+                                </p>
+                                <span style={{ fontSize: '11px', color: '#64748b' }}>
+                                  {isPdf ? 'PDF Document' : 'Image File'}
+                                </span>
+                              </div>
+                            </div>
+                            <a
+                              href={doc.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className={modalStyles.docLinkBtn}
+                              title="Open in new tab"
+                            >
+                              View <ExternalLink size={12} />
+                            </a>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  ) : (
+                    <div style={{ padding: '36px 20px', textAlign: 'center', background: '#f8fafc', borderRadius: '12px', border: '1.5px dashed #cbd5e1' }}>
+                      <Paperclip size={32} style={{ color: '#94a3b8', marginBottom: '8px' }} />
+                      <p style={{ margin: 0, color: '#64748b', fontSize: '14px', fontWeight: 500 }}>
+                        No file attachments were uploaded with this application.
+                      </p>
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
 
-            <div style={{ padding: '24px 32px', background: 'white', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', borderBottomLeftRadius: '16px', borderBottomRightRadius: '16px' }}>
-              <div>
-                {!isEditing && (
-                  <button onClick={() => { setEditForm(selectedApp); setIsEditing(true); }} style={{ padding: '10px 24px', borderRadius: '8px', backgroundColor: '#d97706', color: 'white', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>Edit Application</button>
-                )}
-                {isEditing && (
-                  <button onClick={handleSave} disabled={isUpdating} style={{ padding: '10px 24px', borderRadius: '8px', backgroundColor: '#10b981', color: 'white', border: 'none', cursor: 'pointer', fontWeight: '600', fontSize: '14px', marginRight: '12px' }}>{isUpdating ? 'Saving...' : 'Save Changes'}</button>
-                )}
-                {isEditing && (
-                  <button onClick={() => setIsEditing(false)} style={{ padding: '10px 24px', borderRadius: '8px', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', cursor: 'pointer', fontWeight: '600', fontSize: '14px' }}>Cancel</button>
+            {/* MODAL FOOTER */}
+            <div className={modalStyles.modalFooter}>
+              <div className={modalStyles.footerActionsLeft}>
+                {!isEditing ? (
+                  <button
+                    type="button"
+                    onClick={() => { setEditForm(selectedApp); setIsEditing(true); }}
+                    className={modalStyles.btnSecondary}
+                  >
+                    <Edit3 size={15} /> Edit Application Details
+                  </button>
+                ) : (
+                  <>
+                    <button
+                      type="button"
+                      onClick={handleSave}
+                      disabled={isUpdating}
+                      className={modalStyles.btnSuccess}
+                    >
+                      <Check size={16} /> {isUpdating ? 'Saving...' : 'Save Changes'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setIsEditing(false)}
+                      className={modalStyles.btnSecondary}
+                    >
+                      Cancel
+                    </button>
+                  </>
                 )}
               </div>
-              <button 
-                onClick={() => { setSelectedApp(null); setIsEditing(false); }}
-                style={{ padding: '10px 24px', borderRadius: '8px', backgroundColor: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', cursor: 'pointer', fontWeight: '600', fontSize: '14px', transition: 'all 0.2s' }}
-                onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#e2e8f0'}
-                onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#f1f5f9'}
-              >
-                Close Window
-              </button>
+
+              <div className={modalStyles.footerActionsRight}>
+                {selectedApp.status === 'PENDING' && (
+                  <>
+                    <button
+                      type="button"
+                      onClick={() => handleStatusChange(selectedApp.id, 'ACCEPTED')}
+                      disabled={isUpdating}
+                      className={modalStyles.btnSuccess}
+                    >
+                      <CheckCircle2 size={16} /> Approve & Accept Doctor
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleStatusChange(selectedApp.id, 'REJECTED')}
+                      disabled={isUpdating}
+                      className={modalStyles.btnDanger}
+                    >
+                      <X size={16} /> Reject Application
+                    </button>
+                  </>
+                )}
+                {selectedApp.status === 'ACCEPTED' && (
+                  <button
+                    type="button"
+                    onClick={() => handleStatusChange(selectedApp.id, 'PENDING')}
+                    disabled={isUpdating}
+                    className={modalStyles.btnSecondary}
+                  >
+                    Move Back to Pending
+                  </button>
+                )}
+                {selectedApp.status === 'REJECTED' && (
+                  <button
+                    type="button"
+                    onClick={() => handleStatusChange(selectedApp.id, 'ACCEPTED')}
+                    disabled={isUpdating}
+                    className={modalStyles.btnSuccess}
+                  >
+                    Re-Approve Doctor
+                  </button>
+                )}
+                <button
+                  type="button"
+                  onClick={() => { setSelectedApp(null); setIsEditing(false); }}
+                  className={modalStyles.btnSecondary}
+                >
+                  Close Window
+                </button>
+              </div>
             </div>
           </div>
         </div>
       )}
 
+      {/* ── MAIN TABLE VIEW ── */}
       <div style={{ overflowX: 'auto', width: '100%', WebkitOverflowScrolling: 'touch', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
         <table className={styles.table} style={{ minWidth: '960px' }}>
           <thead>

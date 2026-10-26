@@ -11,6 +11,7 @@ export default function DoctorOnboardingForm() {
   const reqStar = <span className={styles.asterisk}>*</span>;
   const today = new Date().toISOString().split('T')[0];
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [submitStatus, setSubmitStatus] = useState('');
   const [isSuccess, setIsSuccess] = useState(false);
   const [error, setError] = useState('');
   const [mobileError, setMobileError] = useState('');
@@ -40,20 +41,98 @@ export default function DoctorOnboardingForm() {
     const emailErr = validateEmail(emailVal);
     setMobileError(mobileErr);
     setEmailError(emailErr);
-    if (mobileErr || emailErr) return;
+    if (mobileErr || emailErr) {
+      setError('Please resolve the mobile/email format errors highlighted above.');
+      return;
+    }
 
     setIsSubmitting(true);
     setError('');
+    setSubmitStatus('Preparing application documents...');
 
     try {
-      // Send the entire form (including files) as multipart FormData.
-      // Files are uploaded to Vercel Blob server-side — no CORS issues.
-      const formData = new FormData(e.currentTarget);
+      const formData = new FormData(form);
+
+      const fileFields = [
+        { key: 'doc_passport_photo', label: 'Passport Size Photograph' },
+        { key: 'doc_gov_id', label: 'Government Photo ID (Aadhar or PAN)' },
+        { key: 'doc_med_reg', label: 'Medical Registration Certificate' },
+        { key: 'doc_mbbs', label: 'MBBS Degree Certificate' },
+        { key: 'doc_pg', label: 'PG Degree Certificate(s)' },
+        { key: 'doc_fellowship', label: 'Fellowship Certificate(s)' },
+        { key: 'doc_bank', label: 'Cancelled Cheque / Bank Proof' },
+      ];
+
+      // Identify files selected
+      const selectedFilesToUpload = fileFields
+        .map(field => {
+          const file = formData.get(field.key);
+          if (file && file instanceof Blob && file.size > 0) {
+            return { ...field, file: file as File };
+          }
+          return null;
+        })
+        .filter(Boolean) as { key: string; label: string; file: File }[];
+
+      const uploadedDocs: { name: string; url: string }[] = [];
+      let photoUrl: string | null = null;
+
+      // Upload each file with user-visible progress
+      for (let i = 0; i < selectedFilesToUpload.length; i++) {
+        const item = selectedFilesToUpload[i];
+        setSubmitStatus(`Uploading ${item.label} (${i + 1}/${selectedFilesToUpload.length})...`);
+
+        const uploadData = new FormData();
+        uploadData.append('file', item.file);
+
+        const uploadRes = await fetch('/api/upload-direct', {
+          method: 'POST',
+          body: uploadData,
+        });
+
+        if (!uploadRes.ok) {
+          let errText = uploadRes.statusText;
+          try {
+            const errJson = await uploadRes.json();
+            if (errJson.error) errText = errJson.error;
+          } catch {}
+
+          if (uploadRes.status === 413) {
+            throw new Error(`File "${item.file.name}" is too large (Server limit is 4.5MB). Please compress or choose a smaller file.`);
+          }
+          throw new Error(`Failed to upload ${item.label}: ${errText}`);
+        }
+
+        const blobJson = await uploadRes.json();
+        const finalUrl = blobJson.url || blobJson.fileUrl;
+        uploadedDocs.push({ name: item.label, url: finalUrl });
+
+        if (item.key === 'doc_passport_photo') {
+          photoUrl = finalUrl;
+        }
+      }
+
+      setSubmitStatus('Saving application details...');
+
+      // Prepare clean JSON payload
+      const payload: Record<string, any> = {
+        documents: uploadedDocs,
+        photoUrl: photoUrl,
+      };
+
+      formData.forEach((val, key) => {
+        if (!key.startsWith('doc_') && typeof val === 'string') {
+          payload[key] = val;
+        }
+      });
+
+      const telemedicineInput = form.elements.namedItem('telemedicine') as HTMLInputElement | null;
+      payload.telemedicine = telemedicineInput ? telemedicineInput.checked : false;
 
       const res = await fetch('/api/doctor-applications', {
         method: 'POST',
-        body: formData,
-        // Do NOT set Content-Type — browser sets it with the correct boundary
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
 
       if (res.ok) {
@@ -73,9 +152,10 @@ export default function DoctorOnboardingForm() {
       }
     } catch (err: any) {
       console.error(err);
-      setError(`Network error: ${err?.message || 'Unknown'}`);
+      setError(`Application error: ${err?.message || 'Something went wrong. Please try again.'}`);
     } finally {
       setIsSubmitting(false);
+      setSubmitStatus('');
     }
   };
 
@@ -401,9 +481,53 @@ export default function DoctorOnboardingForm() {
           </div>
         </section>
 
-        <div className={styles.formActions}>
-          <button type="submit" disabled={isSubmitting} className={styles.submitButton}>
-            {isSubmitting ? 'Submitting...' : 'Submit Application'}
+        <div className={styles.formActions} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '14px' }}>
+          {isSubmitting && submitStatus && (
+            <div style={{
+              background: '#eff6ff',
+              border: '1px solid #bfdbfe',
+              color: '#1d4ed8',
+              padding: '12px 20px',
+              borderRadius: '10px',
+              fontSize: '14px',
+              fontWeight: '600',
+              display: 'flex',
+              alignItems: 'center',
+              gap: '10px',
+              width: '100%',
+              maxWidth: '500px',
+              justifyContent: 'center',
+              boxShadow: '0 2px 4px rgba(37,99,235,0.06)'
+            }}>
+              <span style={{ display: 'inline-block', animation: 'spin 1s linear infinite' }}>⏳</span>
+              <span>{submitStatus}</span>
+            </div>
+          )}
+
+          {error && (
+            <div style={{
+              color: '#b91c1c',
+              background: '#fef2f2',
+              border: '1px solid #fecaca',
+              padding: '12px 20px',
+              borderRadius: '10px',
+              fontSize: '14px',
+              fontWeight: '600',
+              width: '100%',
+              maxWidth: '500px',
+              textAlign: 'center'
+            }}>
+              ⚠ {error}
+            </div>
+          )}
+
+          <button 
+            type="submit" 
+            disabled={isSubmitting} 
+            className={styles.submitButton}
+            style={{ width: '100%', maxWidth: '500px' }}
+          >
+            {isSubmitting ? (submitStatus || 'Submitting...') : 'Submit Application'}
           </button>
         </div>
       </form>

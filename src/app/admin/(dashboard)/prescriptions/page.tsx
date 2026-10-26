@@ -4,7 +4,12 @@ import AdminPrescriptionsClient from './AdminPrescriptionsClient';
 
 export default async function AdminPrescriptionsPage() {
   const submittedPrescriptions = await prisma.patientFile.findMany({
-    where: { status: 'SUBMITTED' },
+    where: {
+      OR: [
+        { fileType: 'PRESCRIPTION' },
+        { status: 'SUBMITTED' }
+      ]
+    },
     include: {
       patient: true
     },
