@@ -2,6 +2,9 @@ import React from 'react';
 import { prisma } from '@/lib/prisma';
 import AdminPrescriptionsClient from './AdminPrescriptionsClient';
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function AdminPrescriptionsPage() {
   const submittedPrescriptions = await prisma.patientFile.findMany({
     where: {

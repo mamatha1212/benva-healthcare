@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 
 const getFormattedPrescription = (rawText: string) => {
   try {
@@ -39,6 +39,26 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
   const [isGeneratingPdf, setIsGeneratingPdf] = useState(false);
   const [submittingId, setSubmittingId] = useState<string | null>(null);
   const [isBulkSubmitting, setIsBulkSubmitting] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
+
+  const fetchPrescriptions = async () => {
+    setIsRefreshing(true);
+    try {
+      const res = await fetch('/api/admin/prescriptions', { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        setPrescriptions(data);
+      }
+    } catch (e) {
+      console.error(e);
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchPrescriptions();
+  }, []);
 
   const filteredPrescriptions = prescriptions.filter(p => {
     const matchesSearch = 
@@ -131,6 +151,7 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
       });
       if (res.ok) {
         setPrescriptions(prev => prev.map(p => p.id === fileId ? { ...p, status: 'SUBMITTED' } : p));
+        await fetchPrescriptions();
       } else {
         alert('Failed to mark prescription as submitted.');
       }
@@ -155,6 +176,7 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
       if (res.ok) {
         const data = await res.json();
         setPrescriptions(prev => prev.map(p => ({ ...p, status: 'SUBMITTED' })));
+        await fetchPrescriptions();
         alert(`Successfully submitted ${data.count || draftCount} prescription(s) to admin!`);
       } else {
         alert('Failed to bulk submit prescriptions.');
@@ -176,17 +198,42 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
             <p style={{ margin: 0, color: '#64748b', fontSize: '15px' }}>View all medical notes and prescriptions created by doctors.</p>
           </div>
           
-          <div style={{ position: 'relative', flex: '1 1 300px', maxWidth: '100%' }}>
-            <input 
-              type="text" 
-              placeholder="Search by patient or doctor..." 
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              style={{ padding: '10px 16px 10px 40px', borderRadius: '8px', border: '1px solid #cbd5e1', width: '100%', fontSize: '14px' }}
-            />
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#94a3b8' }}>
-              <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-            </svg>
+          <div style={{ display: 'flex', gap: '10px', alignItems: 'center', flex: '1 1 360px', maxWidth: '100%' }}>
+            <div style={{ position: 'relative', flex: 1 }}>
+              <input 
+                type="text" 
+                placeholder="Search by patient or doctor..." 
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{ padding: '10px 16px 10px 40px', borderRadius: '8px', border: '1px solid #cbd5e1', width: '100%', fontSize: '14px' }}
+              />
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', width: '16px', height: '16px', color: '#94a3b8' }}>
+                <circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+              </svg>
+            </div>
+            <button
+              type="button"
+              onClick={fetchPrescriptions}
+              disabled={isRefreshing}
+              title="Refresh prescriptions"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '10px 14px',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                background: 'white',
+                color: '#475569',
+                fontSize: '13px',
+                fontWeight: 600,
+                cursor: isRefreshing ? 'not-allowed' : 'pointer',
+                whiteSpace: 'nowrap'
+              }}
+            >
+              <svg style={{ animation: isRefreshing ? 'spin 1s linear infinite' : 'none' }} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/></svg>
+              {isRefreshing ? 'Refreshing...' : 'Refresh'}
+            </button>
           </div>
         </div>
 
