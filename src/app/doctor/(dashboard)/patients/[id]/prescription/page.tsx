@@ -619,6 +619,14 @@ export default function PrescriptionPage() {
       .rx-med-table { min-width: 560px; width: 100%; border-collapse: collapse; text-align: center; margin-top: 8px; }
       .rx-footer-row { display: flex; justify-content: space-between; border-top: 2px solid #0f3162; padding-top: 10px; font-size: 12px; color: #64748b; margin-top: 40px; flex-wrap: wrap; gap: 4px; }
       .rx-mode-group { display: flex; gap: 12px; flex-wrap: wrap; }
+      .rx-age-gender-container { display: flex; width: 100%; height: 100%; }
+      .rx-age-block { display: flex; width: 50%; border-right: 1px solid ${colors.borderColor}; align-items: stretch; }
+      .rx-gender-block { display: flex; width: 50%; align-items: stretch; }
+      .rx-age-label { width: 60%; padding: 8px; border-right: 1px solid ${colors.borderColor}; flex-shrink: 0; box-sizing: border-box; display: flex; align-items: center; }
+      .rx-age-val { width: 40%; padding: 8px; flex: 1; box-sizing: border-box; display: flex; align-items: center; }
+      .rx-gender-label { width: 50%; padding: 8px; border-right: 1px solid ${colors.borderColor}; flex-shrink: 0; box-sizing: border-box; display: flex; align-items: center; }
+      .rx-gender-val { width: 50%; padding: 8px; flex: 1; box-sizing: border-box; display: flex; align-items: center; }
+      .rx-gender-options { display: flex; gap: 8px; flex-wrap: wrap; }
       @media (max-width: 640px) {
         .rx-header { flex-direction: column; align-items: flex-start; }
         .rx-title { font-size: 20px; }
@@ -634,6 +642,13 @@ export default function PrescriptionPage() {
         .rx-mode-group { display: grid; grid-template-columns: repeat(3, auto); gap: 6px; align-items: center; }
         .rx-logo { width: 200px !important; }
         .rx-heading { font-size: 14px !important; }
+        .rx-age-gender-container { flex-direction: column !important; width: 100% !important; }
+        .rx-age-block { width: 100% !important; border-right: none !important; border-bottom: 1px solid ${colors.borderColor} !important; }
+        .rx-gender-block { width: 100% !important; }
+        .rx-age-label, .rx-gender-label { width: 42% !important; padding: 6px 4px !important; font-size: 11px !important; border-right: 1px solid ${colors.borderColor} !important; flex-shrink: 0 !important; box-sizing: border-box !important; }
+        .rx-age-val, .rx-gender-val { width: 58% !important; padding: 6px 4px !important; font-size: 12px !important; flex: 1 !important; box-sizing: border-box !important; }
+        .rx-gender-options { display: flex; gap: 8px; flex-wrap: wrap; }
+        .rx-gender-options label { font-size: 11px !important; gap: 3px !important; }
       }
     `}</style>
     <div className="rx-page">
@@ -816,28 +831,32 @@ export default function PrescriptionPage() {
                 </tr>
                 <tr>
                   <td style={{ border: `1px solid ${colors.borderColor}`, padding: '0', height: '100%' }} colSpan={2}>
-                    <div style={{ display: 'flex', height: '100%' }}>
-                      <div style={{ width: '30%', padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg, borderRight: `1px solid ${colors.borderColor}` }}>Age</div>
-                      <div style={{ width: '20%', padding: '8px', borderRight: `1px solid ${colors.borderColor}` }}>
-                        {isViewMode ? formData.patientAge : <input name="patientAge" placeholder="e.g. 35" value={formData.patientAge} onChange={handleInputChange} style={inputStyle} />}
+                    <div className="rx-age-gender-container">
+                      <div className="rx-age-block">
+                        <div className="rx-age-label" style={{ backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Age</div>
+                        <div className="rx-age-val">
+                          {isViewMode ? formData.patientAge : <input name="patientAge" placeholder="e.g. 35" value={formData.patientAge} onChange={handleInputChange} style={inputStyle} />}
+                        </div>
                       </div>
-                      <div style={{ width: '25%', padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg, borderRight: `1px solid ${colors.borderColor}` }}>Gender</div>
-                      <div style={{ width: '25%', padding: '8px' }}>
-                        {isViewMode ? formData.patientGender : (
-                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                            {['Male', 'Female', 'Other'].map((g) => (
-                              <label key={g} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '14px' }}>
-                                <input
-                                  type="checkbox"
-                                  checked={formData.patientGender === g}
-                                  onChange={() => setFormData(prev => ({ ...prev, patientGender: g }))}
-                                  style={{ cursor: 'pointer' }}
-                                />
-                                {g}
-                              </label>
-                            ))}
-                          </div>
-                        )}
+                      <div className="rx-gender-block">
+                        <div className="rx-gender-label" style={{ backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Gender</div>
+                        <div className="rx-gender-val">
+                          {isViewMode ? formData.patientGender : (
+                            <div className="rx-gender-options">
+                              {['Male', 'Female', 'Other'].map((g) => (
+                                <label key={g} style={{ display: 'flex', alignItems: 'center', gap: '4px', cursor: 'pointer', fontSize: '14px' }}>
+                                  <input
+                                    type="checkbox"
+                                    checked={formData.patientGender === g}
+                                    onChange={() => setFormData(prev => ({ ...prev, patientGender: g }))}
+                                    style={{ cursor: 'pointer' }}
+                                  />
+                                  {g}
+                                </label>
+                              ))}
+                            </div>
+                          )}
+                        </div>
                       </div>
                     </div>
                   </td>
