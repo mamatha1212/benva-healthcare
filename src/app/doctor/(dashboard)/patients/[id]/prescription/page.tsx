@@ -223,7 +223,7 @@ export default function PrescriptionPage() {
   const [doctorProfile, setDoctorProfile] = useState<any>(null);
   
   const [formData, setFormData] = useState({
-    consultationDate: new Date().toISOString().split('T')[0],
+    consultationDate: new Date().toLocaleDateString('en-CA', { timeZone: 'Asia/Kolkata' }),
     consultationMode: '',
     patientName: '',
     patientAge: '',

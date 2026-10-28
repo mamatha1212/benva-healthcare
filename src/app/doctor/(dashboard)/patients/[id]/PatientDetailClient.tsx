@@ -442,7 +442,7 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
                           <span style={{ background: '#fef3c7', color: '#92400e', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>Draft</span>
                         )}
                       </div>
-                      <div suppressHydrationWarning style={{ color: '#64748b', fontSize: '13px', marginTop: '2px' }}>{(() => { const d = new Date(file.createdAt); const dd = String(d.getDate()).padStart(2, '0'); const mm = String(d.getMonth() + 1).padStart(2, '0'); const yyyy = d.getFullYear(); const time = d.toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }); return `${dd} ${mm} ${yyyy}, ${time}`; })()}</div>
+                      <div suppressHydrationWarning style={{ color: '#64748b', fontSize: '13px', marginTop: '2px' }}>{file.createdAt ? new Date(file.createdAt).toLocaleString('en-US', { timeZone: 'Asia/Kolkata' }) : ''}</div>
                     </div>
                   </div>
                   <div className="pd-file-actions">
