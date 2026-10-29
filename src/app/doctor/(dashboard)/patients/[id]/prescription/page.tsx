@@ -476,7 +476,7 @@ export default function PrescriptionPage() {
           margin:       [10, 0, 10, 0] as [number, number, number, number],
           filename:     `${formData.patientName || 'Patient'}_${formData.patientUhid ? formData.patientUhid.replace(/BENVA-UHID-0+/, 'BENVA-UHID-') : 'PENDING'}.pdf`,
           image:        { type: 'jpeg' as const, quality: 0.98 },
-          html2canvas:  { scale: 2, useCORS: true },
+          html2canvas:  { scale: 2, useCORS: true, windowWidth: 1024, scrollX: 0, scrollY: 0 },
           pagebreak:    { mode: ['css', 'legacy'] },
           jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
         };
@@ -485,7 +485,7 @@ export default function PrescriptionPage() {
       } finally {
         setIsGenerating(false);
       }
-    }, 150);
+    }, 250);
   };
 
   const handleViewPDF = async (targetId?: string | null) => {
@@ -502,7 +502,7 @@ export default function PrescriptionPage() {
           margin:       [10, 0, 10, 0] as [number, number, number, number],
           filename:     `${formData.patientName || 'Patient'}_${formData.patientUhid ? formData.patientUhid.replace(/BENVA-UHID-0+/, 'BENVA-UHID-') : 'PENDING'}.pdf`,
           image:        { type: 'jpeg' as const, quality: 0.98 },
-          html2canvas:  { scale: 2, useCORS: true },
+          html2canvas:  { scale: 2, useCORS: true, windowWidth: 1024, scrollX: 0, scrollY: 0 },
           pagebreak:    { mode: ['css', 'legacy'] },
           jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
         };
@@ -559,7 +559,7 @@ export default function PrescriptionPage() {
       } finally {
         setIsGenerating(false);
       }
-    }, 150);
+    }, 250);
   };
 
   if (isLoading) {
@@ -627,6 +627,99 @@ export default function PrescriptionPage() {
       .rx-gender-label { width: 50%; padding: 8px; border-right: 1px solid ${colors.borderColor}; flex-shrink: 0; box-sizing: border-box; display: flex; align-items: center; }
       .rx-gender-val { width: 50%; padding: 8px; flex: 1; box-sizing: border-box; display: flex; align-items: center; }
       .rx-gender-options { display: flex; gap: 8px; flex-wrap: wrap; }
+
+      /* PDF Generation Strict A4 Layout Rules (Forces uniform full-width layout on all devices) */
+      .pdf-generating {
+        width: 210mm !important;
+        min-width: 210mm !important;
+        max-width: 210mm !important;
+        padding: 10mm 12mm 15mm 12mm !important;
+        background: white !important;
+        margin: 0 auto !important;
+        box-sizing: border-box !important;
+        font-size: 15px !important;
+      }
+      .pdf-generating .rx-doc-table {
+        width: 100% !important;
+        min-width: 100% !important;
+        table-layout: fixed !important;
+      }
+      .pdf-generating .rx-label-cell {
+        width: 32% !important;
+        font-size: 14px !important;
+        padding: 8px 12px !important;
+      }
+      .pdf-generating .rx-val-cell {
+        width: 68% !important;
+        font-size: 14px !important;
+        padding: 8px 12px !important;
+      }
+      .pdf-generating .rx-age-gender-container {
+        display: flex !important;
+        flex-direction: row !important;
+        width: 100% !important;
+        height: 100% !important;
+      }
+      .pdf-generating .rx-age-block {
+        display: flex !important;
+        width: 50% !important;
+        border-right: 1px solid ${colors.borderColor} !important;
+        border-bottom: none !important;
+      }
+      .pdf-generating .rx-gender-block {
+        display: flex !important;
+        width: 50% !important;
+      }
+      .pdf-generating .rx-age-label {
+        width: 60% !important;
+        padding: 8px !important;
+        font-size: 14px !important;
+        border-right: 1px solid ${colors.borderColor} !important;
+        flex-shrink: 0 !important;
+        box-sizing: border-box !important;
+      }
+      .pdf-generating .rx-age-val {
+        width: 40% !important;
+        padding: 8px !important;
+        font-size: 14px !important;
+        flex: 1 !important;
+        box-sizing: border-box !important;
+      }
+      .pdf-generating .rx-gender-label {
+        width: 50% !important;
+        padding: 8px !important;
+        font-size: 14px !important;
+        border-right: 1px solid ${colors.borderColor} !important;
+        flex-shrink: 0 !important;
+        box-sizing: border-box !important;
+      }
+      .pdf-generating .rx-gender-val {
+        width: 50% !important;
+        padding: 8px !important;
+        font-size: 14px !important;
+        flex: 1 !important;
+        box-sizing: border-box !important;
+      }
+      .pdf-generating .rx-med-wrap {
+        width: 100% !important;
+        overflow: visible !important;
+      }
+      .pdf-generating .rx-med-table {
+        width: 100% !important;
+        min-width: 100% !important;
+        table-layout: fixed !important;
+      }
+      .pdf-generating .rx-section-header {
+        font-size: 14px !important;
+        padding: 8px 12px !important;
+      }
+      .pdf-generating .rx-logo {
+        width: 280px !important;
+      }
+      .pdf-generating .rx-heading {
+        font-size: 20px !important;
+      }
+
       @media (max-width: 640px) {
         .rx-header { flex-direction: column; align-items: flex-start; }
         .rx-title { font-size: 20px; }
@@ -634,21 +727,21 @@ export default function PrescriptionPage() {
         .rx-btn { padding: 10px 8px; font-size: 13px; text-align: center; justify-content: center; }
         .rx-btn-full { grid-column: 1 / -1; }
         .rx-form-card { padding: 8px 6px; border-radius: 6px; }
-        .rx-pdf { font-size: 12px; padding: 0 2px 16px 2px; }
-        .rx-label-cell { width: 42%; font-size: 11px; padding: 6px 4px !important; }
-        .rx-val-cell { font-size: 12px; padding: 6px 4px !important; }
-        .rx-section-header { font-size: 12px !important; padding: 6px 8px !important; }
-        .rx-footer-row { flex-direction: column; gap: 2px; font-size: 11px; }
-        .rx-mode-group { display: grid; grid-template-columns: repeat(3, auto); gap: 6px; align-items: center; }
-        .rx-logo { width: 200px !important; }
-        .rx-heading { font-size: 14px !important; }
-        .rx-age-gender-container { flex-direction: column !important; width: 100% !important; }
-        .rx-age-block { width: 100% !important; border-right: none !important; border-bottom: 1px solid ${colors.borderColor} !important; }
-        .rx-gender-block { width: 100% !important; }
-        .rx-age-label, .rx-gender-label { width: 42% !important; padding: 6px 4px !important; font-size: 11px !important; border-right: 1px solid ${colors.borderColor} !important; flex-shrink: 0 !important; box-sizing: border-box !important; }
-        .rx-age-val, .rx-gender-val { width: 58% !important; padding: 6px 4px !important; font-size: 12px !important; flex: 1 !important; box-sizing: border-box !important; }
-        .rx-gender-options { display: flex; gap: 8px; flex-wrap: wrap; }
-        .rx-gender-options label { font-size: 11px !important; gap: 3px !important; }
+        .rx-pdf:not(.pdf-generating) { font-size: 12px; padding: 0 2px 16px 2px; }
+        .rx-pdf:not(.pdf-generating) .rx-label-cell { width: 42%; font-size: 11px; padding: 6px 4px !important; }
+        .rx-pdf:not(.pdf-generating) .rx-val-cell { font-size: 12px; padding: 6px 4px !important; }
+        .rx-pdf:not(.pdf-generating) .rx-section-header { font-size: 12px !important; padding: 6px 8px !important; }
+        .rx-pdf:not(.pdf-generating) .rx-footer-row { flex-direction: column; gap: 2px; font-size: 11px; }
+        .rx-pdf:not(.pdf-generating) .rx-mode-group { display: grid; grid-template-columns: repeat(3, auto); gap: 6px; align-items: center; }
+        .rx-pdf:not(.pdf-generating) .rx-logo { width: 200px !important; }
+        .rx-pdf:not(.pdf-generating) .rx-heading { font-size: 14px !important; }
+        .rx-pdf:not(.pdf-generating) .rx-age-gender-container { flex-direction: column !important; width: 100% !important; }
+        .rx-pdf:not(.pdf-generating) .rx-age-block { width: 100% !important; border-right: none !important; border-bottom: 1px solid ${colors.borderColor} !important; }
+        .rx-pdf:not(.pdf-generating) .rx-gender-block { width: 100% !important; }
+        .rx-pdf:not(.pdf-generating) .rx-age-label, .rx-pdf:not(.pdf-generating) .rx-gender-label { width: 42% !important; padding: 6px 4px !important; font-size: 11px !important; border-right: 1px solid ${colors.borderColor} !important; flex-shrink: 0 !important; box-sizing: border-box !important; }
+        .rx-pdf:not(.pdf-generating) .rx-age-val, .rx-pdf:not(.pdf-generating) .rx-gender-val { width: 58% !important; padding: 6px 4px !important; font-size: 12px !important; flex: 1 !important; box-sizing: border-box !important; }
+        .rx-pdf:not(.pdf-generating) .rx-gender-options { display: flex; gap: 8px; flex-wrap: wrap; }
+        .rx-pdf:not(.pdf-generating) .rx-gender-options label { font-size: 11px !important; gap: 3px !important; }
       }
     `}</style>
     <div className="rx-page">
@@ -743,7 +836,7 @@ export default function PrescriptionPage() {
         <div className="rx-form-inner">
           <div className="rx-form-card">
             
-            <div ref={pdfRef} id="pdf-content" className="rx-pdf" style={{ fontFamily: '"Times New Roman", Times, serif', color: colors.textColor }}>
+            <div ref={pdfRef} id="pdf-content" className={`rx-pdf ${isGenerating ? 'pdf-generating' : ''}`} style={{ fontFamily: '"Times New Roman", Times, serif', color: colors.textColor }}>
               <style dangerouslySetInnerHTML={{ __html: `
                 #pdf-content, #pdf-content * {
                   box-sizing: border-box !important;
@@ -887,7 +980,7 @@ export default function PrescriptionPage() {
               </div>
             ) : (
             <div className="rx-med-wrap" style={{ overflowX: 'auto', width: '100%' }}>
-            <table className="rx-med-table" style={{ tableLayout: 'fixed', wordWrap: 'break-word', minWidth: '800px' }}>
+            <table className="rx-med-table" style={{ tableLayout: 'fixed', wordWrap: 'break-word', minWidth: isGenerating ? '100%' : '800px' }}>
               <thead>
                 <tr style={{ backgroundColor: colors.headerBg, color: 'white', fontSize: '15px' }}>
                   <th style={{ border: `1px solid ${colors.borderColor}`, padding: '6px', width: '5%', whiteSpace: 'nowrap' }}>S.No</th>

@@ -12,7 +12,7 @@ export default async function DoctorDashboardLayout({
   const token = cookieStore.get('doctor_token')?.value;
 
   if (!token) {
-    redirect('/admin/login');
+    redirect('/doctor/login');
   }
 
   let doctorData = null;
@@ -21,11 +21,11 @@ export default async function DoctorDashboardLayout({
     const { payload } = await jwtVerify(token, secret);
     
     if (payload.role !== 'doctor') {
-      redirect('/admin/login');
+      redirect('/doctor/login');
     }
     doctorData = payload;
   } catch (e) {
-    redirect('/admin/login');
+    redirect('/doctor/login');
   }
 
   return (

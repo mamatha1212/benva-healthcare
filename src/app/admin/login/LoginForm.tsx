@@ -5,8 +5,8 @@ import { useRouter } from 'next/navigation';
 import styles from './AdminLogin.module.css';
 import Image from 'next/image';
 
-export default function AdminLogin() {
-  const [role, setRole] = useState<'admin' | 'doctor'>('admin');
+export default function AdminLogin({ initialRole = 'admin' }: { initialRole?: 'admin' | 'doctor' }) {
+  const [role, setRole] = useState<'admin' | 'doctor'>(initialRole);
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');

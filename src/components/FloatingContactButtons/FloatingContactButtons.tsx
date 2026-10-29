@@ -1,14 +1,20 @@
 'use client';
 import React, { useState } from 'react';
+import { usePathname } from 'next/navigation';
 import styles from './FloatingContactButtons.module.css';
 
 export default function FloatingContactButtons() {
+  const pathname = usePathname();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [fullName, setFullName] = useState('');
   const [phoneNumber, setPhoneNumber] = useState('');
   const [isSubmitted, setIsSubmitted] = useState(false);
 
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  if (pathname?.startsWith('/admin')) {
+    return null;
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();

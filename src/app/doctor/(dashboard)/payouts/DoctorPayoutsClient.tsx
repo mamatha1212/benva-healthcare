@@ -37,7 +37,7 @@ export default function DoctorPayoutsClient({ doctorName }: { doctorName: string
         margin: 10,
         filename: `Payout_${payoutData.reportingPeriod.replace(/\s+/g, '_')}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
+        html2canvas: { scale: 2, useCORS: true, windowWidth: 1024, scrollX: 0, scrollY: 0 },
         jsPDF: { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const }
       };
       
