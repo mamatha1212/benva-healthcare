@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import InvoicePrintView, { InvoiceData } from './InvoicePrintView';
 
 interface Props {
@@ -15,8 +15,16 @@ export default function InvoiceDetailModal({ invoice, isOpen, onClose, onUpdate 
   const [cancelReason, setCancelReason] = useState('');
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
-
   const [isDownloading, setIsDownloading] = useState(false);
+  const [selectedTemplate, setSelectedTemplate] = useState<'HEALTH_CHECKUP' | 'PHARMACY'>(
+    invoice?.module === 'LAB_TESTS' ? 'HEALTH_CHECKUP' : 'PHARMACY'
+  );
+
+  useEffect(() => {
+    if (invoice) {
+      setSelectedTemplate(invoice.module === 'LAB_TESTS' ? 'HEALTH_CHECKUP' : 'PHARMACY');
+    }
+  }, [invoice?.id, invoice?.module]);
 
   if (!isOpen || !invoice) return null;
 
@@ -305,7 +313,63 @@ export default function InvoiceDetailModal({ invoice, isOpen, onClose, onUpdate 
         <div style={{ flex: 1, overflowY: 'auto', padding: '20px' }}>
           {activeTab === 'VIEW' && (
             <div>
-              <InvoicePrintView invoice={invoice} />
+              <div className="no-print" style={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                marginBottom: '16px',
+                padding: '10px 14px',
+                backgroundColor: '#f1f5f9',
+                borderRadius: '8px',
+                border: '1px solid #e2e8f0'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span style={{ fontSize: '12px', fontWeight: '700', color: '#334155' }}>
+                    Select Invoice Design:
+                  </span>
+                  <span style={{ fontSize: '11px', color: '#64748b' }}>
+                    {invoice.module === 'LAB_TESTS' ? '(Health Checkup default)' : '(Pharmacy default)'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTemplate('HEALTH_CHECKUP')}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '6px',
+                      border: selectedTemplate === 'HEALTH_CHECKUP' ? '1.5px solid #0284c7' : '1px solid #cbd5e1',
+                      backgroundColor: selectedTemplate === 'HEALTH_CHECKUP' ? '#0284c7' : '#ffffff',
+                      color: selectedTemplate === 'HEALTH_CHECKUP' ? '#ffffff' : '#334155',
+                      fontSize: '12px',
+                      fontWeight: selectedTemplate === 'HEALTH_CHECKUP' ? '700' : '600',
+                      cursor: 'pointer',
+                      boxShadow: selectedTemplate === 'HEALTH_CHECKUP' ? '0 1px 3px rgba(2, 132, 199, 0.3)' : 'none'
+                    }}
+                  >
+                    🩺 Health Checkups & Facilitation
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedTemplate('PHARMACY')}
+                    style={{
+                      padding: '6px 14px',
+                      borderRadius: '6px',
+                      border: selectedTemplate === 'PHARMACY' ? '1.5px solid #0284c7' : '1px solid #cbd5e1',
+                      backgroundColor: selectedTemplate === 'PHARMACY' ? '#0284c7' : '#ffffff',
+                      color: selectedTemplate === 'PHARMACY' ? '#ffffff' : '#334155',
+                      fontSize: '12px',
+                      fontWeight: selectedTemplate === 'PHARMACY' ? '700' : '600',
+                      cursor: 'pointer',
+                      boxShadow: selectedTemplate === 'PHARMACY' ? '0 1px 3px rgba(2, 132, 199, 0.3)' : 'none'
+                    }}
+                  >
+                    💊 Pharmacy & Medicines
+                  </button>
+                </div>
+              </div>
+
+              <InvoicePrintView invoice={invoice} templateOverride={selectedTemplate} />
             </div>
           )}
 
