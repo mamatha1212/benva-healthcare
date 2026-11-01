@@ -130,7 +130,7 @@ export default function InvoicesClient({ initialInvoices }: Props) {
             <span style={{ fontSize: '28px' }}>🧾</span> Benva Healthcare Billing & Invoices
           </h1>
           <p>
-            Universal Healthcare Billing • Vyapar Fast Billing • With & Without GST Invoicing
+            Universal Healthcare Billing • Fast Billing • With & Without GST Invoicing
           </p>
         </div>
 
@@ -283,7 +283,7 @@ export default function InvoicesClient({ initialInvoices }: Props) {
               <div className={styles.moduleTop}>
                 <span className={styles.moduleIcon}>💊</span>
                 <div>
-                  <div className={styles.moduleName}>Medicines (Vyapar Model)</div>
+                  <div className={styles.moduleName}>Medicines Billing</div>
                   <div style={{ fontSize: '11px', color: '#64748b' }}>Fast Pharmacy Invoicing</div>
                 </div>
               </div>

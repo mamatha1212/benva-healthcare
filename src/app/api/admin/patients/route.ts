@@ -11,13 +11,21 @@ export async function GET(req: NextRequest) {
     let where: any = undefined;
     if (search && search.trim()) {
       const q = search.trim();
-      where = {
-        OR: [
-          { name: { contains: q, mode: 'insensitive' } },
-          { phone: { contains: q } },
-          { uhid: { contains: q, mode: 'insensitive' } },
-        ]
-      };
+      const cleanDigits = q.replace(/\D/g, '');
+      const orClauses: any[] = [
+        { name: { contains: q, mode: 'insensitive' } },
+        { phone: { contains: q } },
+        { uhid: { contains: q, mode: 'insensitive' } },
+      ];
+
+      if (cleanDigits.length >= 6) {
+        orClauses.push({ phone: { contains: cleanDigits } });
+        if (cleanDigits.length >= 10) {
+          orClauses.push({ phone: { contains: cleanDigits.slice(-10) } });
+        }
+      }
+
+      where = { OR: orClauses };
     }
 
     const patients = await prisma.patientRecord.findMany({
@@ -29,6 +37,47 @@ export async function GET(req: NextRequest) {
         invoices: true,
       }
     });
+
+    if (search && search.trim()) {
+      const q = search.trim();
+      const cleanDigits = q.replace(/\D/g, '');
+      const medOrders = await prisma.medicineOrder.findMany({
+        where: {
+          OR: [
+            { patientName: { contains: q, mode: 'insensitive' } },
+            { mobile: { contains: q } },
+            ...(cleanDigits.length >= 6 ? [{ mobile: { contains: cleanDigits.slice(-10) } }] : []),
+            { uhid: { contains: q, mode: 'insensitive' } },
+          ]
+        },
+        take: 15
+      });
+
+      const existingPhoneNames = new Set(patients.map(p => `${p.name.toLowerCase()}_${p.phone}`));
+      for (const order of medOrders) {
+        const key = `${order.patientName.toLowerCase()}_${order.mobile}`;
+        if (!existingPhoneNames.has(key)) {
+          existingPhoneNames.add(key);
+          patients.push({
+            id: order.id,
+            name: order.patientName,
+            phone: order.mobile,
+            uhid: order.uhid || null,
+            address: order.address || null,
+            age: null,
+            gender: null,
+            consultant: null,
+            consignmentNo: order.consignmentNo || null,
+            consignmentImage: order.consignmentImage || null,
+            createdAt: order.createdAt,
+            updatedAt: order.updatedAt,
+            files: [],
+            invoices: []
+          } as any);
+        }
+      }
+    }
+
     return NextResponse.json(patients);
   } catch (error) {
     console.error('Error fetching patients:', error);

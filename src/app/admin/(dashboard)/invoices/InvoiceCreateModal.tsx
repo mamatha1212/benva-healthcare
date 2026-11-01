@@ -348,7 +348,7 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
                 </span>
               </div>
               <p style={{ margin: '3px 0 0 0', fontSize: '13px', color: '#64748b' }}>
-                Vyapar-Style Fast Billing • {billType === 'GST' ? 'GST Compliant' : 'Standard Non-GST'}
+                Fast Billing • {billType === 'GST' ? 'GST Compliant' : 'Standard Non-GST'}
               </p>
             </div>
           </div>
@@ -701,11 +701,11 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
             </div>
           )}
 
-          {/* Vyapar-Style Line Items Table */}
+          {/* Line Items Table */}
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>
-                2. Line Items & Pricing (Vyapar Model)
+                2. Line Items & Pricing
               </label>
               <button
                 type="button"
