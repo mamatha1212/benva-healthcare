@@ -110,24 +110,17 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
     const timer = setTimeout(async () => {
       setIsSearching(true);
       try {
-        const res = await fetch(`/api/admin/invoices?search=${encodeURIComponent(searchQuery)}`);
+        const res = await fetch(`/api/admin/patients?search=${encodeURIComponent(searchQuery)}`);
         if (res.ok) {
           const data = await res.json();
-          // Extract unique patients
-          const patientMap = new Map<string, PatientRecord>();
-          data.forEach((inv: any) => {
-            if (inv.patient && inv.patient.id) {
-              patientMap.set(inv.patient.id, inv.patient);
-            }
-          });
-          setSearchResults(Array.from(patientMap.values()));
+          setSearchResults(data);
         }
       } catch (err) {
         console.error('Search error:', err);
       } finally {
         setIsSearching(false);
       }
-    }, 300);
+    }, 250);
 
     return () => clearTimeout(timer);
   }, [searchQuery]);

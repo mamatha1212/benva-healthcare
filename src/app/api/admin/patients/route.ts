@@ -3,10 +3,27 @@ import { prisma } from '@/lib/prisma';
 import { put } from '@vercel/blob';
 import { generateNextUhid } from '@/lib/uhid';
 
-export async function GET() {
+export async function GET(req: NextRequest) {
   try {
+    const url = new URL(req.url);
+    const search = url.searchParams.get('search');
+
+    let where: any = undefined;
+    if (search && search.trim()) {
+      const q = search.trim();
+      where = {
+        OR: [
+          { name: { contains: q, mode: 'insensitive' } },
+          { phone: { contains: q } },
+          { uhid: { contains: q, mode: 'insensitive' } },
+        ]
+      };
+    }
+
     const patients = await prisma.patientRecord.findMany({
+      where,
       orderBy: { createdAt: 'desc' },
+      take: search ? 30 : undefined,
       include: {
         files: true,
         invoices: true,
@@ -14,6 +31,7 @@ export async function GET() {
     });
     return NextResponse.json(patients);
   } catch (error) {
+    console.error('Error fetching patients:', error);
     return NextResponse.json({ error: 'Failed to fetch patients' }, { status: 500 });
   }
 }
