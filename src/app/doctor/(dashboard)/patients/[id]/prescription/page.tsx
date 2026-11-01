@@ -751,8 +751,9 @@ export default function PrescriptionPage() {
         padding: 5px 10px !important;
       }
       .pdf-generating .rx-logo {
-        width: 240px !important;
-        max-height: 55px !important;
+        height: 65px !important;
+        width: auto !important;
+        max-height: 65px !important;
       }
       .pdf-generating .rx-heading {
         font-size: 16px !important;
@@ -898,10 +899,8 @@ export default function PrescriptionPage() {
                 }
               ` }} />
           
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: `2px solid ${colors.headerBg}`, padding: '0 0 6px 0', marginBottom: '8px' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', lineHeight: 0, height: isGenerating ? '55px' : 'auto' }}>
-              <img src="/images/benva-logo-new.png" alt="Benva Healthcare" className="rx-logo" style={{ width: '240px', height: 'auto', maxHeight: isGenerating ? '55px' : '80px', objectFit: 'contain', display: 'block' }} />
-            </div>
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: `2px solid ${colors.headerBg}`, padding: '4px 0 8px 0', marginBottom: '8px' }}>
+            <img src="/images/benva-logo-new.png" alt="Benva Healthcare" className="rx-logo" style={{ height: isGenerating ? '65px' : '75px', width: 'auto', display: 'block' }} />
           </div>
           <h2 className="rx-heading" style={{ textAlign: 'center', color: colors.headerBg, fontSize: '17px', margin: '4px 0 8px 0', fontFamily: 'Arial, sans-serif' }}>TELEMEDICINE PRESCRIPTION</h2>
           <div style={{ marginBottom: '8px' }}>

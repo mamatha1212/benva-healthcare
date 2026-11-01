@@ -738,10 +738,8 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                         }
                       ` }} />
 
-                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: `2px solid ${colors.headerBg}`, paddingBottom: '6px', marginBottom: '8px', paddingTop: '0' }}>
-                        <div style={{ height: '55px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                          <img src="/images/Benva%20NEW.png" alt="Benva Healthcare" style={{ width: '240px', height: 'auto', maxHeight: '55px', objectFit: 'contain' }} />
-                        </div>
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: `2px solid ${colors.headerBg}`, padding: '4px 0 8px 0', marginBottom: '8px' }}>
+                        <img src="/images/benva-logo-new.png" alt="Benva Healthcare" style={{ height: '65px', width: 'auto', display: 'block' }} />
                       </div>
 
                       <h2 style={{ textAlign: 'center', color: colors.headerBg, fontSize: '17px', margin: '4px 0 8px 0', fontFamily: 'Arial, sans-serif' }}>TELEMEDICINE PRESCRIPTION</h2>
