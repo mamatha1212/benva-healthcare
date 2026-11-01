@@ -59,21 +59,8 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
   const [endDate, setEndDate] = useState('');
   const [placeOfSupply, setPlaceOfSupply] = useState('37-Andhra Pradesh');
 
-  // Items
-  const [items, setItems] = useState<ItemRow[]>([
-    {
-      itemName: '',
-      hsn: '3004',
-      batch: '',
-      exp: '',
-      qty: 1,
-      unit: 'Tbs',
-      price: 0,
-      discount: 0,
-      taxRate: 5,
-      benvaCost: 0,
-    }
-  ]);
+  // Items - start completely empty with no default item
+  const [items, setItems] = useState<ItemRow[]>([]);
 
   // Payment details
   const [payMode, setPayMode] = useState('UPI');
@@ -84,25 +71,13 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
   useEffect(() => {
     if (isOpen) {
       setModule(initialModule);
+      setItems([]);
     }
   }, [initialModule, isOpen]);
 
-  // Initial blank item setup based on module
+  // When module switches, clear items to start clean
   useEffect(() => {
-    setItems([
-      {
-        itemName: '',
-        hsn: module === 'MEDICINES' ? '3004' : '9983',
-        batch: '',
-        exp: '',
-        qty: 1,
-        unit: module === 'MEDICINES' ? 'Tbs' : module === 'LAB_TESTS' ? 'Test' : module === 'DOCTOR' ? 'Session' : 'Plan',
-        price: 0,
-        discount: 0,
-        taxRate: module === 'MEDICINES' ? 5 : 0,
-        benvaCost: 0,
-      }
-    ]);
+    setItems([]);
   }, [module]);
 
   // Auto search patient
@@ -152,7 +127,6 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
   };
 
   const handleRemoveItem = (index: number) => {
-    if (items.length <= 1) return;
     setItems(items.filter((_, i) => i !== index));
   };
 
@@ -218,6 +192,11 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
         alert('Please enter Patient / Customer Name and Mobile Number.');
         return;
       }
+    }
+
+    if (items.length === 0) {
+      alert('Please click "+ Add Item" to add at least one line item to this invoice.');
+      return;
     }
 
     if (items.some(i => !i.itemName.trim())) {
@@ -749,125 +728,154 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
                   </tr>
                 </thead>
                 <tbody>
-                  {calculatedRows.map((row, idx) => (
-                    <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
-                      <td style={{ padding: '6px 10px', color: '#64748b' }}>{idx + 1}</td>
-                      <td style={{ padding: '6px 10px' }}>
-                        <input
-                          type="text"
-                          required
-                          placeholder={module === 'MEDICINES' ? 'e.g. Paracetamol 650mg' : 'Service name'}
-                          value={row.itemName}
-                          onChange={(e) => handleItemChange(idx, 'itemName', e.target.value)}
-                          style={{ width: '100%', padding: '6px 8px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
-                        />
+                  {calculatedRows.length === 0 ? (
+                    <tr>
+                      <td
+                        colSpan={billType === 'GST' ? (module === 'MEDICINES' ? 12 : 11) : (module === 'MEDICINES' ? 11 : 10)}
+                        style={{ textAlign: 'center', padding: '36px 16px', color: '#64748b', fontSize: '13px' }}
+                      >
+                        <div style={{ fontWeight: '600', color: '#475569', marginBottom: '6px' }}>No line items added yet</div>
+                        <div style={{ fontSize: '12px', color: '#94a3b8', marginBottom: '12px' }}>
+                          Click the button below to add your items, tests, or consultation fees
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleAddItem}
+                          style={{
+                            padding: '7px 18px',
+                            backgroundColor: '#0284c7',
+                            color: '#ffffff',
+                            border: 'none',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: '700',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          + Add Item
+                        </button>
                       </td>
-                      {module === 'MEDICINES' && (
+                    </tr>
+                  ) : (
+                    calculatedRows.map((row, idx) => (
+                      <tr key={idx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                        <td style={{ padding: '6px 10px', color: '#64748b' }}>{idx + 1}</td>
+                        <td style={{ padding: '6px 10px' }}>
+                          <input
+                            type="text"
+                            required
+                            placeholder={module === 'MEDICINES' ? 'e.g. Paracetamol 650mg' : 'Item / Service name'}
+                            value={row.itemName}
+                            onChange={(e) => handleItemChange(idx, 'itemName', e.target.value)}
+                            style={{ width: '100%', padding: '6px 8px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
+                          />
+                        </td>
+                        {module === 'MEDICINES' && (
+                          <td style={{ padding: '6px 8px' }}>
+                            <input
+                              type="text"
+                              placeholder="B#102"
+                              value={row.batch}
+                              onChange={(e) => handleItemChange(idx, 'batch', e.target.value)}
+                              style={{ width: '100%', padding: '6px 8px', fontSize: '11px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
+                            />
+                          </td>
+                        )}
                         <td style={{ padding: '6px 8px' }}>
                           <input
                             type="text"
-                            placeholder="B#102"
-                            value={row.batch}
-                            onChange={(e) => handleItemChange(idx, 'batch', e.target.value)}
+                            value={row.hsn}
+                            onChange={(e) => handleItemChange(idx, 'hsn', e.target.value)}
                             style={{ width: '100%', padding: '6px 8px', fontSize: '11px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
                           />
                         </td>
-                      )}
-                      <td style={{ padding: '6px 8px' }}>
-                        <input
-                          type="text"
-                          value={row.hsn}
-                          onChange={(e) => handleItemChange(idx, 'hsn', e.target.value)}
-                          style={{ width: '100%', padding: '6px 8px', fontSize: '11px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
-                        />
-                      </td>
-                      <td style={{ padding: '6px 8px' }}>
-                        <input
-                          type="number"
-                          min="1"
-                          value={row.qty}
-                          onChange={(e) => handleItemChange(idx, 'qty', Number(e.target.value))}
-                          style={{ width: '100%', padding: '6px 8px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
-                        />
-                      </td>
-                      <td style={{ padding: '6px 8px' }}>
-                        <select
-                          value={row.unit}
-                          onChange={(e) => handleItemChange(idx, 'unit', e.target.value)}
-                          style={{ width: '100%', padding: '6px 4px', fontSize: '11px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
-                        >
-                          <option value="Tbs">Tbs</option>
-                          <option value="Strips">Strips</option>
-                          <option value="Bottle">Bottle</option>
-                          <option value="Test">Test</option>
-                          <option value="Session">Session</option>
-                          <option value="Plan">Plan</option>
-                          <option value="Pcs">Pcs</option>
-                        </select>
-                      </td>
-                      <td style={{ padding: '6px 8px' }}>
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={row.price}
-                          onChange={(e) => handleItemChange(idx, 'price', Number(e.target.value))}
-                          style={{ width: '100%', padding: '6px 8px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
-                        />
-                      </td>
-                      <td style={{ padding: '6px 8px' }}>
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          value={row.discount}
-                          onChange={(e) => handleItemChange(idx, 'discount', Number(e.target.value))}
-                          style={{ width: '100%', padding: '6px 8px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
-                        />
-                      </td>
-                      {billType === 'GST' && (
+                        <td style={{ padding: '6px 8px' }}>
+                          <input
+                            type="number"
+                            min="1"
+                            value={row.qty}
+                            onChange={(e) => handleItemChange(idx, 'qty', Number(e.target.value))}
+                            style={{ width: '100%', padding: '6px 8px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
+                          />
+                        </td>
                         <td style={{ padding: '6px 8px' }}>
                           <select
-                            value={row.taxRate}
-                            onChange={(e) => handleItemChange(idx, 'taxRate', Number(e.target.value))}
+                            value={row.unit}
+                            onChange={(e) => handleItemChange(idx, 'unit', e.target.value)}
                             style={{ width: '100%', padding: '6px 4px', fontSize: '11px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
                           >
-                            <option value="0">0%</option>
-                            <option value="5">5%</option>
-                            <option value="12">12%</option>
-                            <option value="18">18%</option>
-                            <option value="28">28%</option>
+                            <option value="Tbs">Tbs</option>
+                            <option value="Strips">Strips</option>
+                            <option value="Bottle">Bottle</option>
+                            <option value="Test">Test</option>
+                            <option value="Session">Session</option>
+                            <option value="Plan">Plan</option>
+                            <option value="Pcs">Pcs</option>
                           </select>
                         </td>
-                      )}
-                      <td style={{ padding: '6px 8px' }}>
-                        <input
-                          type="number"
-                          min="0"
-                          step="0.01"
-                          placeholder="Cost"
-                          value={row.benvaCost}
-                          onChange={(e) => handleItemChange(idx, 'benvaCost', Number(e.target.value))}
-                          style={{ width: '100%', padding: '6px 8px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '4px', backgroundColor: '#f0fdf4' }}
-                          title="Benva Purchase/Vendor Cost (Used to calculate Benva Revenue)"
-                        />
-                      </td>
-                      <td style={{ padding: '6px 10px', textAlign: 'right', fontWeight: '700', color: '#0f172a' }}>
-                        ₹{row.total.toFixed(2)}
-                      </td>
-                      <td style={{ padding: '6px 6px', textAlign: 'center' }}>
-                        {items.length > 1 && (
+                        <td style={{ padding: '6px 8px' }}>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={row.price}
+                            onChange={(e) => handleItemChange(idx, 'price', Number(e.target.value))}
+                            style={{ width: '100%', padding: '6px 8px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
+                          />
+                        </td>
+                        <td style={{ padding: '6px 8px' }}>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            value={row.discount}
+                            onChange={(e) => handleItemChange(idx, 'discount', Number(e.target.value))}
+                            style={{ width: '100%', padding: '6px 8px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
+                          />
+                        </td>
+                        {billType === 'GST' && (
+                          <td style={{ padding: '6px 8px' }}>
+                            <select
+                              value={row.taxRate}
+                              onChange={(e) => handleItemChange(idx, 'taxRate', Number(e.target.value))}
+                              style={{ width: '100%', padding: '6px 4px', fontSize: '11px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
+                            >
+                              <option value="0">0%</option>
+                              <option value="5">5%</option>
+                              <option value="12">12%</option>
+                              <option value="18">18%</option>
+                              <option value="28">28%</option>
+                            </select>
+                          </td>
+                        )}
+                        <td style={{ padding: '6px 8px' }}>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            placeholder="Cost"
+                            value={row.benvaCost}
+                            onChange={(e) => handleItemChange(idx, 'benvaCost', Number(e.target.value))}
+                            style={{ width: '100%', padding: '6px 8px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '4px', backgroundColor: '#f0fdf4' }}
+                            title="Benva Purchase/Vendor Cost (Used to calculate Benva Revenue)"
+                          />
+                        </td>
+                        <td style={{ padding: '6px 10px', textAlign: 'right', fontWeight: '700', color: '#0f172a' }}>
+                          ₹{row.total.toFixed(2)}
+                        </td>
+                        <td style={{ padding: '6px 6px', textAlign: 'center' }}>
                           <button
                             type="button"
                             onClick={() => handleRemoveItem(idx)}
                             style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '14px' }}
+                            title="Remove this item"
                           >
                             ✕
                           </button>
-                        )}
-                      </td>
-                    </tr>
-                  ))}
+                        </td>
+                      </tr>
+                    ))
+                  )}
                 </tbody>
               </table>
             </div>
