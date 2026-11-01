@@ -16,10 +16,43 @@ export default function InvoiceDetailModal({ invoice, isOpen, onClose, onUpdate 
   const [isProcessing, setIsProcessing] = useState(false);
   const [paymentAmount, setPaymentAmount] = useState<number>(0);
 
-  if (!isOpen || !invoice) return null;
+  const [isDownloading, setIsDownloading] = useState(false);
 
-  const handlePrint = () => {
-    window.print();
+  const handleDownloadPdf = async () => {
+    setIsDownloading(true);
+    try {
+      if (activeTab !== 'VIEW') {
+        setActiveTab('VIEW');
+        await new Promise((r) => setTimeout(r, 200));
+      }
+
+      const element = document.getElementById('benva-invoice-printable');
+      if (!element) {
+        window.print();
+        return;
+      }
+
+      const html2pdf = (await import('html2pdf.js')).default;
+      const invoiceNo = invoice.invoiceNo || 'Invoice';
+      const patientName = invoice.patient?.name || invoice.patientName || 'Customer';
+      const cleanName = patientName.replace(/[^a-zA-Z0-9]/g, '_');
+
+      const opt = {
+        margin: [4, 4, 4, 4] as [number, number, number, number],
+        filename: `${invoiceNo}_${cleanName}.pdf`,
+        image: { type: 'jpeg' as const, quality: 0.98 },
+        html2canvas: { scale: 2, useCORS: true, logging: false },
+        pagebreak: { mode: ['css', 'legacy'] },
+        jsPDF: { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const }
+      };
+
+      await html2pdf().set(opt).from(element).save();
+    } catch (err) {
+      console.error('Download PDF error, falling back to print:', err);
+      window.print();
+    } finally {
+      setIsDownloading(false);
+    }
   };
 
   const handleSendWhatsApp = () => {
@@ -166,7 +199,9 @@ export default function InvoiceDetailModal({ invoice, isOpen, onClose, onUpdate 
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
             <button
-              onClick={handlePrint}
+              onClick={handleDownloadPdf}
+              disabled={isDownloading}
+              title="Download Invoice PDF"
               style={{
                 padding: '6px 14px',
                 backgroundColor: '#0284c7',
@@ -175,13 +210,13 @@ export default function InvoiceDetailModal({ invoice, isOpen, onClose, onUpdate 
                 borderRadius: '6px',
                 fontSize: '12px',
                 fontWeight: '700',
-                cursor: 'pointer',
+                cursor: isDownloading ? 'wait' : 'pointer',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '6px'
               }}
             >
-              <span>🖨️</span> Print / PDF
+              <span>📥</span> {isDownloading ? 'Downloading...' : 'Download'}
             </button>
             <button
               onClick={handleSendWhatsApp}

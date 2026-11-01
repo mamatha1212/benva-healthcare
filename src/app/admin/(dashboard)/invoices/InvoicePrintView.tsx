@@ -145,7 +145,7 @@ export default function InvoicePrintView({ invoice }: { invoice: InvoiceData }) 
           }
         }
       `}} />
-      <div className="benva-invoice-sheet" style={{
+      <div className="benva-invoice-sheet" id="benva-invoice-printable" style={{
         width: '100%',
         maxWidth: '820px',
         margin: '0 auto',
