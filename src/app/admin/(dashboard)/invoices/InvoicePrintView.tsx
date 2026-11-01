@@ -127,21 +127,43 @@ export default function InvoicePrintView({ invoice }: { invoice: InvoiceData }) 
     <>
       <style dangerouslySetInnerHTML={{ __html: `
         @media print {
-          body * {
-            visibility: hidden !important;
+          @page {
+            size: A4 portrait;
+            margin: 8mm;
           }
-          .benva-invoice-sheet, .benva-invoice-sheet * {
-            visibility: visible !important;
+          html, body {
+            margin: 0 !important;
+            padding: 0 !important;
+            height: auto !important;
+            background: #ffffff !important;
+          }
+          .no-print, header, nav, aside, button {
+            display: none !important;
+          }
+          div[style*="fixed"] {
+            position: static !important;
+            background: transparent !important;
+            backdrop-filter: none !important;
+            padding: 0 !important;
+            margin: 0 !important;
+            box-shadow: none !important;
+            overflow: visible !important;
+          }
+          div[style*="maxHeight: 94vh"], div[style*="max-height: 94vh"], div[style*="overflowY: auto"], div[style*="overflow-y: auto"] {
+            max-height: none !important;
+            height: auto !important;
+            overflow: visible !important;
+            box-shadow: none !important;
           }
           .benva-invoice-sheet {
-            position: absolute !important;
-            left: 0 !important;
-            top: 0 !important;
+            position: static !important;
             width: 100% !important;
             max-width: 100% !important;
+            margin: 0 auto !important;
             border: 1.5px solid #000 !important;
             box-shadow: none !important;
-            margin: 0 !important;
+            page-break-inside: avoid !important;
+            break-inside: avoid !important;
           }
         }
       `}} />

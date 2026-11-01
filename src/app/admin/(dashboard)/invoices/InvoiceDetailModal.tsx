@@ -18,6 +18,8 @@ export default function InvoiceDetailModal({ invoice, isOpen, onClose, onUpdate 
 
   const [isDownloading, setIsDownloading] = useState(false);
 
+  if (!isOpen || !invoice) return null;
+
   const handleDownloadPdf = async () => {
     setIsDownloading(true);
     try {
@@ -153,7 +155,7 @@ export default function InvoiceDetailModal({ invoice, isOpen, onClose, onUpdate 
         overflow: 'hidden'
       }}>
         {/* Top Control Bar */}
-        <div style={{
+        <div className="no-print" style={{
           padding: '14px 20px',
           borderBottom: '1px solid #e2e8f0',
           display: 'flex',
@@ -268,7 +270,7 @@ export default function InvoiceDetailModal({ invoice, isOpen, onClose, onUpdate 
         </div>
 
         {/* Tab Headers */}
-        <div style={{
+        <div className="no-print" style={{
           display: 'flex',
           borderBottom: '1px solid #e2e8f0',
           backgroundColor: '#ffffff',

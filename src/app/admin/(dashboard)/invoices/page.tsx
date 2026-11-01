@@ -51,8 +51,8 @@ export default async function AdminInvoicesPage() {
 
       return {
         ...inv,
-        createdAt: inv.createdAt.toISOString(),
-        billDate: inv.billDate.toISOString(),
+        createdAt: inv.createdAt ? new Date(inv.createdAt).toISOString() : new Date().toISOString(),
+        billDate: inv.billDate ? new Date(inv.billDate).toISOString() : new Date().toISOString(),
         meta,
         module: meta.module || 'MEDICINES',
         billType: meta.billType || (inv.cgst + inv.sgst > 0 ? 'GST' : 'NON_GST'),
