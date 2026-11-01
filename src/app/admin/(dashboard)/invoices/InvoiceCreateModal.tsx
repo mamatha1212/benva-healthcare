@@ -724,7 +724,7 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
                     <th style={{ padding: '8px 10px', minWidth: '160px' }}>Item / Service</th>
                     {module === 'MEDICINES' && <th style={{ padding: '8px 10px', width: '85px' }}>Batch / Exp</th>}
                     <th style={{ padding: '8px 10px', width: '65px' }}>Qty</th>
-                    <th style={{ padding: '8px 10px', width: '65px' }}>Unit</th>
+                    <th style={{ padding: '8px 10px', width: '105px', minWidth: '105px' }}>Unit</th>
                     <th style={{ padding: '8px 10px', width: '90px' }}>Price (₹)</th>
                     <th style={{ padding: '8px 10px', width: '80px' }}>Disc (₹)</th>
                     {billType === 'GST' && <th style={{ padding: '8px 10px', width: '75px' }}>GST %</th>}
@@ -797,11 +797,11 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
                             style={{ width: '100%', padding: '6px 8px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
                           />
                         </td>
-                        <td style={{ padding: '6px 8px' }}>
+                        <td style={{ padding: '6px 8px', width: '105px', minWidth: '105px' }}>
                           <select
                             value={row.unit}
                             onChange={(e) => handleItemChange(idx, 'unit', e.target.value)}
-                            style={{ width: '100%', padding: '6px 4px', fontSize: '11px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
+                            style={{ width: '100%', minWidth: '95px', padding: '6px 6px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '4px', backgroundColor: '#ffffff', cursor: 'pointer' }}
                           >
                             <option value="Tbs">Tbs</option>
                             <option value="Strips">Strips</option>
