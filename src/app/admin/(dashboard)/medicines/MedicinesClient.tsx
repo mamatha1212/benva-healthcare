@@ -24,6 +24,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [editingOrder, setEditingOrder] = useState<any>(null);
   const [viewingOrder, setViewingOrder] = useState<any>(null);
+  const [viewingDirectoryMed, setViewingDirectoryMed] = useState<any | null>(null);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [previewImageUrl, setPreviewImageUrl] = useState<string | null>(null);
   const [generatingPdfId, setGeneratingPdfId] = useState<string | null>(null);
@@ -3602,7 +3603,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     {currentTab === 'inventory' && (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
         {/* Banner with Stats */}
-        <div style={{ background: 'linear-gradient(135deg, #042f2e 0%, #0f766e 100%)', border: '1px solid #14b8a6', borderRadius: '14px', padding: '20px 24px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', boxShadow: '0 4px 16px rgba(15, 118, 110, 0.25)' }}>
+        <div style={{ background: 'linear-gradient(135deg, #0f274a 0%, #0284c7 100%)', border: '1px solid #38bdf8', borderRadius: '14px', padding: '20px 24px', color: 'white', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px', boxShadow: '0 4px 16px rgba(2, 132, 199, 0.25)' }}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
             <div style={{ width: '48px', height: '48px', borderRadius: '12px', background: 'rgba(255,255,255,0.18)', backdropFilter: 'blur(8px)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '26px' }}>
               💊
@@ -3611,8 +3612,8 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
               <h2 style={{ margin: 0, fontSize: '19px', fontWeight: 800, color: 'white', letterSpacing: '-0.3px' }}>
                 Master Medicine Directory & Rack Locator
               </h2>
-              <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#ccfbf1', opacity: 0.95 }}>
-                Real-time medicine catalog: search any medicine to view its <strong>Rack location</strong>, <strong>MRP</strong>, <strong>No of strips/sheets</strong>, and afford cost.
+              <p style={{ margin: '4px 0 0 0', fontSize: '13px', color: '#e0f2fe', opacity: 0.95 }}>
+                Real-time pharmacy catalog: locate medicines by <strong>Rack</strong>, check <strong>Packaging</strong>, view <strong>Pricing & Margins</strong>, and prescribe.
               </p>
             </div>
           </div>
@@ -3621,7 +3622,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
               onClick={exportMedicinesCatalogCSV}
               style={{
                 background: 'white',
-                color: '#0f766e',
+                color: '#0369a1',
                 border: 'none',
                 padding: '10px 18px',
                 borderRadius: '8px',
@@ -3639,9 +3640,9 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
             <button
               onClick={() => { resetForm(); setIsAddModalOpen(true); }}
               style={{
-                background: '#14b8a6',
+                background: '#047857',
                 color: 'white',
-                border: '1px solid #2dd4bf',
+                border: '1px solid #10b981',
                 padding: '10px 18px',
                 borderRadius: '8px',
                 fontSize: '13px',
@@ -3830,29 +3831,29 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
             </div>
           </div>
 
-          {/* Table View (Desktop) */}
-          <div className="desktop-table-view" style={{ overflowX: 'auto' }}>
+          {/* Table View (Desktop) - Clean, Executive Layout */}
+          <div className="desktop-table-view" style={{ 
+            overflowX: 'auto',
+            background: '#ffffff',
+            border: '1px solid #e2e8f0',
+            borderRadius: '12px',
+            boxShadow: '0 2px 8px rgba(15, 23, 42, 0.04)'
+          }}>
             <table style={{ width: '100%', borderCollapse: 'separate', borderSpacing: '0', color: '#0f172a' }}>
               <thead>
-                <tr style={{ background: '#f8fafc', color: '#475569', fontSize: '12px', textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0', borderRadius: '8px 0 0 0' }}>#</th>
-                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>Medicine Name</th>
-                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>Type</th>
-                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>🗄️ Rack</th>
-                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>📦 Pack</th>
-                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>💵 1. MRP (₹)</th>
-                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>🎁 2. Disc %</th>
-                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>👤 3. Customer Price (₹)</th>
-                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>🏷️ 4. Benva Cost (₹)</th>
-                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>💰 5. Benva Profit (₹)</th>
-                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>👥 Prescribed In</th>
-                  <th style={{ padding: '12px 14px', textAlign: 'right', borderBottom: '2px solid #e2e8f0', borderRadius: '0 8px 0 0' }}>Actions</th>
+                <tr style={{ background: '#f8fafc', textAlign: 'left' }}>
+                  <th style={{ padding: '12px 14px', color: '#64748b', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', borderBottom: '1px solid #e2e8f0', width: '45px' }}>#</th>
+                  <th style={{ padding: '12px 14px', color: '#64748b', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', borderBottom: '1px solid #e2e8f0', minWidth: '220px' }}>Medicine</th>
+                  <th style={{ padding: '12px 14px', color: '#64748b', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', borderBottom: '1px solid #e2e8f0', minWidth: '160px' }}>Rack & Packaging</th>
+                  <th style={{ padding: '12px 14px', color: '#64748b', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', borderBottom: '1px solid #e2e8f0', minWidth: '180px' }}>Pricing & Margin</th>
+                  <th style={{ padding: '12px 14px', color: '#64748b', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', borderBottom: '1px solid #e2e8f0', minWidth: '190px' }}>Prescribed In</th>
+                  <th style={{ padding: '12px 16px', textAlign: 'right', color: '#64748b', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', borderBottom: '1px solid #e2e8f0', minWidth: '180px' }}>Actions</th>
                 </tr>
               </thead>
               <tbody>
                 {paginatedDirectoryMeds.length === 0 ? (
                   <tr>
-                    <td colSpan={12} style={{ textAlign: 'center', padding: '48px 20px', color: '#94a3b8' }}>
+                    <td colSpan={6} style={{ textAlign: 'center', padding: '48px 20px', color: '#94a3b8' }}>
                       <div style={{ fontSize: '36px', marginBottom: '8px' }}>🔍</div>
                       <div style={{ fontWeight: 700, fontSize: '15px', color: '#475569' }}>No medicines found</div>
                       <p style={{ margin: '4px 0 0 0', fontSize: '13px' }}>
@@ -3865,122 +3866,178 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                     const rowNum = (medsPage - 1) * medPageSize + idx + 1;
                     const typeLabel = (m.type === 'Other' && m.customType) ? m.customType : m.type;
                     const custPrice = m.discountPrice !== undefined && m.discountPrice !== '' ? m.discountPrice : (m.mrp || '');
-                    const discPercent = m.discountPercent !== undefined && m.discountPercent !== '' 
-                      ? `${m.discountPercent}%` 
-                      : (m.mrp && m.discountPrice && Number(m.mrp) > 0 ? `${Math.round(((Number(m.mrp) - Number(m.discountPrice)) / Number(m.mrp)) * 100)}%` : '-');
+                    const hasPrice = (m.mrp !== undefined && m.mrp !== '') || custPrice !== '';
 
                     return (
                       <tr 
                         key={m.name} 
-                        style={{ borderBottom: '1px solid #f1f5f9', transition: 'background-color 0.15s' }}
-                        onMouseEnter={e => e.currentTarget.style.backgroundColor = '#f8fafc'}
-                        onMouseLeave={e => e.currentTarget.style.backgroundColor = 'transparent'}
+                        style={{ 
+                          borderBottom: '1px solid #f1f5f9', 
+                          background: idx % 2 === 0 ? '#ffffff' : '#fafbfd',
+                          transition: 'background-color 0.15s' 
+                        }}
                       >
-                        <td style={{ padding: '14px', fontSize: '12px', color: '#64748b', fontWeight: 600 }}>{rowNum}</td>
+                        <td style={{ padding: '14px', fontSize: '12px', color: '#94a3b8', fontWeight: 700 }}>{rowNum}</td>
+
+                        {/* Medicine Name & Formulation */}
                         <td style={{ padding: '14px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                            <span style={{ fontSize: '16px' }}>💊</span>
+                          <div style={{ display: 'flex', alignItems: 'flex-start', gap: '10px' }}>
+                            <div style={{
+                              width: '34px',
+                              height: '34px',
+                              borderRadius: '8px',
+                              background: '#f0fdf4',
+                              color: '#16a34a',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              fontSize: '16px',
+                              flexShrink: 0,
+                              border: '1px solid #bbf7d0'
+                            }}>
+                              💊
+                            </div>
                             <div>
-                              <strong style={{ fontSize: '14px', color: '#0f172a', display: 'block' }}>{m.name}</strong>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
+                                <strong style={{ fontSize: '14px', color: '#0f172a' }}>{m.name}</strong>
+                                <span style={{ background: '#f1f5f9', color: '#475569', padding: '1px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600, border: '1px solid #e2e8f0' }}>
+                                  {typeLabel || 'Tablet'}
+                                </span>
+                              </div>
                               {m.instructions && (
-                                <span style={{ fontSize: '11px', color: '#64748b', fontStyle: 'italic' }}>
-                                  Instructions: {m.instructions}
+                                <div style={{ fontSize: '11px', color: '#64748b', marginTop: '2px', fontStyle: 'italic' }}>
+                                  {m.instructions}
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </td>
+
+                        {/* Rack Location & Pack size */}
+                        <td style={{ padding: '14px', verticalAlign: 'middle' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            {m.rack ? (
+                              <span style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', padding: '2px 8px', borderRadius: '5px', fontSize: '11px', fontWeight: 800, width: 'fit-content', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                                🗄️ Rack: {m.rack}
+                              </span>
+                            ) : (
+                              <span style={{ color: '#94a3b8', fontSize: '11px', fontStyle: 'italic' }}>
+                                🗄️ Rack not set
+                              </span>
+                            )}
+                            {m.pack && (
+                              <span style={{ fontSize: '11px', color: '#0369a1', fontWeight: 600 }}>
+                                📦 {m.pack} sheets/pack
+                              </span>
+                            )}
+                          </div>
+                        </td>
+
+                        {/* Consolidated Pricing & Profit */}
+                        <td style={{ padding: '14px', verticalAlign: 'middle' }}>
+                          {hasPrice ? (
+                            <div>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                <span style={{ fontSize: '14px', fontWeight: 800, color: '#047857' }}>
+                                  ₹{Number(custPrice).toLocaleString('en-IN')}
+                                </span>
+                                {m.mrp && Number(m.mrp) > Number(custPrice) && (
+                                  <span style={{ fontSize: '11px', color: '#94a3b8', textDecoration: 'line-through' }}>
+                                    ₹{Number(m.mrp).toLocaleString('en-IN')}
+                                  </span>
+                                )}
+                              </div>
+                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '3px', flexWrap: 'wrap' }}>
+                                {m.profit !== undefined && m.profit !== '' && Number(m.profit) > 0 && (
+                                  <span style={{ fontSize: '10px', background: '#dcfce7', color: '#15803d', fontWeight: 700, padding: '1px 6px', borderRadius: '4px', border: '1px solid #86efac' }}>
+                                    +₹{Number(m.profit).toLocaleString('en-IN')} Profit
+                                  </span>
+                                )}
+                                {m.actualPrice !== undefined && m.actualPrice !== '' && (
+                                  <span style={{ fontSize: '10px', color: '#4338ca', fontWeight: 600 }}>
+                                    Cost: ₹{Number(m.actualPrice).toLocaleString('en-IN')}
+                                  </span>
+                                )}
+                              </div>
+                            </div>
+                          ) : (
+                            <span style={{ background: '#f1f5f9', color: '#94a3b8', padding: '3px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                              Price not set
+                            </span>
+                          )}
+                        </td>
+
+                        {/* Prescribed In */}
+                        <td style={{ padding: '14px', verticalAlign: 'middle' }}>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                            <span style={{ fontSize: '11px', fontWeight: 700, color: '#0369a1' }}>
+                              👥 {m.ordersCount} prescription{m.ordersCount === 1 ? '' : 's'}
+                            </span>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxWidth: '220px' }}>
+                              {m.patients.slice(0, 2).map((p: any, pIdx: number) => (
+                                <span 
+                                  key={pIdx} 
+                                  style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#334155', padding: '1px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 600 }}
+                                  title={`Prescribed on ${p.date || 'Recent'}`}
+                                >
+                                  {p.patientName} {p.uhid ? `(${p.uhid.slice(-4)})` : ''}
+                                </span>
+                              ))}
+                              {m.patients.length > 2 && (
+                                <span style={{ background: '#e2e8f0', color: '#475569', padding: '1px 5px', borderRadius: '4px', fontSize: '10px', fontWeight: 700 }}>
+                                  +{m.patients.length - 2}
                                 </span>
                               )}
                             </div>
                           </div>
                         </td>
-                        <td style={{ padding: '14px' }}>
-                          <span style={{ background: '#f1f5f9', color: '#475569', padding: '3px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 600 }}>
-                            {typeLabel || 'Tablet'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '14px' }}>
-                          {m.rack ? (
-                            <span style={{ background: '#fef3c7', color: '#92400e', border: '1px solid #fde68a', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 800, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                              🗄️ {m.rack}
-                            </span>
-                          ) : (
-                            <span style={{ color: '#94a3b8', fontSize: '12px', fontStyle: 'italic' }}>Not assigned</span>
-                          )}
-                        </td>
-                        <td style={{ padding: '14px' }}>
-                          {m.pack ? (
-                            <span style={{ background: '#e0f2fe', color: '#0369a1', border: '1px solid #bae6fd', padding: '4px 10px', borderRadius: '6px', fontSize: '12px', fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
-                              📦 {m.pack} sheets
-                            </span>
-                          ) : (
-                            <span style={{ color: '#94a3b8', fontSize: '12px' }}>-</span>
-                          )}
-                        </td>
-                        <td style={{ padding: '14px' }}>
-                          <span style={{ color: '#0f766e', fontWeight: 700, fontSize: '13px' }}>
-                            {m.mrp !== undefined && m.mrp !== '' ? `₹${Number(m.mrp).toLocaleString('en-IN')}` : '-'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '14px' }}>
-                          <span style={{ background: '#fef3c7', color: '#92400e', padding: '3px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 700 }}>
-                            {discPercent}
-                          </span>
-                        </td>
-                        <td style={{ padding: '14px' }}>
-                          <span style={{ color: '#0284c7', fontWeight: 700, fontSize: '13px' }}>
-                            {custPrice !== '' ? `₹${Number(custPrice).toLocaleString('en-IN')}` : '-'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '14px' }}>
-                          <span style={{ color: '#4338ca', fontWeight: 600, fontSize: '13px' }}>
-                            {m.actualPrice !== undefined && m.actualPrice !== '' ? `₹${Number(m.actualPrice).toLocaleString('en-IN')}` : '-'}
-                          </span>
-                        </td>
-                        <td style={{ padding: '14px' }}>
-                          {m.profit !== undefined && m.profit !== '' ? (
-                            <span style={{ color: '#15803d', fontWeight: 800, fontSize: '13px' }}>
-                              +₹{Number(m.profit).toLocaleString('en-IN')}
-                            </span>
-                          ) : (
-                            <span style={{ color: '#94a3b8', fontSize: '12px' }}>-</span>
-                          )}
-                        </td>
-                        <td style={{ padding: '14px' }}>
-                          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', maxWidth: '240px' }}>
-                            {m.patients.slice(0, 2).map((p: any, pIdx: number) => (
-                              <span 
-                                key={pIdx} 
-                                style={{ background: '#f8fafc', border: '1px solid #e2e8f0', color: '#334155', padding: '2px 7px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}
-                                title={`Prescribed on ${p.date || 'Recent'}`}
-                              >
-                                👤 {p.patientName} {p.uhid ? `(${p.uhid.slice(-4)})` : ''}
-                              </span>
-                            ))}
-                            {m.patients.length > 2 && (
-                              <span style={{ background: '#e2e8f0', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '10px', fontWeight: 700 }}>
-                                +{m.patients.length - 2} more
-                              </span>
-                            )}
+
+                        {/* Actions: View & Prescribe */}
+                        <td style={{ padding: '14px 16px', textAlign: 'right', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+                          <div style={{ display: 'inline-flex', gap: '8px', alignItems: 'center' }}>
+                            <button
+                              type="button"
+                              onClick={() => setViewingDirectoryMed(m)}
+                              style={{
+                                background: '#0284c7',
+                                color: 'white',
+                                border: 'none',
+                                padding: '6px 12px',
+                                borderRadius: '7px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                boxShadow: '0 1px 3px rgba(2,132,199,0.3)'
+                              }}
+                              title="View Complete Medicine Details & Pricing Breakdown"
+                            >
+                              👁️ View
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => handlePrescribeMedicineFromDirectory(m)}
+                              style={{
+                                background: '#047857',
+                                color: 'white',
+                                border: 'none',
+                                padding: '6px 12px',
+                                borderRadius: '7px',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                cursor: 'pointer',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                boxShadow: '0 1px 3px rgba(4,120,87,0.3)'
+                              }}
+                              title="Prescribe this medicine to a patient"
+                            >
+                              + Prescribe
+                            </button>
                           </div>
-                        </td>
-                        <td style={{ padding: '14px', textAlign: 'right' }}>
-                          <button
-                            type="button"
-                            onClick={() => handlePrescribeMedicineFromDirectory(m)}
-                            style={{
-                              background: '#0284c7',
-                              color: 'white',
-                              border: 'none',
-                              padding: '6px 12px',
-                              borderRadius: '6px',
-                              fontSize: '11px',
-                              fontWeight: 700,
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              boxShadow: '0 1px 3px rgba(2,132,199,0.3)'
-                            }}
-                          >
-                            + Prescribe
-                          </button>
                         </td>
                       </tr>
                     );
@@ -6734,6 +6791,308 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
           </div>
         </div>
       )}
+
+      {/* ── MEDICINE DIRECTORY DETAILS MODAL (When clicking '👁️ View' on a medicine) ── */}
+      {viewingDirectoryMed && (() => {
+        const m = viewingDirectoryMed;
+        const typeLabel = (m.type === 'Other' && m.customType) ? m.customType : (m.type || 'Tablet');
+        const custPrice = m.discountPrice !== undefined && m.discountPrice !== '' ? m.discountPrice : (m.mrp || '');
+        const hasPrice = (m.mrp !== undefined && m.mrp !== '') || custPrice !== '';
+        const mrpNum = Number(m.mrp) || 0;
+        const custPriceNum = Number(custPrice) || 0;
+        const costNum = Number(m.actualPrice) || 0;
+        const profitNum = Number(m.profit) || (custPriceNum > 0 && costNum > 0 ? custPriceNum - costNum : 0);
+        const profitMargin = custPriceNum > 0 && profitNum > 0 ? Math.round((profitNum / custPriceNum) * 100) : 0;
+
+        return (
+          <div 
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(5px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 2200,
+              padding: '16px'
+            }}
+            onClick={() => setViewingDirectoryMed(null)}
+          >
+            <div 
+              style={{
+                background: '#ffffff',
+                borderRadius: '16px',
+                width: '100%',
+                maxWidth: '780px',
+                maxHeight: '90vh',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '0 25px 60px rgba(0,0,0,0.3)',
+                overflow: 'hidden'
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div style={{
+                background: 'linear-gradient(135deg, #0f274a 0%, #0369a1 100%)',
+                color: 'white',
+                padding: '20px 24px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{
+                    width: '46px',
+                    height: '46px',
+                    borderRadius: '12px',
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '24px',
+                    border: '1.5px solid rgba(255,255,255,0.25)'
+                  }}>
+                    💊
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: 'white' }}>
+                        {m.name}
+                      </h2>
+                      <span style={{ fontSize: '11px', background: 'rgba(255,255,255,0.2)', color: 'white', padding: '2px 8px', borderRadius: '4px', fontWeight: 700 }}>
+                        {typeLabel}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#bae6fd', marginTop: '3px' }}>
+                      Prescribed in <strong>{m.ordersCount}</strong> patient order{m.ordersCount === 1 ? '' : 's'}
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setViewingDirectoryMed(null)}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    border: 'none',
+                    color: 'white',
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: '8px',
+                    fontSize: '20px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                >
+                  &times;
+                </button>
+              </div>
+
+              {/* Modal Body */}
+              <div style={{
+                padding: '24px',
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '20px',
+                background: '#f8fafc'
+              }}>
+                {/* 1. Pharmacy Stocking & Rack Information */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+                  gap: '12px'
+                }}>
+                  <div style={{ background: 'white', padding: '16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                      🗄️ Pharmacy Rack Location
+                    </div>
+                    <div style={{ fontSize: '16px', fontWeight: 800, color: m.rack ? '#b45309' : '#94a3b8', marginTop: '6px' }}>
+                      {m.rack ? `Rack ${m.rack}` : 'Not assigned to a rack'}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px' }}>
+                      Storage shelf in dispensing room
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'white', padding: '16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                      📦 Packaging / Sheet Size
+                    </div>
+                    <div style={{ fontSize: '16px', fontWeight: 800, color: m.pack ? '#0369a1' : '#94a3b8', marginTop: '6px' }}>
+                      {m.pack ? `${m.pack} sheets / pack` : 'Standard packaging'}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px' }}>
+                      Dispensing unit size
+                    </div>
+                  </div>
+
+                  <div style={{ background: 'white', padding: '16px', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>
+                      📋 Instructions / Formulation
+                    </div>
+                    <div style={{ fontSize: '14px', fontWeight: 700, color: '#0f172a', marginTop: '6px' }}>
+                      {typeLabel} {m.instructions ? `• ${m.instructions}` : ''}
+                    </div>
+                    <div style={{ fontSize: '11px', color: '#64748b', marginTop: '3px' }}>
+                      Dosage & administration instructions
+                    </div>
+                  </div>
+                </div>
+
+                {/* 2. Complete 5-Step Price & Profit Flow */}
+                <div style={{ background: 'white', borderRadius: '12px', padding: '18px 20px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 800, color: '#0f274a', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '14px' }}>
+                    💰 Pricing, Cost & Profit Breakdown
+                  </div>
+                  {hasPrice ? (
+                    <div style={{
+                      display: 'grid',
+                      gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))',
+                      gap: '10px'
+                    }}>
+                      <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b' }}>1. Catalog MRP</div>
+                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
+                          ₹{mrpNum.toFixed(2)}
+                        </div>
+                      </div>
+                      <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ fontSize: '10px', fontWeight: 700, color: '#dc2626' }}>2. Discount</div>
+                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#dc2626', marginTop: '4px' }}>
+                          {m.discountPercent ? `${m.discountPercent}%` : '-'}
+                        </div>
+                      </div>
+                      <div style={{ background: '#ecfdf5', padding: '12px', borderRadius: '8px', border: '1px solid #a7f3d0' }}>
+                        <div style={{ fontSize: '10px', fontWeight: 800, color: '#065f46' }}>3. Customer Price</div>
+                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#047857', marginTop: '4px' }}>
+                          ₹{custPriceNum.toFixed(2)}
+                        </div>
+                      </div>
+                      <div style={{ background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                        <div style={{ fontSize: '10px', fontWeight: 700, color: '#4f46e5' }}>4. Benva Cost</div>
+                        <div style={{ fontSize: '16px', fontWeight: 800, color: '#4338ca', marginTop: '4px' }}>
+                          ₹{costNum.toFixed(2)}
+                        </div>
+                      </div>
+                      <div style={{ background: profitNum > 0 ? '#dcfce7' : '#f8fafc', padding: '12px', borderRadius: '8px', border: profitNum > 0 ? '1px solid #86efac' : '1px solid #e2e8f0' }}>
+                        <div style={{ fontSize: '10px', fontWeight: 800, color: profitNum > 0 ? '#15803d' : '#64748b' }}>5. Benva Profit</div>
+                        <div style={{ fontSize: '16px', fontWeight: 800, color: profitNum > 0 ? '#15803d' : '#64748b', marginTop: '4px' }}>
+                          {profitNum > 0 ? `+₹${profitNum.toFixed(2)}` : `₹${profitNum.toFixed(2)}`}
+                        </div>
+                        {profitMargin > 0 && (
+                          <div style={{ fontSize: '10px', color: '#166534', fontWeight: 700, marginTop: '2px' }}>
+                            {profitMargin}% Margin
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  ) : (
+                    <div style={{ textAlign: 'center', padding: '16px', color: '#94a3b8', fontStyle: 'italic', fontSize: '13px' }}>
+                      Pricing not yet configured for this medicine. It will automatically populate when prescribed with MRP and cost.
+                    </div>
+                  )}
+                </div>
+
+                {/* 3. Patients Prescribed To */}
+                <div style={{ background: 'white', borderRadius: '12px', padding: '18px 20px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 800, color: '#0f274a', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '12px' }}>
+                    👥 Patients Prescribed ({m.patients.length})
+                  </div>
+                  {m.patients.length === 0 ? (
+                    <div style={{ color: '#94a3b8', fontSize: '13px', fontStyle: 'italic' }}>
+                      No patient history available.
+                    </div>
+                  ) : (
+                    <div style={{ maxHeight: '180px', overflowY: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                        <thead>
+                          <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
+                            <th style={{ padding: '6px 10px', color: '#64748b' }}>Patient Name</th>
+                            <th style={{ padding: '6px 10px', color: '#64748b' }}>UHID</th>
+                            <th style={{ padding: '6px 10px', color: '#64748b' }}>Order Date</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {m.patients.map((p: any, pIdx: number) => (
+                            <tr key={pIdx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                              <td style={{ padding: '8px 10px', fontWeight: 700, color: '#0f172a' }}>
+                                👤 {p.patientName}
+                              </td>
+                              <td style={{ padding: '8px 10px', color: '#0284c7', fontWeight: 600 }}>
+                                {p.uhid || '—'}
+                              </td>
+                              <td style={{ padding: '8px 10px', color: '#64748b' }}>
+                                {p.date || '—'}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div style={{
+                padding: '16px 24px',
+                background: 'white',
+                borderTop: '1px solid #e2e8f0',
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: '10px'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setViewingDirectoryMed(null)}
+                  style={{
+                    background: '#f1f5f9',
+                    color: '#475569',
+                    border: '1px solid #cbd5e1',
+                    padding: '9px 18px',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Close
+                </button>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const medToPrescribe = m;
+                    setViewingDirectoryMed(null);
+                    handlePrescribeMedicineFromDirectory(medToPrescribe);
+                  }}
+                  style={{
+                    background: '#047857',
+                    color: 'white',
+                    border: 'none',
+                    padding: '9px 20px',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: '6px',
+                    boxShadow: '0 2px 6px rgba(4,120,87,0.3)'
+                  }}
+                >
+                  + Prescribe to a Patient
+                </button>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
     </div>
   );
