@@ -43,7 +43,7 @@ export default function InvoiceDetailModal({ invoice, isOpen, onClose, onUpdate 
         margin: [4, 4, 4, 4] as [number, number, number, number],
         filename: `${invoiceNo}_${cleanName}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true, logging: false },
+        html2canvas: { scale: 2, useCORS: true, logging: false, windowWidth: 840, scrollX: 0, scrollY: 0 },
         pagebreak: { mode: ['css', 'legacy'] },
         jsPDF: { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const }
       };

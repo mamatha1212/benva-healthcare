@@ -388,42 +388,38 @@ export default function InvoicePrintView({ invoice }: { invoice: InvoiceData }) 
               <table style={{
                 width: '100%',
                 borderCollapse: 'collapse',
-                fontSize: '10.5px',
+                fontSize: '11px',
                 border: '1px solid #222222'
               }}>
                 <thead>
-                  <tr style={{ backgroundColor: '#f3f4f6', borderBottom: '1px solid #222222' }}>
-                    <th rowSpan={2} style={{ padding: '4px 6px', borderRight: '1px solid #222222', textAlign: 'center' }}>HSN/ SAC</th>
-                    <th rowSpan={2} style={{ padding: '4px 6px', borderRight: '1px solid #222222', textAlign: 'right' }}>Taxable Amt (₹)</th>
-                    <th colSpan={2} style={{ padding: '3px 6px', borderRight: '1px solid #222222', textAlign: 'center' }}>CGST</th>
-                    <th colSpan={2} style={{ padding: '3px 6px', borderRight: '1px solid #222222', textAlign: 'center' }}>SGST</th>
-                    <th rowSpan={2} style={{ padding: '4px 6px', textAlign: 'right' }}>Total Tax(₹)</th>
-                  </tr>
-                  <tr style={{ backgroundColor: '#f9fafb', borderBottom: '1px solid #222222' }}>
-                    <th style={{ padding: '2px 4px', borderRight: '1px solid #222222', textAlign: 'center' }}>Rate (%)</th>
-                    <th style={{ padding: '2px 4px', borderRight: '1px solid #222222', textAlign: 'right' }}>Amt (₹)</th>
-                    <th style={{ padding: '2px 4px', borderRight: '1px solid #222222', textAlign: 'center' }}>Rate (%)</th>
-                    <th style={{ padding: '2px 4px', borderRight: '1px solid #222222', textAlign: 'right' }}>Amt (₹)</th>
+                  <tr style={{ backgroundColor: '#f3f4f6', borderBottom: '1.5px solid #222222', fontWeight: '700' }}>
+                    <th style={{ padding: '6px 4px', borderRight: '1px solid #222222', textAlign: 'center', width: '55px' }}>HSN/SAC</th>
+                    <th style={{ padding: '6px 6px', borderRight: '1px solid #222222', textAlign: 'right' }}>Taxable Amt</th>
+                    <th style={{ padding: '6px 2px', borderRight: '1px solid #222222', textAlign: 'center', width: '42px' }}>CGST %</th>
+                    <th style={{ padding: '6px 4px', borderRight: '1px solid #222222', textAlign: 'right', width: '50px' }}>CGST (₹)</th>
+                    <th style={{ padding: '6px 2px', borderRight: '1px solid #222222', textAlign: 'center', width: '42px' }}>SGST %</th>
+                    <th style={{ padding: '6px 4px', borderRight: '1px solid #222222', textAlign: 'right', width: '50px' }}>SGST (₹)</th>
+                    <th style={{ padding: '6px 6px', textAlign: 'right', width: '60px' }}>Total Tax</th>
                   </tr>
                 </thead>
                 <tbody>
-                  <tr>
-                    <td style={{ padding: '4px 6px', borderRight: '1px solid #222222', textAlign: 'center' }}>3004</td>
-                    <td style={{ padding: '4px 6px', borderRight: '1px solid #222222', textAlign: 'right' }}>{taxableTotal.toFixed(2)}</td>
-                    <td style={{ padding: '4px 6px', borderRight: '1px solid #222222', textAlign: 'center' }}>{(totalCgst > 0 ? (totalCgst / taxableTotal) * 100 : 2.5).toFixed(1)}</td>
-                    <td style={{ padding: '4px 6px', borderRight: '1px solid #222222', textAlign: 'right' }}>{totalCgst.toFixed(2)}</td>
-                    <td style={{ padding: '4px 6px', borderRight: '1px solid #222222', textAlign: 'center' }}>{(totalSgst > 0 ? (totalSgst / taxableTotal) * 100 : 2.5).toFixed(1)}</td>
-                    <td style={{ padding: '4px 6px', borderRight: '1px solid #222222', textAlign: 'right' }}>{totalSgst.toFixed(2)}</td>
-                    <td style={{ padding: '4px 6px', textAlign: 'right', fontWeight: '600' }}>{totalGst.toFixed(2)}</td>
+                  <tr style={{ borderBottom: '1px solid #e5e7eb' }}>
+                    <td style={{ padding: '6px 4px', borderRight: '1px solid #222222', textAlign: 'center' }}>3004</td>
+                    <td style={{ padding: '6px 6px', borderRight: '1px solid #222222', textAlign: 'right' }}>₹{taxableTotal.toFixed(2)}</td>
+                    <td style={{ padding: '6px 2px', borderRight: '1px solid #222222', textAlign: 'center' }}>{(totalCgst > 0 ? (totalCgst / taxableTotal) * 100 : 2.5).toFixed(1)}%</td>
+                    <td style={{ padding: '6px 4px', borderRight: '1px solid #222222', textAlign: 'right' }}>₹{totalCgst.toFixed(2)}</td>
+                    <td style={{ padding: '6px 2px', borderRight: '1px solid #222222', textAlign: 'center' }}>{(totalSgst > 0 ? (totalSgst / taxableTotal) * 100 : 2.5).toFixed(1)}%</td>
+                    <td style={{ padding: '6px 4px', borderRight: '1px solid #222222', textAlign: 'right' }}>₹{totalSgst.toFixed(2)}</td>
+                    <td style={{ padding: '6px 6px', textAlign: 'right', fontWeight: '700' }}>₹{totalGst.toFixed(2)}</td>
                   </tr>
-                  <tr style={{ fontWeight: '700', backgroundColor: '#f9fafb', borderTop: '1px solid #222222' }}>
-                    <td style={{ padding: '4px 6px', borderRight: '1px solid #222222', textAlign: 'center' }}>TOTAL</td>
-                    <td style={{ padding: '4px 6px', borderRight: '1px solid #222222', textAlign: 'right' }}>{taxableTotal.toFixed(2)}</td>
+                  <tr style={{ fontWeight: '700', backgroundColor: '#f9fafb', borderTop: '1.5px solid #222222' }}>
+                    <td style={{ padding: '6px 4px', borderRight: '1px solid #222222', textAlign: 'center' }}>TOTAL</td>
+                    <td style={{ padding: '6px 6px', borderRight: '1px solid #222222', textAlign: 'right' }}>₹{taxableTotal.toFixed(2)}</td>
                     <td style={{ borderRight: '1px solid #222222' }}></td>
-                    <td style={{ padding: '4px 6px', borderRight: '1px solid #222222', textAlign: 'right' }}>{totalCgst.toFixed(2)}</td>
+                    <td style={{ padding: '6px 4px', borderRight: '1px solid #222222', textAlign: 'right' }}>₹{totalCgst.toFixed(2)}</td>
                     <td style={{ borderRight: '1px solid #222222' }}></td>
-                    <td style={{ padding: '4px 6px', borderRight: '1px solid #222222', textAlign: 'right' }}>{totalSgst.toFixed(2)}</td>
-                    <td style={{ padding: '4px 6px', textAlign: 'right' }}>{totalGst.toFixed(2)}</td>
+                    <td style={{ padding: '6px 4px', borderRight: '1px solid #222222', textAlign: 'right' }}>₹{totalSgst.toFixed(2)}</td>
+                    <td style={{ padding: '6px 6px', textAlign: 'right', fontWeight: '800' }}>₹{totalGst.toFixed(2)}</td>
                   </tr>
                 </tbody>
               </table>
