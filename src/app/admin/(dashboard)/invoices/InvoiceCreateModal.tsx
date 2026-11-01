@@ -82,8 +82,10 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
   const [isSubmitting, setIsSubmitting] = useState(false);
 
   useEffect(() => {
-    setModule(initialModule);
-  }, [initialModule]);
+    if (isOpen) {
+      setModule(initialModule);
+    }
+  }, [initialModule, isOpen]);
 
   // Default item setup based on module
   useEffect(() => {
@@ -319,15 +321,43 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center',
-          backgroundColor: '#f8fafc'
+          backgroundColor: '#f8fafc',
+          flexWrap: 'wrap',
+          gap: '12px'
         }}>
-          <div>
-            <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#0f172a', margin: 0, display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span>➕</span> Create New Invoice
-            </h2>
-            <p style={{ margin: '3px 0 0 0', fontSize: '13px', color: '#64748b' }}>
-              Vyapar-Style Fast Billing • Select Module & GST Type
-            </p>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <span style={{
+              width: '42px',
+              height: '42px',
+              borderRadius: '10px',
+              backgroundColor: '#e0f2fe',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              fontSize: '22px'
+            }}>
+              {module === 'LAB_TESTS' ? '🧪' : module === 'MEDICINES' ? '💊' : module === 'DOCTOR' ? '👨‍⚕️' : '🥗'}
+            </span>
+            <div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <h2 style={{ fontSize: '18px', fontWeight: '800', color: '#0f172a', margin: 0 }}>
+                  Create New {module === 'LAB_TESTS' ? 'Lab Tests & Packages' : module === 'MEDICINES' ? 'Medicines' : module === 'DOCTOR' ? 'Doctor Consultation' : 'Dietitian Plan'} Invoice
+                </h2>
+                <span style={{
+                  fontSize: '11px',
+                  fontWeight: '700',
+                  padding: '3px 8px',
+                  borderRadius: '6px',
+                  backgroundColor: '#0284c7',
+                  color: '#ffffff'
+                }}>
+                  {module === 'LAB_TESTS' ? '🧪 Lab Tests' : module === 'MEDICINES' ? '💊 Medicines' : module === 'DOCTOR' ? '👨‍⚕️ Doctor' : '🥗 Dietitian'}
+                </span>
+              </div>
+              <p style={{ margin: '3px 0 0 0', fontSize: '13px', color: '#64748b' }}>
+                Vyapar-Style Fast Billing • {billType === 'GST' ? 'GST Compliant' : 'Standard Non-GST'}
+              </p>
+            </div>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -392,45 +422,6 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
 
         {/* Scrollable Modal Body */}
         <form onSubmit={handleSubmit} style={{ overflowY: 'auto', padding: '20px 24px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-          
-          {/* Module Tabs Selector */}
-          <div>
-            <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '8px', textTransform: 'uppercase' }}>
-              1. Select Billing Module
-            </label>
-            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '10px' }}>
-              {[
-                { key: 'MEDICINES', label: 'Medicines (Vyapar)', icon: '💊' },
-                { key: 'LAB_TESTS', label: 'Lab Tests & Packages', icon: '🧪' },
-                { key: 'DOCTOR', label: 'Doctor Consultations', icon: '👨‍⚕️' },
-                { key: 'DIETITIAN', label: 'Dietitian Plans', icon: '🥗' },
-              ].map(m => (
-                <button
-                  key={m.key}
-                  type="button"
-                  onClick={() => setModule(m.key as any)}
-                  style={{
-                    padding: '10px 12px',
-                    borderRadius: '8px',
-                    border: module === m.key ? '2px solid #0284c7' : '1px solid #cbd5e1',
-                    backgroundColor: module === m.key ? '#f0f9ff' : '#ffffff',
-                    color: module === m.key ? '#0369a1' : '#334155',
-                    fontWeight: module === m.key ? '700' : '600',
-                    fontSize: '13px',
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '8px',
-                    justifyContent: 'center',
-                    boxShadow: module === m.key ? '0 1px 2px rgba(2, 132, 199, 0.1)' : 'none'
-                  }}
-                >
-                  <span>{m.icon}</span>
-                  <span>{m.label}</span>
-                </button>
-              ))}
-            </div>
-          </div>
 
           {/* Customer Selection Section */}
           <div style={{
@@ -441,7 +432,7 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
           }}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
               <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>
-                2. Customer / Patient Details (UHID Mandatory)
+                1. Customer / Patient Details (UHID Mandatory)
               </label>
               {!isCreatingNewPatient ? (
                 <button
@@ -721,7 +712,7 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
               <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569', textTransform: 'uppercase' }}>
-                3. Line Items & Pricing (Vyapar Model)
+                2. Line Items & Pricing (Vyapar Model)
               </label>
               <button
                 type="button"
@@ -897,7 +888,7 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
             {/* Payment Recording */}
             <div>
               <label style={{ fontSize: '12px', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '8px', textTransform: 'uppercase' }}>
-                4. Payment Details
+                3. Payment Details
               </label>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                 <div>
