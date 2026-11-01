@@ -36,6 +36,11 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
   const [consignmentForm, setConsignmentForm] = useState({ consignmentNo: '', consignmentImage: '' });
   const [isUploadingConsignmentSlip, setIsUploadingConsignmentSlip] = useState(false);
   const [deletingOrderId, setDeletingOrderId] = useState<string | null>(null);
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false);
+  const [importFile, setImportFile] = useState<File | null>(null);
+  const [importPreviewRows, setImportPreviewRows] = useState<any[]>([]);
+  const [isImporting, setIsImporting] = useState(false);
+  const [importError, setImportError] = useState<string | null>(null);
   const fileInputRef = React.useRef<HTMLInputElement>(null);
 
   // Pagination & Filter States
@@ -497,7 +502,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
           id: `med-${Date.now()}`,
           name: 'Prescription Order Medicines',
           type: 'Other',
-          quantity: '1 Order',
+          quantity: '1',
           mrp: mrpVal || '',
           discountPrice: finalVal || '',
           actualPrice: costVal || '',
@@ -695,7 +700,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         name: m.name || '',
         type: isCustom ? 'Other' : (m.type || 'Tablet'),
         customType: m.customType || (isCustom && m.type !== 'Other' ? m.type : ''),
-        quantity: m.quantity || '',
+        quantity: m.quantity === '1 Order' ? '1' : (m.quantity || '1'),
         rack: m.rack || '',
         pack: m.pack || '',
         mrp: m.mrp !== undefined ? m.mrp : '',
@@ -2318,6 +2323,156 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     }
   };
 
+  // ── Import CSV Feature Helpers ──
+  const downloadSampleCSV = () => {
+    const sample = "Patient Name,Mobile,UHID,Address,Total MRP,Discount,Final Amount,Benva Cost,Consignment No,Next Due Date,Medicines\n" +
+      "Ravi Kumar,7671866605,BENVA-UHID-00000042,1-5 yanamadala Kakinada,500,100,400,300,BEN-CONG-101,2026-11-10,Paracetamol 650mg; Pantocid 40mg\n" +
+      "Sudheer Varma,9010681168,BENVA-UHID-00000003,Main Road Kakinada,100,50,50,50,BEN-CONG-102,2026-11-15,Cetirizine 10mg";
+    const blob = new Blob([sample], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'benva_medicines_sample.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const handleImportFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setImportFile(file);
+    setImportError(null);
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const text = event.target?.result as string;
+        if (!text) return;
+        const lines = text.split(/\r\n|\n/).filter(line => line.trim().length > 0);
+        if (lines.length < 2) {
+          setImportError('CSV file must have at least a header row and 1 data row.');
+          return;
+        }
+        const rawHeaders = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/[^a-z0-9]/g, ''));
+        const parsedRows: any[] = [];
+        for (let i = 1; i < lines.length; i++) {
+          const line = lines[i];
+          const cols: string[] = [];
+          let inQuotes = false;
+          let current = '';
+          for (let c = 0; c < line.length; c++) {
+            const char = line[c];
+            if (char === '"') {
+              inQuotes = !inQuotes;
+            } else if (char === ',' && !inQuotes) {
+              cols.push(current.trim());
+              current = '';
+            } else {
+              current += char;
+            }
+          }
+          cols.push(current.trim());
+
+          const row: any = {};
+          rawHeaders.forEach((h, colIdx) => {
+            const val = cols[colIdx] || '';
+            if (h.includes('patient') || h.includes('name')) row.patientName = val;
+            else if (h.includes('mobile') || h.includes('phone')) row.mobile = val;
+            else if (h.includes('uhid')) row.uhid = val;
+            else if (h.includes('address')) row.address = val;
+            else if (h.includes('mrp')) row.totalMrp = parseFloat(val) || 0;
+            else if (h.includes('discount')) row.discount = parseFloat(val) || 0;
+            else if (h.includes('final') || h.includes('amount') || h.includes('revenue')) row.finalAmount = parseFloat(val) || 0;
+            else if (h.includes('cost') || h.includes('bos')) row.actualCost = parseFloat(val) || 0;
+            else if (h.includes('consign') || h.includes('track')) row.consignmentNo = val;
+            else if (h.includes('due')) row.nextDueDate = val;
+            else if (h.includes('medicine') || h.includes('item')) row.medicinesNote = val;
+          });
+
+          if (row.patientName || row.mobile) {
+            if (!row.finalAmount && row.totalMrp) {
+              row.finalAmount = Math.max(0, row.totalMrp - (row.discount || 0));
+            }
+            parsedRows.push(row);
+          }
+        }
+        setImportPreviewRows(parsedRows);
+      } catch (err: any) {
+        console.error('CSV parse error', err);
+        setImportError('Failed to parse CSV: ' + err.message);
+      }
+    };
+    reader.readAsText(file);
+  };
+
+  const handleExecuteImport = async () => {
+    if (importPreviewRows.length === 0) return;
+    setIsImporting(true);
+    setImportError(null);
+    let importedCount = 0;
+    const newCreatedOrders: any[] = [];
+
+    for (const row of importPreviewRows) {
+      try {
+        const payload: any = {
+          patientName: row.patientName || 'Patient',
+          mobile: row.mobile || '',
+          uhid: row.uhid || '',
+          address: row.address || '',
+          totalMrp: Number(row.totalMrp) || 0,
+          discount: Number(row.discount) || 0,
+          finalAmount: Number(row.finalAmount) || 0,
+          status: 'ACTIVE',
+          consignmentNo: row.consignmentNo || null,
+          nextDueDate: row.nextDueDate ? new Date(row.nextDueDate).toISOString() : null,
+          medicines: row.medicinesNote ? [{
+            id: `med-${Date.now()}-${Math.random()}`,
+            name: row.medicinesNote,
+            type: 'Other',
+            quantity: '1',
+            mrp: row.totalMrp || '',
+            discountPrice: row.finalAmount || '',
+            actualPrice: row.actualCost || '',
+            profit: (row.actualCost && row.finalAmount) ? Number(row.finalAmount) - Number(row.actualCost) : '',
+            isSelected: true
+          }] : (row.actualCost ? [{
+            id: `med-${Date.now()}-${Math.random()}`,
+            name: 'Prescription Order Medicines',
+            type: 'Other',
+            quantity: '1',
+            mrp: row.totalMrp || '',
+            discountPrice: row.finalAmount || '',
+            actualPrice: row.actualCost || '',
+            profit: row.finalAmount ? Number(row.finalAmount) - Number(row.actualCost) : '',
+            isSelected: true
+          }] : [])
+        };
+
+        const res = await fetch('/api/admin/medicines', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+          const created = await res.json();
+          newCreatedOrders.push(created);
+          importedCount++;
+        }
+      } catch (e) {
+        console.error('Row import error:', e);
+      }
+    }
+
+    if (newCreatedOrders.length > 0) {
+      setOrders(prev => [...newCreatedOrders, ...prev]);
+    }
+    setIsImporting(false);
+    setIsImportModalOpen(false);
+    setImportPreviewRows([]);
+    setImportFile(null);
+    alert(`Successfully imported ${importedCount} of ${importPreviewRows.length} medicine orders!`);
+  };
+
   return (
     <div className="medicines-page-container">
       <style>{`
@@ -2839,6 +2994,27 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
               📄 Bank Statement
             </button>
             <button 
+              onClick={() => setIsImportModalOpen(true)}
+              className="export-action-btn"
+              title="Import medicine orders from CSV spreadsheet" 
+              style={{ 
+                background: '#0d9488', 
+                color: 'white', 
+                border: 'none', 
+                padding: '9px 15px', 
+                borderRadius: '7px', 
+                fontSize: '13px', 
+                fontWeight: 700, 
+                cursor: 'pointer', 
+                display: 'inline-flex', 
+                alignItems: 'center', 
+                gap: '6px',
+                boxShadow: '0 2px 6px rgba(13,148,136,0.25)'
+              }}
+            >
+              📥 Import CSV
+            </button>
+            <button 
               onClick={exportHistoryCSV} 
               className="export-action-btn"
               title="Download full history as Excel/CSV" 
@@ -2961,12 +3137,12 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
             <thead>
               <tr style={{ background: '#f8fafc', textAlign: 'left' }}>
                 <th style={{ padding: '12px 14px', color: '#64748b', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', borderBottom: '1px solid #e2e8f0', width: '45px' }}>#</th>
-                <th style={{ padding: '12px 14px', color: '#64748b', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', borderBottom: '1px solid #e2e8f0', minWidth: '190px' }}>Patient Details</th>
-                <th style={{ padding: '12px 14px', color: '#64748b', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', borderBottom: '1px solid #e2e8f0', minWidth: '150px' }}>Consignment & Tracking</th>
-                <th style={{ padding: '12px 14px', color: '#64748b', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', borderBottom: '1px solid #e2e8f0', minWidth: '200px' }}>Billing & Profit</th>
-                <th style={{ padding: '12px 14px', color: '#64748b', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', borderBottom: '1px solid #e2e8f0', minWidth: '120px' }}>Order & Due</th>
+                <th style={{ padding: '12px 14px', color: '#64748b', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', borderBottom: '1px solid #e2e8f0', minWidth: '180px' }}>Patient</th>
+                <th style={{ padding: '12px 14px', color: '#64748b', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', borderBottom: '1px solid #e2e8f0', minWidth: '150px' }}>Revenue & Profit</th>
+                <th style={{ padding: '12px 14px', color: '#64748b', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', borderBottom: '1px solid #e2e8f0', minWidth: '130px' }}>Tracking</th>
+                <th style={{ padding: '12px 14px', color: '#64748b', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', borderBottom: '1px solid #e2e8f0', minWidth: '110px' }}>Due Date</th>
                 <th style={{ padding: '12px 14px', color: '#64748b', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', borderBottom: '1px solid #e2e8f0', width: '90px' }}>Status</th>
-                <th style={{ padding: '12px 16px', textAlign: 'right', color: '#64748b', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', borderBottom: '1px solid #e2e8f0', minWidth: '230px' }}>Actions & Slips</th>
+                <th style={{ padding: '12px 16px', textAlign: 'right', color: '#64748b', fontWeight: 700, fontSize: '11px', textTransform: 'uppercase', letterSpacing: '0.6px', borderBottom: '1px solid #e2e8f0', minWidth: '190px' }}>Actions</th>
               </tr>
             </thead>
             <tbody>
@@ -2979,21 +3155,6 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                 </tr>
               ) : (
                 paginatedOrders.map((order, index) => {
-                  let pImgs: string[] = [];
-                  if (Array.isArray(order.prescriptionUrls)) {
-                    pImgs = order.prescriptionUrls;
-                  } else if (typeof order.prescriptionUrls === 'string') {
-                    try {
-                      const parsed = JSON.parse(order.prescriptionUrls);
-                      if (Array.isArray(parsed)) pImgs = parsed;
-                      else if (parsed) pImgs = [parsed];
-                    } catch {
-                      if (order.prescriptionUrls.startsWith('http') || order.prescriptionUrls.startsWith('/') || order.prescriptionUrls.startsWith('data:')) {
-                        pImgs = [order.prescriptionUrls];
-                      }
-                    }
-                  }
-
                   const orderIndex = (ordersPage - 1) * pageSize + index + 1;
 
                   return (
@@ -3005,13 +3166,13 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                         transition: 'background 0.15s ease'
                       }}
                     >
-                      <td style={{ padding: '16px 14px', color: '#94a3b8', fontWeight: 700, fontSize: '13px', verticalAlign: 'top' }}>
+                      <td style={{ padding: '14px 14px', color: '#94a3b8', fontWeight: 700, fontSize: '13px', verticalAlign: 'middle' }}>
                         {orderIndex}
                       </td>
 
-                      {/* Patient Details */}
-                      <td style={{ padding: '16px 14px', verticalAlign: 'top' }}>
-                        <div style={{ display: 'flex', gap: '10px', alignItems: 'flex-start' }}>
+                      {/* Patient Details: Clean & Basic */}
+                      <td style={{ padding: '14px 14px', verticalAlign: 'middle' }}>
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
                           <div style={{ 
                             width: '36px', 
                             height: '36px', 
@@ -3037,167 +3198,35 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                                 </span>
                               )}
                             </div>
-                            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '3px', display: 'flex', alignItems: 'center', gap: '5px' }}>
+                            <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px', display: 'flex', alignItems: 'center', gap: '4px' }}>
                               <span>📞</span>
                               <a href={`tel:${order.mobile}`} style={{ color: '#0284c7', fontWeight: 600, textDecoration: 'none' }}>
                                 {order.mobile}
                               </a>
                             </div>
-                            {order.address && (
-                              <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px', maxWidth: '210px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }} title={order.address}>
-                                📍 {order.address}
-                              </div>
-                            )}
-                            {pImgs.length > 0 && (
-                              <div style={{ marginTop: '7px', display: 'flex', gap: '5px', alignItems: 'center', flexWrap: 'wrap' }}>
-                                {pImgs.slice(0, 3).map((url: string, pIdx: number) => (
-                                  <img 
-                                    key={pIdx} 
-                                    src={url} 
-                                    alt={`Prescription ${pIdx + 1}`} 
-                                    onClick={(e) => { e.stopPropagation(); setPreviewImageUrl(url); }}
-                                    title="Click to zoom prescription / strip photo"
-                                    style={{ width: '28px', height: '28px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #cbd5e1', cursor: 'pointer', background: '#f8fafc', boxShadow: '0 1px 2px rgba(0,0,0,0.06)' }} 
-                                  />
-                                ))}
-                                <span style={{ fontSize: '10px', color: '#0284c7', fontWeight: 600, background: '#f0f9ff', padding: '1px 5px', borderRadius: '4px', border: '1px solid #bae6fd' }}>
-                                  📎 {pImgs.length} photo{pImgs.length > 1 ? 's' : ''}
-                                </span>
-                              </div>
-                            )}
                           </div>
                         </div>
                       </td>
 
-                      {/* Consignment & Tracking Field */}
-                      <td style={{ padding: '16px 14px', verticalAlign: 'top' }}>
-                        {order.consignmentNo ? (
-                          <div>
-                            <span style={{ fontWeight: 700, color: '#0369a1', background: '#f0f9ff', padding: '3px 8px', borderRadius: '5px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px', border: '1px solid #bae6fd' }}>
-                              📦 {order.consignmentNo}
-                            </span>
-                          </div>
-                        ) : (
-                          <button
-                            type="button"
-                            onClick={() => handleOpenConsignmentModal(order)}
-                            style={{
-                              background: '#f8fafc',
-                              color: '#64748b',
-                              border: '1px dashed #cbd5e1',
-                              padding: '5px 9px',
-                              borderRadius: '6px',
-                              fontSize: '11px',
-                              fontWeight: 600,
-                              cursor: 'pointer',
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px'
-                            }}
-                          >
-                            + Add Consignment
-                          </button>
-                        )}
-
-                        {order.consignmentImage && (
-                          <div style={{ marginTop: '6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                            <img 
-                              src={order.consignmentImage} 
-                              alt="Slip" 
-                              onClick={() => setPreviewImageUrl(order.consignmentImage)}
-                              style={{ width: '26px', height: '26px', objectFit: 'cover', borderRadius: '4px', border: '1px solid #cbd5e1', cursor: 'pointer' }}
-                              title="Click to zoom consignment slip photo"
-                            />
-                            <span 
-                              onClick={() => setPreviewImageUrl(order.consignmentImage)}
-                              style={{ fontSize: '11px', color: '#0284c7', fontWeight: 600, cursor: 'pointer', textDecoration: 'underline' }}
-                            >
-                              📷 Slip Photo
-                            </span>
-                          </div>
-                        )}
-
-                        {order.consignmentNo && (
-                          <div style={{ marginTop: '6px' }}>
-                            <button
-                              type="button"
-                              onClick={() => handleOpenConsignmentModal(order)}
-                              style={{
-                                background: '#ffffff',
-                                color: '#475569',
-                                border: '1px solid #cbd5e1',
-                                padding: '2px 7px',
-                                borderRadius: '4px',
-                                fontSize: '11px',
-                                fontWeight: 600,
-                                cursor: 'pointer'
-                              }}
-                            >
-                              ✏️ Edit Tracking
-                            </button>
-                          </div>
-                        )}
-                      </td>
-
-                      {/* Billing Breakdown & Benva Profit */}
-                      <td style={{ padding: '16px 14px', verticalAlign: 'top' }}>
+                      {/* Revenue & Profit: Clean & Impactful */}
+                      <td style={{ padding: '14px 14px', verticalAlign: 'middle' }}>
                         {(() => {
                           const { actualCost, profit } = getOrderFinancials(order);
-                          const totalMrp = Number(order.totalMrp || 0);
-                          const discount = Number(order.discount || 0);
                           const finalAmt = Number(order.finalAmount || 0);
-                          const discountPct = totalMrp > 0 ? Math.round((discount / totalMrp) * 100) : 0;
-
                           return (
-                            <div style={{ 
-                              background: '#ffffff', 
-                              border: '1px solid #e2e8f0', 
-                              borderRadius: '8px', 
-                              padding: '8px 10px', 
-                              minWidth: '185px', 
-                              maxWidth: '220px',
-                              boxShadow: '0 1px 2px rgba(0,0,0,0.02)'
-                            }}>
-                              {/* Row 1: Net Revenue */}
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: '4px' }}>
-                                <span style={{ fontSize: '10px', textTransform: 'uppercase', color: '#64748b', fontWeight: 700, letterSpacing: '0.3px' }}>
-                                  Benva Revenue
-                                </span>
-                                <span style={{ fontSize: '15px', color: '#047857', fontWeight: 800 }}>
-                                  ₹{finalAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                                </span>
+                            <div>
+                              <div style={{ fontSize: '15px', fontWeight: 800, color: '#047857' }}>
+                                ₹{finalAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                               </div>
-
-                              {/* Row 2: Cost & Profit split box */}
-                              <div style={{ 
-                                display: 'grid', 
-                                gridTemplateColumns: '1fr 1fr', 
-                                gap: '4px', 
-                                background: '#f8fafc', 
-                                border: '1px solid #f1f5f9', 
-                                borderRadius: '6px', 
-                                padding: '4px 6px', 
-                                margin: '4px 0',
-                                fontSize: '11px' 
-                              }}>
-                                <div>
-                                  <span style={{ fontSize: '9px', color: '#64748b', display: 'block', fontWeight: 600 }}>BOS COST</span>
-                                  <span style={{ fontWeight: 700, color: '#4338ca' }}>₹{actualCost.toLocaleString('en-IN')}</span>
-                                </div>
-                                <div style={{ textAlign: 'right' }}>
-                                  <span style={{ fontSize: '9px', color: '#64748b', display: 'block', fontWeight: 600 }}>GROSS PROFIT</span>
-                                  <span style={{ fontWeight: 800, color: profit >= 0 ? '#15803d' : '#dc2626' }}>
-                                    {profit >= 0 ? `+₹${profit.toLocaleString('en-IN')}` : `-₹${Math.abs(profit).toLocaleString('en-IN')}`}
+                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center', marginTop: '3px', flexWrap: 'wrap' }}>
+                                {profit > 0 && (
+                                  <span style={{ fontSize: '10px', background: '#dcfce7', color: '#15803d', fontWeight: 700, padding: '1px 6px', borderRadius: '4px', border: '1px solid #86efac' }}>
+                                    +₹{profit.toLocaleString('en-IN')} Profit
                                   </span>
-                                </div>
-                              </div>
-
-                              {/* Row 3: MRP & Discount tag */}
-                              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>
-                                <span>MRP ₹{totalMrp.toLocaleString('en-IN')}</span>
-                                {discount > 0 && (
-                                  <span style={{ color: '#e11d48', fontWeight: 700, background: '#fff1f2', padding: '1px 5px', borderRadius: '4px' }}>
-                                    -{discountPct}%
+                                )}
+                                {actualCost > 0 && (
+                                  <span style={{ fontSize: '10px', color: '#4338ca', fontWeight: 600 }}>
+                                    Cost: ₹{actualCost.toLocaleString('en-IN')}
                                   </span>
                                 )}
                               </div>
@@ -3206,38 +3235,43 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                         })()}
                       </td>
 
-                      {/* Order & Due Dates */}
-                      <td style={{ padding: '16px 14px', verticalAlign: 'top', fontSize: '12px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '5px', color: '#475569', fontWeight: 600 }}>
-                          <span>📅</span>
-                          <span>{order.lastGivenDate ? new Date(order.lastGivenDate).toLocaleDateString('en-GB') : '-'}</span>
-                        </div>
-                        <div style={{ marginTop: '5px' }}>
-                          {order.nextDueDate ? (
-                            <span style={{
-                              fontSize: '11px',
-                              padding: '2px 7px',
-                              borderRadius: '4px',
-                              fontWeight: 700,
-                              display: 'inline-flex',
-                              alignItems: 'center',
-                              gap: '4px',
-                              background: new Date(order.nextDueDate) < new Date() ? '#fee2e2' : '#f0f9ff',
-                              color: new Date(order.nextDueDate) < new Date() ? '#b91c1c' : '#0369a1',
-                              border: new Date(order.nextDueDate) < new Date() ? '1px solid #fecaca' : '1px solid #bae6fd'
-                            }}>
-                              {new Date(order.nextDueDate) < new Date() ? '⚠️ Due:' : '🔔 Due:'} {new Date(order.nextDueDate).toLocaleDateString('en-GB')}
-                            </span>
-                          ) : (
-                            <span style={{ color: '#94a3b8', fontSize: '11px' }}>Due: -</span>
-                          )}
-                        </div>
+                      {/* Consignment Tracking Number */}
+                      <td style={{ padding: '14px 14px', verticalAlign: 'middle' }}>
+                        {order.consignmentNo ? (
+                          <span style={{ fontWeight: 700, color: '#0369a1', background: '#f0f9ff', padding: '3px 8px', borderRadius: '5px', fontSize: '12px', display: 'inline-flex', alignItems: 'center', gap: '4px', border: '1px solid #bae6fd' }}>
+                            📦 {order.consignmentNo}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#94a3b8', fontSize: '13px' }}>—</span>
+                        )}
+                      </td>
+
+                      {/* Due Date */}
+                      <td style={{ padding: '14px 14px', verticalAlign: 'middle', fontSize: '12px' }}>
+                        {order.nextDueDate ? (
+                          <span style={{
+                            fontSize: '11px',
+                            padding: '3px 8px',
+                            borderRadius: '5px',
+                            fontWeight: 700,
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            gap: '4px',
+                            background: new Date(order.nextDueDate) < new Date() ? '#fee2e2' : '#f0f9ff',
+                            color: new Date(order.nextDueDate) < new Date() ? '#b91c1c' : '#0369a1',
+                            border: new Date(order.nextDueDate) < new Date() ? '1px solid #fecaca' : '1px solid #bae6fd'
+                          }}>
+                            {new Date(order.nextDueDate) < new Date() ? '⚠️ Due:' : '🔔 Due:'} {new Date(order.nextDueDate).toLocaleDateString('en-GB')}
+                          </span>
+                        ) : (
+                          <span style={{ color: '#94a3b8', fontSize: '12px' }}>—</span>
+                        )}
                       </td>
 
                       {/* Status */}
-                      <td style={{ padding: '16px 14px', verticalAlign: 'top' }}>
+                      <td style={{ padding: '14px 14px', verticalAlign: 'middle' }}>
                         <span style={{ 
-                          padding: '4px 9px', 
+                          padding: '3px 8px', 
                           borderRadius: '16px', 
                           fontSize: '11px', 
                           fontWeight: 700, 
@@ -3258,117 +3292,81 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                         </span>
                       </td>
 
-                      {/* Actions & Slips */}
-                      <td style={{ padding: '14px 16px', textAlign: 'right', verticalAlign: 'top', whiteSpace: 'nowrap' }}>
-                        <div style={{ display: 'inline-flex', flexDirection: 'column', gap: '8px', alignItems: 'flex-end' }}>
-                          {/* Top Row: Edit & Delete */}
-                          <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                            <button 
-                              onClick={() => handleEdit(order)} 
-                              style={{ 
-                                background: '#fef3c7', 
-                                color: '#92400e', 
-                                border: '1px solid #fde68a', 
-                                padding: '4px 10px', 
-                                borderRadius: '5px', 
-                                cursor: 'pointer', 
-                                fontWeight: 700, 
-                                fontSize: '11px',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px'
-                              }}
-                              title="Edit Order"
-                            >
-                              ✏️ Edit
-                            </button>
-                            <button 
-                              onClick={() => handleDelete(order.id, order.patientName)} 
-                              disabled={deletingOrderId === order.id}
-                              style={{ 
-                                background: '#fff1f2', 
-                                color: '#e11d48', 
-                                border: '1px solid #fecdd3', 
-                                padding: '4px 9px', 
-                                borderRadius: '5px', 
-                                cursor: deletingOrderId === order.id ? 'not-allowed' : 'pointer', 
-                                fontWeight: 700, 
-                                fontSize: '11px',
-                                display: 'inline-flex',
-                                alignItems: 'center',
-                                gap: '4px'
-                              }}
-                              title="Delete Order Permanently"
-                            >
-                              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
-                                <polyline points="3 6 5 6 21 6"></polyline>
-                                <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
-                              </svg>
-                              {deletingOrderId === order.id ? '...' : 'Delete'}
-                            </button>
-                          </div>
+                      {/* Actions: Clean & Focused */}
+                      <td style={{ padding: '14px 16px', textAlign: 'right', verticalAlign: 'middle', whiteSpace: 'nowrap' }}>
+                        <div style={{ display: 'inline-flex', gap: '8px', alignItems: 'center' }}>
+                          {/* 👁️ View Details Button (Primary Action!) */}
+                          <button 
+                            type="button"
+                            onClick={() => setViewingOrder(order)} 
+                            style={{ 
+                              background: '#0284c7', 
+                              color: 'white', 
+                              border: 'none', 
+                              padding: '6px 14px', 
+                              borderRadius: '7px', 
+                              cursor: 'pointer', 
+                              fontWeight: 700, 
+                              fontSize: '12px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '5px',
+                              boxShadow: '0 2px 4px rgba(2,132,199,0.25)',
+                              transition: 'all 0.15s ease'
+                            }}
+                            title="View Complete Order Details, Billing & Slips"
+                          >
+                            👁️ View
+                          </button>
 
-                          {/* Segmented Control 1: Office Slip */}
-                          <div style={{ 
-                            display: 'inline-flex', 
-                            alignItems: 'center', 
-                            background: '#f8fafc', 
-                            border: '1px solid #cbd5e1', 
-                            borderRadius: '6px', 
-                            overflow: 'hidden',
-                            boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
-                          }}>
-                            <span style={{ fontSize: '10px', fontWeight: 800, color: '#0f3162', background: '#e2e8f0', padding: '4px 7px', letterSpacing: '0.2px' }}>
-                              🏢 Office
-                            </span>
-                            <button 
-                              onClick={() => generatePDF(order, 'view', 'internal')} 
-                              disabled={generatingPdfId === `${order.id}-internal-view`}
-                              style={{ background: 'transparent', color: '#0f3162', border: 'none', borderRight: '1px solid #e2e8f0', padding: '4px 8px', cursor: 'pointer', fontSize: '11px', fontWeight: 700 }}
-                              title="View Office Copy (Full Details with Mobile, Address & Billing)"
-                            >
-                              {generatingPdfId === `${order.id}-internal-view` ? '...' : '👁️ View'}
-                            </button>
-                            <button 
-                              onClick={() => generatePDF(order, 'download', 'internal')} 
-                              disabled={generatingPdfId === `${order.id}-internal-download`}
-                              style={{ background: 'transparent', color: '#334155', border: 'none', padding: '4px 8px', cursor: 'pointer', fontSize: '11px', fontWeight: 700 }}
-                              title="Download Office Copy PDF"
-                            >
-                              {generatingPdfId === `${order.id}-internal-download` ? '...' : '📥 PDF'}
-                            </button>
-                          </div>
+                          {/* ✏️ Edit Button */}
+                          <button 
+                            type="button"
+                            onClick={() => handleEdit(order)} 
+                            style={{ 
+                              background: '#fef3c7', 
+                              color: '#92400e', 
+                              border: '1px solid #fde68a', 
+                              padding: '6px 12px', 
+                              borderRadius: '7px', 
+                              cursor: 'pointer', 
+                              fontWeight: 700, 
+                              fontSize: '12px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                            title="Edit Order"
+                          >
+                            ✏️ Edit
+                          </button>
 
-                          {/* Segmented Control 2: Pharmacy Slip */}
-                          <div style={{ 
-                            display: 'inline-flex', 
-                            alignItems: 'center', 
-                            background: '#f0f9ff', 
-                            border: '1px solid #bae6fd', 
-                            borderRadius: '6px', 
-                            overflow: 'hidden',
-                            boxShadow: '0 1px 2px rgba(0,0,0,0.03)'
-                          }}>
-                            <span style={{ fontSize: '10px', fontWeight: 800, color: '#0284c7', background: '#e0f2fe', padding: '4px 7px', letterSpacing: '0.2px' }}>
-                              💊 Pharmacy
-                            </span>
-                            <button 
-                              onClick={() => generatePDF(order, 'view', 'pharmacy')} 
-                              disabled={generatingPdfId === `${order.id}-pharmacy-view`}
-                              style={{ background: 'transparent', color: '#0284c7', border: 'none', borderRight: '1px solid #bae6fd', padding: '4px 8px', cursor: 'pointer', fontSize: '11px', fontWeight: 700 }}
-                              title="View Pharmacy Dispatch Slip"
-                            >
-                              {generatingPdfId === `${order.id}-pharmacy-view` ? '...' : '👁️ View'}
-                            </button>
-                            <button 
-                              onClick={() => generatePDF(order, 'download', 'pharmacy')} 
-                              disabled={generatingPdfId === `${order.id}-pharmacy-download`}
-                              style={{ background: 'transparent', color: '#0369a1', border: 'none', padding: '4px 8px', cursor: 'pointer', fontSize: '11px', fontWeight: 700 }}
-                              title="Download Pharmacy Slip PDF"
-                            >
-                              {generatingPdfId === `${order.id}-pharmacy-download` ? '...' : '📥 PDF'}
-                            </button>
-                          </div>
+                          {/* 🗑️ Delete Button */}
+                          <button 
+                            type="button"
+                            onClick={() => handleDelete(order.id, order.patientName)} 
+                            disabled={deletingOrderId === order.id}
+                            style={{ 
+                              background: '#fff1f2', 
+                              color: '#e11d48', 
+                              border: '1px solid #fecdd3', 
+                              padding: '6px 10px', 
+                              borderRadius: '7px', 
+                              cursor: deletingOrderId === order.id ? 'not-allowed' : 'pointer', 
+                              fontWeight: 700, 
+                              fontSize: '12px',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}
+                            title="Delete Order Permanently"
+                          >
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                              <polyline points="3 6 5 6 21 6"></polyline>
+                              <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                            </svg>
+                            {deletingOrderId === order.id ? '...' : 'Delete'}
+                          </button>
                         </div>
                       </td>
                     </tr>
@@ -3523,42 +3521,70 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                     </div>
                   </div>
 
-                  {/* Action Buttons Toolbar */}
-                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: '6px', paddingTop: '4px', borderTop: '1px solid #f1f5f9' }}>
+                  {/* Clean Action Buttons */}
+                  <div style={{ display: 'flex', gap: '8px', paddingTop: '8px', borderTop: '1px solid #f1f5f9', alignItems: 'center' }}>
                     <button 
-                      onClick={() => generatePDF(order, 'view', 'internal')} 
-                      disabled={generatingPdfId === `${order.id}-internal-view`}
-                      style={{ flex: 1, minWidth: '85px', background: '#0f3162', color: 'white', border: 'none', padding: '7px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                      type="button"
+                      onClick={() => setViewingOrder(order)} 
+                      style={{ 
+                        flex: 1, 
+                        background: '#0284c7', 
+                        color: 'white', 
+                        border: 'none', 
+                        padding: '8px 12px', 
+                        borderRadius: '7px', 
+                        fontSize: '12px', 
+                        fontWeight: 700, 
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '6px',
+                        boxShadow: '0 2px 4px rgba(2,132,199,0.25)'
+                      }}
                     >
-                      👁️ Office
+                      👁️ View Details
                     </button>
                     <button 
-                      onClick={() => generatePDF(order, 'view', 'pharmacy')} 
-                      disabled={generatingPdfId === `${order.id}-pharmacy-view`}
-                      style={{ flex: 1, minWidth: '85px', background: '#0284c7', color: 'white', border: 'none', padding: '7px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
-                    >
-                      💊 Pharmacy
-                    </button>
-                    <button 
-                      onClick={() => handleOpenConsignmentModal(order)}
-                      style={{ flex: 1, minWidth: '95px', background: '#f1f5f9', color: '#334155', border: '1px solid #cbd5e1', padding: '7px 8px', borderRadius: '6px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
-                    >
-                      🚚 {order.consignmentNo ? 'Edit Track' : '+ Track'}
-                    </button>
-                    <button 
+                      type="button"
                       onClick={() => handleEdit(order)} 
-                      style={{ background: '#f59e0b', color: 'white', border: 'none', padding: '7px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                      style={{ 
+                        background: '#fef3c7', 
+                        color: '#92400e', 
+                        border: '1px solid #fde68a', 
+                        padding: '8px 14px', 
+                        borderRadius: '7px', 
+                        fontSize: '12px', 
+                        fontWeight: 700, 
+                        cursor: 'pointer',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}
                       title="Edit Order"
                     >
-                      ✏️
+                      ✏️ Edit
                     </button>
                     <button 
+                      type="button"
                       onClick={() => handleDelete(order.id, order.patientName)} 
                       disabled={deletingOrderId === order.id}
-                      style={{ background: '#fee2e2', color: '#dc2626', border: '1px solid #fecaca', padding: '7px 10px', borderRadius: '6px', fontSize: '11px', fontWeight: 700, cursor: 'pointer' }}
+                      style={{ 
+                        background: '#fff1f2', 
+                        color: '#e11d48', 
+                        border: '1px solid #fecdd3', 
+                        padding: '8px 12px', 
+                        borderRadius: '7px', 
+                        fontSize: '12px', 
+                        fontWeight: 700, 
+                        cursor: deletingOrderId === order.id ? 'not-allowed' : 'pointer'
+                      }}
                       title="Delete Order"
                     >
-                      🗑️
+                      <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="3 6 5 6 21 6"></polyline>
+                        <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                      </svg>
                     </button>
                   </div>
                 </div>
@@ -5827,6 +5853,882 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                 style={{ background: '#0284c7', color: 'white', border: 'none', padding: '9px 18px', borderRadius: '6px', fontSize: '13px', fontWeight: 700, cursor: isUpdatingDueDate ? 'not-allowed' : 'pointer' }}
               >
                 {isUpdatingDueDate ? 'Saving...' : 'Save Due Date'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* ── COMPLETE ORDER DETAILS MODAL (When Clicking '👁️ View') ── */}
+      {viewingOrder && (() => {
+        const o = viewingOrder;
+        const { actualCost, profit } = getOrderFinancials(o);
+        const totalMrp = Number(o.totalMrp) || 0;
+        const discountVal = Number(o.discount) || 0;
+        const finalAmt = Number(o.finalAmount) || 0;
+        const discountPercent = totalMrp > 0 ? Math.round((discountVal / totalMrp) * 100) : 0;
+        const profitMargin = finalAmt > 0 && profit > 0 ? Math.round((profit / finalAmt) * 100) : 0;
+
+        let medList: any[] = [];
+        try {
+          if (Array.isArray(o.medicines)) medList = o.medicines;
+          else if (typeof o.medicines === 'string') medList = JSON.parse(o.medicines);
+        } catch (e) {}
+
+        let pImgs: string[] = [];
+        if (Array.isArray(o.prescriptionUrls)) {
+          pImgs = o.prescriptionUrls;
+        } else if (typeof o.prescriptionUrls === 'string') {
+          try {
+            const parsed = JSON.parse(o.prescriptionUrls);
+            if (Array.isArray(parsed)) pImgs = parsed;
+            else if (parsed) pImgs = [parsed];
+          } catch {
+            if (o.prescriptionUrls.startsWith('http') || o.prescriptionUrls.startsWith('/') || o.prescriptionUrls.startsWith('data:')) {
+              pImgs = [o.prescriptionUrls];
+            }
+          }
+        }
+
+        const orderDateStr = o.createdAt ? new Date(o.createdAt).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : (o.lastGivenDate ? new Date(o.lastGivenDate).toLocaleDateString('en-GB') : '-');
+        const dueDateStr = o.nextDueDate ? new Date(o.nextDueDate).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }) : null;
+        const isDueOverdue = o.nextDueDate && new Date(o.nextDueDate) < new Date();
+
+        return (
+          <div 
+            style={{
+              position: 'fixed',
+              inset: 0,
+              backgroundColor: 'rgba(15, 23, 42, 0.75)',
+              backdropFilter: 'blur(5px)',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              zIndex: 2200,
+              padding: '16px'
+            }}
+            onClick={() => setViewingOrder(null)}
+          >
+            <div 
+              style={{
+                background: '#ffffff',
+                borderRadius: '16px',
+                width: '100%',
+                maxWidth: '940px',
+                maxHeight: '92vh',
+                display: 'flex',
+                flexDirection: 'column',
+                boxShadow: '0 25px 60px rgba(0,0,0,0.3)',
+                overflow: 'hidden'
+              }}
+              onClick={e => e.stopPropagation()}
+            >
+              {/* Header */}
+              <div style={{
+                background: 'linear-gradient(135deg, #0f274a 0%, #1e3a8a 100%)',
+                color: 'white',
+                padding: '20px 24px',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '14px' }}>
+                  <div style={{
+                    width: '46px',
+                    height: '46px',
+                    borderRadius: '12px',
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    backdropFilter: 'blur(8px)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontSize: '22px',
+                    fontWeight: 800,
+                    border: '1.5px solid rgba(255,255,255,0.25)'
+                  }}>
+                    {o.patientName ? o.patientName.charAt(0).toUpperCase() : 'P'}
+                  </div>
+                  <div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
+                      <h2 style={{ margin: 0, fontSize: '20px', fontWeight: 800, color: 'white', letterSpacing: '-0.3px' }}>
+                        {o.patientName}
+                      </h2>
+                      {o.uhid && (
+                        <span style={{ fontSize: '11px', background: '#0284c7', color: 'white', padding: '2px 8px', borderRadius: '4px', fontWeight: 700, letterSpacing: '0.4px' }}>
+                          🆔 {o.uhid}
+                        </span>
+                      )}
+                      <span style={{
+                        padding: '2px 8px',
+                        borderRadius: '12px',
+                        fontSize: '11px',
+                        fontWeight: 700,
+                        background: o.status === 'ACTIVE' ? '#22c55e' : 'rgba(255,255,255,0.2)',
+                        color: 'white'
+                      }}>
+                        {o.status === 'ACTIVE' ? '● Active' : o.status}
+                      </span>
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#cbd5e1', marginTop: '3px' }}>
+                      📅 Order Date: <strong>{orderDateStr}</strong>
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setViewingOrder(null)}
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    border: 'none',
+                    color: 'white',
+                    width: '34px',
+                    height: '34px',
+                    borderRadius: '8px',
+                    fontSize: '20px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
+                  }}
+                  title="Close modal"
+                >
+                  &times;
+                </button>
+              </div>
+
+              {/* Scrollable Content */}
+              <div style={{
+                padding: '24px',
+                overflowY: 'auto',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '22px',
+                background: '#f8fafc'
+              }}>
+                {/* 1. Patient & Refill Details Grid */}
+                <div style={{
+                  display: 'grid',
+                  gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+                  gap: '14px'
+                }}>
+                  {/* Contact Card */}
+                  <div style={{ background: 'white', padding: '16px', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
+                      📞 Patient Contact
+                    </div>
+                    <div style={{ fontSize: '16px', fontWeight: 700, color: '#0f172a', marginBottom: '8px' }}>
+                      <a href={`tel:${o.mobile}`} style={{ color: '#0284c7', textDecoration: 'none' }}>
+                        {o.mobile || 'No phone recorded'}
+                      </a>
+                    </div>
+                    {o.mobile && (
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <a
+                          href={`tel:${o.mobile}`}
+                          style={{
+                            background: '#f0f9ff',
+                            color: '#0284c7',
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            textDecoration: 'none',
+                            border: '1px solid #bae6fd'
+                          }}
+                        >
+                          📞 Call
+                        </a>
+                        <a
+                          href={getWhatsAppReminderUrl(o)}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          style={{
+                            background: '#ecfdf5',
+                            color: '#059669',
+                            padding: '4px 10px',
+                            borderRadius: '6px',
+                            fontSize: '11px',
+                            fontWeight: 700,
+                            textDecoration: 'none',
+                            border: '1px solid #a7f3d0'
+                          }}
+                        >
+                          💬 WhatsApp
+                        </a>
+                      </div>
+                    )}
+                  </div>
+
+                  {/* Delivery Address Card */}
+                  <div style={{ background: 'white', padding: '16px', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
+                      📍 Delivery Address
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#1e293b', lineHeight: 1.5, fontWeight: 500 }}>
+                      {o.address || <span style={{ color: '#94a3b8', fontStyle: 'italic' }}>No delivery address recorded</span>}
+                    </div>
+                  </div>
+
+                  {/* Refill Due Date Card */}
+                  <div style={{ background: 'white', padding: '16px', borderRadius: '10px', border: '1px solid #e2e8f0', boxShadow: '0 1px 3px rgba(0,0,0,0.03)' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '8px' }}>
+                      🔔 Monthly Refill Schedule
+                    </div>
+                    {dueDateStr ? (
+                      <div>
+                        <span style={{
+                          fontSize: '13px',
+                          fontWeight: 700,
+                          padding: '4px 10px',
+                          borderRadius: '6px',
+                          background: isDueOverdue ? '#fee2e2' : '#f0f9ff',
+                          color: isDueOverdue ? '#b91c1c' : '#0369a1',
+                          border: isDueOverdue ? '1px solid #fecaca' : '1px solid #bae6fd',
+                          display: 'inline-block'
+                        }}>
+                          {isDueOverdue ? '⚠️ Overdue:' : 'Next Refill:'} {dueDateStr}
+                        </span>
+                        <div style={{ marginTop: '8px' }}>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              handleOpenDueDateModal(o);
+                            }}
+                            style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '11px', fontWeight: 700, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+                          >
+                            ✏️ Change Due Date
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: '13px', color: '#94a3b8', fontStyle: 'italic' }}>
+                        No refill date set
+                        <button
+                          type="button"
+                          onClick={() => handleOpenDueDateModal(o)}
+                          style={{ display: 'block', marginTop: '6px', background: '#f1f5f9', border: '1px solid #cbd5e1', color: '#475569', fontSize: '11px', fontWeight: 600, padding: '4px 8px', borderRadius: '4px', cursor: 'pointer' }}
+                        >
+                          + Set Due Date
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 2. Complete Financial & Profit Breakdown (The 5-Step Formula) */}
+                <div style={{ background: 'white', borderRadius: '12px', padding: '18px 20px', border: '1px solid #e2e8f0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 800, color: '#0f274a', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    💰 Complete Billing & Profit Calculation
+                  </div>
+                  <div style={{
+                    display: 'grid',
+                    gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))',
+                    gap: '12px'
+                  }}>
+                    {/* Total MRP */}
+                    <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '10px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>1. Total MRP</div>
+                      <div style={{ fontSize: '17px', fontWeight: 800, color: '#0f172a', marginTop: '4px' }}>
+                        ₹{totalMrp.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '2px' }}>Catalog printed price</div>
+                    </div>
+
+                    {/* Benva Discount */}
+                    <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '10px', fontWeight: 700, color: '#dc2626', textTransform: 'uppercase' }}>2. Benva Discount</div>
+                      <div style={{ fontSize: '17px', fontWeight: 800, color: '#dc2626', marginTop: '4px' }}>
+                        -₹{discountVal.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#ef4444', marginTop: '2px', fontWeight: 600 }}>{discountPercent}% Off</div>
+                    </div>
+
+                    {/* Customer Payable (Benva Revenue) */}
+                    <div style={{ background: 'linear-gradient(135deg, #ecfdf5 0%, #d1fae5 100%)', padding: '12px 14px', borderRadius: '8px', border: '1.5px solid #6ee7b7' }}>
+                      <div style={{ fontSize: '10px', fontWeight: 800, color: '#065f46', textTransform: 'uppercase' }}>3. Customer Payable</div>
+                      <div style={{ fontSize: '18px', fontWeight: 800, color: '#047857', marginTop: '4px' }}>
+                        ₹{finalAmt.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#059669', marginTop: '2px', fontWeight: 700 }}>★ Benva Net Revenue</div>
+                    </div>
+
+                    {/* Partner BOS Cost */}
+                    <div style={{ background: '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '10px', fontWeight: 700, color: '#4f46e5', textTransform: 'uppercase' }}>4. Benva Cost</div>
+                      <div style={{ fontSize: '17px', fontWeight: 800, color: '#4338ca', marginTop: '4px' }}>
+                        ₹{actualCost.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                      </div>
+                      <div style={{ fontSize: '10px', color: '#6366f1', marginTop: '2px' }}>Pharmacy wholesale price</div>
+                    </div>
+
+                    {/* Gross Profit */}
+                    <div style={{ background: profit > 0 ? '#dcfce7' : '#f8fafc', padding: '12px 14px', borderRadius: '8px', border: profit > 0 ? '1.5px solid #86efac' : '1px solid #e2e8f0' }}>
+                      <div style={{ fontSize: '10px', fontWeight: 800, color: profit > 0 ? '#15803d' : '#64748b', textTransform: 'uppercase' }}>5. Gross Profit</div>
+                      <div style={{ fontSize: '18px', fontWeight: 800, color: profit > 0 ? '#15803d' : '#64748b', marginTop: '4px' }}>
+                        {profit > 0 ? `+₹${profit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}` : `₹${profit.toLocaleString('en-IN', { minimumFractionDigits: 2 })}`}
+                      </div>
+                      <div style={{ fontSize: '10px', color: profit > 0 ? '#166534' : '#64748b', marginTop: '2px', fontWeight: 700 }}>
+                        {profitMargin > 0 ? `${profitMargin}% Margin` : 'Net profit'}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 3. Official Slips & PDF Generation Cards (Office Copy vs Pharmacy Dispatch Slip) */}
+                <div style={{ background: 'white', borderRadius: '12px', padding: '18px 20px', border: '1px solid #e2e8f0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 800, color: '#0f274a', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '14px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    📑 Official Dispatch Slips & PDF Generation
+                  </div>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '14px' }}>
+                    {/* Office / Internal Slip */}
+                    <div style={{ background: '#f8fafc', borderRadius: '10px', padding: '14px 16px', border: '1.5px solid #cbd5e1', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '16px' }}>🏢</span>
+                          <span style={{ fontWeight: 800, color: '#0f3162', fontSize: '14px' }}>Office / Internal Record Copy</span>
+                        </div>
+                        <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#64748b', lineHeight: 1.4 }}>
+                          Complete administrative record including patient contact, wholesale medicine costs, and profit breakdown.
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          type="button"
+                          onClick={() => generatePDF(o, 'view', 'internal')}
+                          disabled={generatingPdfId === `${o.id}-internal-view`}
+                          style={{
+                            flex: 1,
+                            background: '#0f3162',
+                            color: 'white',
+                            border: 'none',
+                            padding: '8px 12px',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '5px'
+                          }}
+                        >
+                          👁️ View Slip
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => generatePDF(o, 'download', 'internal')}
+                          disabled={generatingPdfId === `${o.id}-internal-download`}
+                          style={{
+                            background: '#e2e8f0',
+                            color: '#0f3162',
+                            border: '1px solid #cbd5e1',
+                            padding: '8px 12px',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          📥 PDF
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Pharmacy Dispatch Slip */}
+                    <div style={{ background: '#f0f9ff', borderRadius: '10px', padding: '14px 16px', border: '1.5px solid #bae6fd', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '6px', marginBottom: '6px' }}>
+                          <span style={{ fontSize: '16px' }}>💊</span>
+                          <span style={{ fontWeight: 800, color: '#0369a1', fontSize: '14px' }}>Pharmacy Dispatch Slip</span>
+                        </div>
+                        <p style={{ margin: '0 0 12px 0', fontSize: '12px', color: '#0284c7', lineHeight: 1.4 }}>
+                          Confidential partner dispensing slip with medicine racks and customer pricing (strictly hides internal costs & profits).
+                        </p>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button
+                          type="button"
+                          onClick={() => generatePDF(o, 'view', 'pharmacy')}
+                          disabled={generatingPdfId === `${o.id}-pharmacy-view`}
+                          style={{
+                            flex: 1,
+                            background: '#0284c7',
+                            color: 'white',
+                            border: 'none',
+                            padding: '8px 12px',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '5px'
+                          }}
+                        >
+                          👁️ View Slip
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => generatePDF(o, 'download', 'pharmacy')}
+                          disabled={generatingPdfId === `${o.id}-pharmacy-download`}
+                          style={{
+                            background: '#e0f2fe',
+                            color: '#0369a1',
+                            border: '1px solid #bae6fd',
+                            padding: '8px 12px',
+                            borderRadius: '6px',
+                            fontSize: '12px',
+                            fontWeight: 700,
+                            cursor: 'pointer',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            gap: '4px'
+                          }}
+                        >
+                          📥 PDF
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                {/* 4. Consignment & Dispatch Tracking */}
+                <div style={{ background: 'white', borderRadius: '12px', padding: '18px 20px', border: '1px solid #e2e8f0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '10px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 800, color: '#0f274a', textTransform: 'uppercase', letterSpacing: '0.6px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      🚚 Consignment & Parcel Tracking
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenConsignmentModal(o)}
+                      style={{
+                        background: '#f1f5f9',
+                        color: '#334155',
+                        border: '1px solid #cbd5e1',
+                        padding: '6px 12px',
+                        borderRadius: '6px',
+                        fontSize: '12px',
+                        fontWeight: 700,
+                        cursor: 'pointer'
+                      }}
+                    >
+                      ✏️ {o.consignmentNo ? 'Edit Tracking / Slip' : '+ Add Consignment Tracking'}
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '16px', flexWrap: 'wrap' }}>
+                    <div style={{ background: '#f8fafc', padding: '10px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                      <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 600 }}>Tracking Number: </span>
+                      {o.consignmentNo ? (
+                        <span style={{ fontWeight: 800, color: '#0369a1', fontSize: '14px', marginLeft: '6px' }}>
+                          📦 {o.consignmentNo}
+                        </span>
+                      ) : (
+                        <span style={{ color: '#94a3b8', fontStyle: 'italic', fontSize: '13px', marginLeft: '6px' }}>
+                          No tracking number assigned
+                        </span>
+                      )}
+                    </div>
+
+                    {o.consignmentImage && (
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <img
+                          src={o.consignmentImage}
+                          alt="Courier Slip"
+                          onClick={() => setPreviewImageUrl(o.consignmentImage)}
+                          style={{
+                            width: '56px',
+                            height: '56px',
+                            objectFit: 'cover',
+                            borderRadius: '8px',
+                            border: '2px solid #0284c7',
+                            cursor: 'pointer'
+                          }}
+                          title="Click to view courier slip"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => setPreviewImageUrl(o.consignmentImage)}
+                          style={{ background: 'none', border: 'none', color: '#0284c7', fontSize: '12px', fontWeight: 700, cursor: 'pointer', padding: 0, textDecoration: 'underline' }}
+                        >
+                          👁️ View Full Slip Photo
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* 5. Attached Doctor Prescriptions & Strip Photos */}
+                {pImgs.length > 0 && (
+                  <div style={{ background: 'white', borderRadius: '12px', padding: '18px 20px', border: '1px solid #e2e8f0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 800, color: '#0f274a', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                      📸 Attached Doctor Prescriptions & Scans ({pImgs.length})
+                    </div>
+                    <div style={{ display: 'flex', gap: '12px', overflowX: 'auto', paddingBottom: '6px' }}>
+                      {pImgs.map((imgUrl, pIdx) => (
+                        <div key={pIdx} style={{ position: 'relative', flexShrink: 0 }}>
+                          <img
+                            src={imgUrl}
+                            alt={`Prescription ${pIdx + 1}`}
+                            onClick={() => setPreviewImageUrl(imgUrl)}
+                            style={{
+                              width: '100px',
+                              height: '100px',
+                              objectFit: 'cover',
+                              borderRadius: '8px',
+                              border: '1.5px solid #cbd5e1',
+                              cursor: 'pointer',
+                              boxShadow: '0 2px 6px rgba(0,0,0,0.06)'
+                            }}
+                            title="Click to zoom in full resolution"
+                          />
+                          <div style={{ textAlign: 'center', marginTop: '4px', fontSize: '10px', color: '#64748b', fontWeight: 600 }}>
+                            Photo #{pIdx + 1}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+
+                {/* 6. Prescribed Medicines Table */}
+                <div style={{ background: 'white', borderRadius: '12px', padding: '18px 20px', border: '1px solid #e2e8f0', boxShadow: '0 1px 4px rgba(0,0,0,0.04)' }}>
+                  <div style={{ fontSize: '12px', fontWeight: 800, color: '#0f274a', textTransform: 'uppercase', letterSpacing: '0.6px', marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    💊 Prescribed Medicines List ({medList.length})
+                  </div>
+                  {medList.length === 0 ? (
+                    <div style={{ textAlign: 'center', padding: '20px', color: '#94a3b8', fontStyle: 'italic', fontSize: '13px' }}>
+                      No individual medicine rows specified. Order billed with total values.
+                    </div>
+                  ) : (
+                    <div style={{ overflowX: 'auto' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px', color: '#0f172a' }}>
+                        <thead>
+                          <tr style={{ background: '#f8fafc', borderBottom: '1.5px solid #e2e8f0', textAlign: 'left' }}>
+                            <th style={{ padding: '8px 10px', color: '#64748b', fontWeight: 700, width: '35px' }}>#</th>
+                            <th style={{ padding: '8px 10px', color: '#64748b', fontWeight: 700 }}>Medicine Name</th>
+                            <th style={{ padding: '8px 10px', color: '#64748b', fontWeight: 700 }}>Type</th>
+                            <th style={{ padding: '8px 10px', color: '#64748b', fontWeight: 700 }}>Qty</th>
+                            <th style={{ padding: '8px 10px', color: '#64748b', fontWeight: 700 }}>Rack</th>
+                            <th style={{ padding: '8px 10px', color: '#64748b', fontWeight: 700 }}>Pack</th>
+                            <th style={{ padding: '8px 10px', color: '#64748b', fontWeight: 700, textAlign: 'right' }}>MRP</th>
+                            <th style={{ padding: '8px 10px', color: '#64748b', fontWeight: 700, textAlign: 'right' }}>Cost</th>
+                            <th style={{ padding: '8px 10px', color: '#64748b', fontWeight: 700, textAlign: 'right' }}>User Price</th>
+                            <th style={{ padding: '8px 10px', color: '#64748b', fontWeight: 700, textAlign: 'right' }}>Profit</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {medList.map((m: any, mIdx: number) => {
+                            const typeStr = (m.type === 'Other' && m.customType?.trim()) ? m.customType.trim() : (m.type || 'Tab');
+                            const mProfit = Number(m.profit) || 0;
+                            return (
+                              <tr key={mIdx} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                                <td style={{ padding: '8px 10px', color: '#94a3b8', fontWeight: 600 }}>{mIdx + 1}</td>
+                                <td style={{ padding: '8px 10px', fontWeight: 700, color: '#0f172a' }}>{m.name || 'Medicine'}</td>
+                                <td style={{ padding: '8px 10px' }}>
+                                  <span style={{ background: '#f1f5f9', color: '#475569', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 600 }}>
+                                    {typeStr}
+                                  </span>
+                                </td>
+                                <td style={{ padding: '8px 10px', fontWeight: 700 }}>{m.quantity || '1'}</td>
+                                <td style={{ padding: '8px 10px' }}>
+                                  {m.rack ? (
+                                    <span style={{ background: '#ecfdf5', color: '#047857', padding: '2px 6px', borderRadius: '4px', fontSize: '11px', fontWeight: 700 }}>
+                                      {m.rack}
+                                    </span>
+                                  ) : '—'}
+                                </td>
+                                <td style={{ padding: '8px 10px', color: '#64748b' }}>{m.pack || '—'}</td>
+                                <td style={{ padding: '8px 10px', textAlign: 'right', fontWeight: 600 }}>₹{m.mrp || 0}</td>
+                                <td style={{ padding: '8px 10px', textAlign: 'right', color: '#4338ca', fontWeight: 600 }}>₹{m.actualPrice || 0}</td>
+                                <td style={{ padding: '8px 10px', textAlign: 'right', color: '#047857', fontWeight: 700 }}>₹{m.discountPrice || m.mrp || 0}</td>
+                                <td style={{ padding: '8px 10px', textAlign: 'right' }}>
+                                  <span style={{ fontWeight: 700, color: mProfit >= 0 ? '#15803d' : '#dc2626' }}>
+                                    {mProfit > 0 ? `+₹${mProfit}` : `₹${mProfit}`}
+                                  </span>
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                {/* 7. Notes */}
+                {o.notes && (
+                  <div style={{ background: '#fffbeb', border: '1px solid #fef3c7', borderRadius: '10px', padding: '14px 16px' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#92400e', textTransform: 'uppercase', marginBottom: '4px' }}>
+                      📝 Internal Notes
+                    </div>
+                    <div style={{ fontSize: '13px', color: '#78350f' }}>{o.notes}</div>
+                  </div>
+                )}
+              </div>
+
+              {/* Modal Footer */}
+              <div style={{
+                padding: '16px 24px',
+                background: '#ffffff',
+                borderTop: '1px solid #e2e8f0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: '10px'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const toDelete = o;
+                    setViewingOrder(null);
+                    handleDelete(toDelete.id, toDelete.patientName);
+                  }}
+                  style={{
+                    background: '#fff1f2',
+                    color: '#e11d48',
+                    border: '1px solid #fecdd3',
+                    padding: '9px 16px',
+                    borderRadius: '8px',
+                    fontSize: '13px',
+                    fontWeight: 700,
+                    cursor: 'pointer'
+                  }}
+                >
+                  🗑️ Delete Order
+                </button>
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const toEdit = o;
+                      setViewingOrder(null);
+                      handleEdit(toEdit);
+                    }}
+                    style={{
+                      background: '#fef3c7',
+                      color: '#92400e',
+                      border: '1px solid #fde68a',
+                      padding: '9px 18px',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      cursor: 'pointer',
+                      display: 'inline-flex',
+                      alignItems: 'center',
+                      gap: '6px'
+                    }}
+                  >
+                    ✏️ Edit Order
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setViewingOrder(null)}
+                    style={{
+                      background: '#0f274a',
+                      color: 'white',
+                      border: 'none',
+                      padding: '9px 22px',
+                      borderRadius: '8px',
+                      fontSize: '13px',
+                      fontWeight: 700,
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Close
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+        );
+      })()}
+
+      {/* ── IMPORT CSV / EXCEL MODAL ── */}
+      {isImportModalOpen && (
+        <div 
+          style={{
+            position: 'fixed',
+            inset: 0,
+            backgroundColor: 'rgba(15, 23, 42, 0.7)',
+            backdropFilter: 'blur(4px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            zIndex: 2300,
+            padding: '20px'
+          }}
+          onClick={() => { if (!isImporting) setIsImportModalOpen(false); }}
+        >
+          <div 
+            style={{
+              background: 'white',
+              borderRadius: '16px',
+              width: '100%',
+              maxWidth: '650px',
+              padding: '28px',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              maxHeight: '90vh',
+              overflowY: 'auto'
+            }}
+            onClick={e => e.stopPropagation()}
+          >
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                <div style={{ width: '40px', height: '40px', borderRadius: '10px', background: '#ccfbf1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px' }}>
+                  📥
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: '#0f172a' }}>
+                    Import Medicine Orders (CSV)
+                  </h3>
+                  <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#64748b' }}>
+                    Upload patient orders in bulk via CSV spreadsheet
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={() => { if (!isImporting) setIsImportModalOpen(false); }}
+                style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#64748b' }}
+              >
+                &times;
+              </button>
+            </div>
+
+            {/* Template Download Help Box */}
+            <div style={{ background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '10px', padding: '14px 16px', marginBottom: '20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '10px' }}>
+              <div>
+                <div style={{ fontWeight: 700, fontSize: '13px', color: '#166534' }}>Need the format template?</div>
+                <div style={{ fontSize: '12px', color: '#15803d', marginTop: '2px' }}>Download sample CSV with predefined column headers</div>
+              </div>
+              <button
+                type="button"
+                onClick={downloadSampleCSV}
+                style={{
+                  background: '#16a34a',
+                  color: 'white',
+                  border: 'none',
+                  padding: '7px 14px',
+                  borderRadius: '6px',
+                  fontSize: '12px',
+                  fontWeight: 700,
+                  cursor: 'pointer'
+                }}
+              >
+                📄 Download Sample CSV
+              </button>
+            </div>
+
+            {/* File Upload Box */}
+            <div style={{
+              border: '2px dashed #cbd5e1',
+              borderRadius: '12px',
+              padding: '24px',
+              textAlign: 'center',
+              background: '#f8fafc',
+              marginBottom: '18px',
+              cursor: 'pointer'
+            }}>
+              <input
+                type="file"
+                accept=".csv"
+                onChange={handleImportFileChange}
+                style={{ display: 'none' }}
+                id="csv-file-upload-input"
+              />
+              <label htmlFor="csv-file-upload-input" style={{ cursor: 'pointer', display: 'block' }}>
+                <div style={{ fontSize: '32px', marginBottom: '8px' }}>📂</div>
+                <div style={{ fontWeight: 700, fontSize: '14px', color: '#0284c7' }}>
+                  {importFile ? importFile.name : 'Click to select CSV file from your computer'}
+                </div>
+                <div style={{ fontSize: '12px', color: '#94a3b8', marginTop: '4px' }}>
+                  Supports comma-separated .csv files
+                </div>
+              </label>
+            </div>
+
+            {importError && (
+              <div style={{ background: '#fef2f2', border: '1px solid #fecaca', color: '#dc2626', padding: '10px 14px', borderRadius: '8px', fontSize: '13px', marginBottom: '16px' }}>
+                ⚠️ {importError}
+              </div>
+            )}
+
+            {/* Preview Parsed Rows */}
+            {importPreviewRows.length > 0 && (
+              <div style={{ marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px' }}>
+                  <span style={{ fontSize: '13px', fontWeight: 700, color: '#334155' }}>
+                    Preview: {importPreviewRows.length} Order{importPreviewRows.length === 1 ? '' : 's'} Ready to Import
+                  </span>
+                </div>
+                <div style={{ maxHeight: '180px', overflowY: 'auto', border: '1px solid #e2e8f0', borderRadius: '8px' }}>
+                  <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12px' }}>
+                    <thead>
+                      <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', textAlign: 'left' }}>
+                        <th style={{ padding: '6px 10px', color: '#64748b' }}>Patient</th>
+                        <th style={{ padding: '6px 10px', color: '#64748b' }}>Mobile</th>
+                        <th style={{ padding: '6px 10px', color: '#64748b' }}>MRP</th>
+                        <th style={{ padding: '6px 10px', color: '#64748b' }}>Payable</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {importPreviewRows.slice(0, 10).map((r, i) => (
+                        <tr key={i} style={{ borderBottom: '1px solid #f1f5f9' }}>
+                          <td style={{ padding: '6px 10px', fontWeight: 600 }}>{r.patientName || 'Patient'}</td>
+                          <td style={{ padding: '6px 10px', color: '#64748b' }}>{r.mobile || '—'}</td>
+                          <td style={{ padding: '6px 10px' }}>₹{r.totalMrp || 0}</td>
+                          <td style={{ padding: '6px 10px', fontWeight: 700, color: '#047857' }}>₹{r.finalAmount || 0}</td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                  {importPreviewRows.length > 10 && (
+                    <div style={{ padding: '6px 10px', fontSize: '11px', color: '#94a3b8', background: '#fafafa', textAlign: 'center' }}>
+                      ... and {importPreviewRows.length - 10} more rows
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
+
+            {/* Modal Actions */}
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '10px', borderTop: '1px solid #f1f5f9', paddingTop: '16px' }}>
+              <button
+                type="button"
+                onClick={() => { if (!isImporting) setIsImportModalOpen(false); }}
+                style={{ background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1', padding: '9px 16px', borderRadius: '7px', fontSize: '13px', fontWeight: 600, cursor: 'pointer' }}
+              >
+                Cancel
+              </button>
+              <button
+                type="button"
+                onClick={handleExecuteImport}
+                disabled={importPreviewRows.length === 0 || isImporting}
+                style={{
+                  background: importPreviewRows.length === 0 || isImporting ? '#94a3b8' : '#0d9488',
+                  color: 'white',
+                  border: 'none',
+                  padding: '9px 20px',
+                  borderRadius: '7px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  cursor: importPreviewRows.length === 0 || isImporting ? 'not-allowed' : 'pointer',
+                  boxShadow: '0 2px 6px rgba(13, 148, 136, 0.3)'
+                }}
+              >
+                {isImporting ? '⏳ Importing Orders...' : `📥 Import ${importPreviewRows.length} Order${importPreviewRows.length === 1 ? '' : 's'}`}
               </button>
             </div>
           </div>
