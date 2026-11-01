@@ -473,12 +473,12 @@ export default function PrescriptionPage() {
         const html2pdf = (await import('html2pdf.js')).default;
         
         const opt = {
-          margin:       [10, 0, 10, 0] as [number, number, number, number],
+          margin:       [4, 0, 4, 0] as [number, number, number, number],
           filename:     `${formData.patientName || 'Patient'}_${formData.patientUhid ? formData.patientUhid.replace(/BENVA-UHID-0+/, 'BENVA-UHID-') : 'PENDING'}.pdf`,
           image:        { type: 'jpeg' as const, quality: 0.98 },
           html2canvas:  { scale: 2, useCORS: true, windowWidth: 1024, scrollX: 0, scrollY: 0 },
-          pagebreak:    { mode: ['avoid-all', 'css', 'legacy'], avoid: ['tr', '.rx-section-header'] },
-          jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+          pagebreak:    { mode: ['css', 'legacy'], avoid: ['tr'] },
+          jsPDF:        { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const }
         };
         
         await html2pdf().set(opt).from(element).save();
@@ -499,12 +499,12 @@ export default function PrescriptionPage() {
         const html2pdf = (await import('html2pdf.js')).default;
         
         const opt = {
-          margin:       [10, 0, 10, 0] as [number, number, number, number],
+          margin:       [4, 0, 4, 0] as [number, number, number, number],
           filename:     `${formData.patientName || 'Patient'}_${formData.patientUhid ? formData.patientUhid.replace(/BENVA-UHID-0+/, 'BENVA-UHID-') : 'PENDING'}.pdf`,
           image:        { type: 'jpeg' as const, quality: 0.98 },
           html2canvas:  { scale: 2, useCORS: true, windowWidth: 1024, scrollX: 0, scrollY: 0 },
-          pagebreak:    { mode: ['avoid-all', 'css', 'legacy'], avoid: ['tr', '.rx-section-header'] },
-          jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
+          pagebreak:    { mode: ['css', 'legacy'], avoid: ['tr'] },
+          jsPDF:        { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const }
         };
         
         const pdfBlob = await html2pdf().set(opt).from(element).output('blob');
@@ -646,11 +646,27 @@ export default function PrescriptionPage() {
         width: 210mm !important;
         min-width: 210mm !important;
         max-width: 210mm !important;
-        padding: 10mm 12mm 15mm 12mm !important;
+        padding: 3mm 12mm 6mm 12mm !important;
         background: white !important;
         margin: 0 auto !important;
         box-sizing: border-box !important;
-        font-size: 15px !important;
+        font-size: 14px !important;
+      }
+      .pdf-generating table {
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+      .pdf-generating tbody {
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+      .pdf-generating tr {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
+      }
+      .pdf-generating td, .pdf-generating th {
+        page-break-inside: avoid !important;
+        break-inside: avoid !important;
       }
       .pdf-generating .rx-doc-table {
         width: 100% !important;
@@ -658,14 +674,14 @@ export default function PrescriptionPage() {
         table-layout: fixed !important;
       }
       .pdf-generating .rx-label-cell {
-        width: 32% !important;
-        font-size: 14px !important;
-        padding: 8px 12px !important;
+        width: 30% !important;
+        font-size: 13px !important;
+        padding: 5px 8px !important;
       }
       .pdf-generating .rx-val-cell {
-        width: 68% !important;
-        font-size: 14px !important;
-        padding: 8px 12px !important;
+        width: 70% !important;
+        font-size: 13px !important;
+        padding: 5px 8px !important;
       }
       .pdf-generating .rx-age-gender-container {
         display: flex !important;
@@ -685,52 +701,62 @@ export default function PrescriptionPage() {
       }
       .pdf-generating .rx-age-label {
         width: 60% !important;
-        padding: 8px !important;
-        font-size: 14px !important;
+        padding: 5px 8px !important;
+        font-size: 13px !important;
         border-right: 1px solid ${colors.borderColor} !important;
         flex-shrink: 0 !important;
         box-sizing: border-box !important;
       }
       .pdf-generating .rx-age-val {
         width: 40% !important;
-        padding: 8px !important;
-        font-size: 14px !important;
+        padding: 5px 8px !important;
+        font-size: 13px !important;
         flex: 1 !important;
         box-sizing: border-box !important;
       }
       .pdf-generating .rx-gender-label {
         width: 50% !important;
-        padding: 8px !important;
-        font-size: 14px !important;
+        padding: 5px 8px !important;
+        font-size: 13px !important;
         border-right: 1px solid ${colors.borderColor} !important;
         flex-shrink: 0 !important;
         box-sizing: border-box !important;
       }
       .pdf-generating .rx-gender-val {
         width: 50% !important;
-        padding: 8px !important;
-        font-size: 14px !important;
+        padding: 5px 8px !important;
+        font-size: 13px !important;
         flex: 1 !important;
         box-sizing: border-box !important;
       }
       .pdf-generating .rx-med-wrap {
         width: 100% !important;
         overflow: visible !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
       }
       .pdf-generating .rx-med-table {
         width: 100% !important;
         min-width: 100% !important;
         table-layout: fixed !important;
+        page-break-inside: auto !important;
+        break-inside: auto !important;
+      }
+      .pdf-generating .rx-med-table th, .pdf-generating .rx-med-table td {
+        padding: 5px 6px !important;
+        font-size: 13px !important;
       }
       .pdf-generating .rx-section-header {
-        font-size: 14px !important;
-        padding: 8px 12px !important;
+        font-size: 13px !important;
+        padding: 5px 10px !important;
       }
       .pdf-generating .rx-logo {
-        width: 280px !important;
+        width: 240px !important;
+        max-height: 55px !important;
       }
       .pdf-generating .rx-heading {
-        font-size: 20px !important;
+        font-size: 16px !important;
+        margin: 4px 0 8px 0 !important;
       }
 
       @media (max-width: 640px) {
@@ -855,7 +881,12 @@ export default function PrescriptionPage() {
                   box-sizing: border-box !important;
                 }
                 #pdf-content table {
-                  page-break-inside: auto;
+                  page-break-inside: auto !important;
+                  break-inside: auto !important;
+                }
+                #pdf-content tbody {
+                  page-break-inside: auto !important;
+                  break-inside: auto !important;
                 }
                 #pdf-content tr {
                   page-break-inside: avoid !important;
@@ -867,53 +898,53 @@ export default function PrescriptionPage() {
                 }
               ` }} />
           
-          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: `2px solid ${colors.headerBg}`, padding: '0', margin: '0' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', lineHeight: 0 }}>
-              <img src="/images/benva-logo-new.png" alt="Benva Healthcare" className="rx-logo" style={{ width: '280px', height: 'auto', objectFit: 'contain', display: 'block' }} />
+          <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: `2px solid ${colors.headerBg}`, padding: '0 0 6px 0', marginBottom: '8px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden', lineHeight: 0, height: isGenerating ? '55px' : 'auto' }}>
+              <img src="/images/benva-logo-new.png" alt="Benva Healthcare" className="rx-logo" style={{ width: '240px', height: 'auto', maxHeight: isGenerating ? '55px' : '80px', objectFit: 'contain', display: 'block' }} />
             </div>
           </div>
-          <h2 className="rx-heading" style={{ textAlign: 'center', color: colors.headerBg, fontSize: '20px', margin: '8px 0', fontFamily: 'Arial, sans-serif' }}>TELEMEDICINE PRESCRIPTION</h2>
-          <div style={{ marginBottom: '20px' }}>
-            <div className="rx-section-header" style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>DOCTOR DETAILS <span style={{ fontSize: '12px', fontWeight: 'normal', fontStyle: 'italic' }}>(AUTO)</span></div>
+          <h2 className="rx-heading" style={{ textAlign: 'center', color: colors.headerBg, fontSize: '17px', margin: '4px 0 8px 0', fontFamily: 'Arial, sans-serif' }}>TELEMEDICINE PRESCRIPTION</h2>
+          <div style={{ marginBottom: '8px' }}>
+            <div className="rx-section-header" style={{ backgroundColor: colors.headerBg, color: 'white', padding: '6px 10px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>DOCTOR DETAILS <span style={{ fontSize: '12px', fontWeight: 'normal', fontStyle: 'italic' }}>(AUTO)</span></div>
             <table className="rx-doc-table">
               <tbody>
                 <tr>
-                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Doctor Name</td>
-                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{doctorProfile?.name || ''}</td>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Doctor Name</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px' }}>{doctorProfile?.name || ''}</td>
                 </tr>
                 <tr>
-                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Qualification</td>
-                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{doctorProfile?.qualification || ''}</td>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Qualification</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px' }}>{doctorProfile?.qualification || ''}</td>
                 </tr>
                 <tr>
-                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Speciality</td>
-                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{doctorProfile?.speciality || ''}</td>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Speciality</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px' }}>{doctorProfile?.speciality || ''}</td>
                 </tr>
                 <tr>
-                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Medical Council Reg. No.</td>
-                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{doctorProfile?.medicalCouncilReg || ''}</td>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Medical Council Reg. No.</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px' }}>{doctorProfile?.medicalCouncilReg || ''}</td>
                 </tr>
               </tbody>
             </table>
           </div>
 
-          <div style={{ marginBottom: '12px' }}>
-            <div className="rx-section-header" style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>CONSULTATION DETAILS</div>
+          <div style={{ marginBottom: '8px' }}>
+            <div className="rx-section-header" style={{ backgroundColor: colors.headerBg, color: 'white', padding: '6px 10px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>CONSULTATION DETAILS</div>
             <table className="rx-doc-table">
               <tbody>
                 <tr>
-                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>UHID Number</td>
-                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', fontWeight: 'bold' }}>{formData.patientUhid}</td>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>UHID Number</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px', fontWeight: 'bold' }}>{formData.patientUhid}</td>
                 </tr>
                 <tr>
-                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Consultation Date</td>
-                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Consultation Date</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px' }}>
                     {isViewMode ? (formData.consultationDate ? formData.consultationDate.split('-').reverse().join('-') : '') : <input type="date" name="consultationDate" value={formData.consultationDate} onChange={handleInputChange} style={inputStyle} />}
                   </td>
                 </tr>
                 <tr>
-                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Consultation Mode</td>
-                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Consultation Mode</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px' }}>
                     {isViewMode ? formData.consultationMode || 'None' : (
                       <div className="rx-mode-group">
                         {['Video', 'Audio', 'Chat'].map((mode) => (
@@ -941,8 +972,8 @@ export default function PrescriptionPage() {
                   </td>
                 </tr>
                 <tr>
-                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Full Name</td>
-                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>
+                  <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Full Name</td>
+                  <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px' }}>
                     {isViewMode ? formData.patientName : <input name="patientName" placeholder="Enter patient name" value={formData.patientName} onChange={handleInputChange} style={inputStyle} />}
                   </td>
                 </tr>
@@ -983,9 +1014,9 @@ export default function PrescriptionPage() {
           </div>
 
           {(!isGenerating || formData.clinicalSummary?.trim()) && (
-            <div style={{ marginBottom: '12px' }}>
-              <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>CLINICAL SUMMARY</div>
-              <div style={{ border: `1px solid ${colors.borderColor}`, padding: '12px', minHeight: '80px', backgroundColor: colors.leftColBg }}>
+            <div style={{ marginBottom: '8px' }}>
+              <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '6px 10px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>CLINICAL SUMMARY</div>
+              <div style={{ border: `1px solid ${colors.borderColor}`, padding: '8px 10px', minHeight: '60px', backgroundColor: colors.leftColBg }}>
                 {isViewMode ? (
                   <div style={{ whiteSpace: 'pre-wrap' }}>{formData.clinicalSummary}</div>
                 ) : (
@@ -995,16 +1026,16 @@ export default function PrescriptionPage() {
             </div>
           )}
 
-          <div style={{ marginBottom: '12px' }}>
-            <div className="rx-section-header" style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>PRESCRIBED MEDICINES</div>
+          <div style={{ marginBottom: '8px', pageBreakInside: 'auto' }}>
+            <div className="rx-section-header" style={{ backgroundColor: colors.headerBg, color: 'white', padding: '6px 10px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>PRESCRIBED MEDICINES</div>
             
             {isGenerating && medicines.filter(med => med.name.trim() || med.dosage.trim() || med.instructions.trim()).length === 0 ? (
-              <div style={{ border: `1px solid ${colors.borderColor}`, padding: '12px', backgroundColor: colors.leftColBg, marginTop: '8px', textAlign: 'center', fontStyle: 'italic', color: '#64748b' }}>
+              <div style={{ border: `1px solid ${colors.borderColor}`, padding: '10px', backgroundColor: colors.leftColBg, marginTop: '6px', textAlign: 'center', fontStyle: 'italic', color: '#64748b' }}>
                 No prescribed medicines
               </div>
             ) : (
-            <div className="rx-med-wrap" style={{ overflowX: 'auto', width: '100%' }}>
-            <table className="rx-med-table" style={{ tableLayout: 'fixed', wordWrap: 'break-word', minWidth: isGenerating ? '100%' : '800px' }}>
+            <div className="rx-med-wrap" style={{ overflowX: isGenerating ? 'visible' : 'auto', width: '100%', pageBreakInside: 'auto' }}>
+            <table className="rx-med-table" style={{ tableLayout: 'fixed', wordWrap: 'break-word', minWidth: isGenerating ? '100%' : '800px', pageBreakInside: 'auto' }}>
               <thead>
                 <tr style={{ backgroundColor: colors.headerBg, color: 'white', fontSize: '15px' }}>
                   <th style={{ border: `1px solid ${colors.borderColor}`, padding: '6px', width: '7%', whiteSpace: 'nowrap' }}>S.No</th>
@@ -1018,7 +1049,7 @@ export default function PrescriptionPage() {
                   <th style={{ border: `1px solid ${colors.borderColor}`, padding: '6px', width: '23%' }}>Instructions</th>
                 </tr>
               </thead>
-              <tbody>
+              <tbody style={{ pageBreakInside: 'auto' }}>
                 {medicines.map((med, idx) => {
                   if (isGenerating && !med.name.trim() && !med.dosage.trim() && !med.instructions.trim()) {
                     return null;

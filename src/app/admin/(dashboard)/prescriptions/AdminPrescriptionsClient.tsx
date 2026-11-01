@@ -705,11 +705,11 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                         width: '210mm', 
                         height: 'auto',
                         minHeight: 'auto', 
-                        padding: '12mm 15mm 20mm 15mm', 
+                        padding: '3mm 12mm 6mm 12mm', 
                         backgroundColor: 'white', 
                         fontFamily: '"Times New Roman", Times, serif', 
                         color: colors.textColor, 
-                        fontSize: '15px', 
+                        fontSize: '14px', 
                         boxShadow: '0 8px 24px rgba(0,0,0,0.12)',
                         zoom: activeScale,
                         transformOrigin: 'top center',
@@ -721,7 +721,12 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                           box-sizing: border-box !important;
                         }
                         #prescription-pdf-content table {
-                          page-break-inside: auto;
+                          page-break-inside: auto !important;
+                          break-inside: auto !important;
+                        }
+                        #prescription-pdf-content tbody {
+                          page-break-inside: auto !important;
+                          break-inside: auto !important;
                         }
                         #prescription-pdf-content tr {
                           page-break-inside: avoid !important;
@@ -732,39 +737,40 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                           break-inside: avoid !important;
                         }
                       ` }} />
-                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: `2px solid ${colors.headerBg}`, paddingBottom: '24px', marginBottom: '24px', paddingTop: '16px' }}>
-                        <div style={{ height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
-                          <img src="/images/Benva%20NEW.png" alt="Benva Healthcare" style={{ width: '380px', height: 'auto', objectFit: 'contain' }} />
+
+                      <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: `2px solid ${colors.headerBg}`, paddingBottom: '6px', marginBottom: '8px', paddingTop: '0' }}>
+                        <div style={{ height: '55px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+                          <img src="/images/Benva%20NEW.png" alt="Benva Healthcare" style={{ width: '240px', height: 'auto', maxHeight: '55px', objectFit: 'contain' }} />
                         </div>
                       </div>
 
-                      <h2 style={{ textAlign: 'center', color: colors.headerBg, fontSize: '20px', marginBottom: '20px', fontFamily: 'Arial, sans-serif' }}>TELEMEDICINE PRESCRIPTION</h2>
+                      <h2 style={{ textAlign: 'center', color: colors.headerBg, fontSize: '17px', margin: '4px 0 8px 0', fontFamily: 'Arial, sans-serif' }}>TELEMEDICINE PRESCRIPTION</h2>
 
                       {/* Doctor Details */}
-                      <div style={{ marginBottom: '20px' }}>
-                        <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>DOCTOR DETAILS <span style={{ fontSize: '12px', fontWeight: 'normal', fontStyle: 'italic' }}>(AUTO)</span></div>
+                      <div style={{ marginBottom: '8px' }}>
+                        <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '5px 10px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif', fontSize: '13px' }}>DOCTOR DETAILS <span style={{ fontSize: '11px', fontWeight: 'normal', fontStyle: 'italic' }}>(AUTO)</span></div>
                         <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed', wordWrap: 'break-word' }}>
                           <tbody>
                             <tr>
-                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '30%', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Doctor Name</td>
-                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{formatDoctorName(patient.consultant)}</td>
+                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '5px 8px', width: '30%', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Doctor Name</td>
+                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '5px 8px' }}>{formatDoctorName(patient.consultant)}</td>
                             </tr>
                             {viewingFile.fileInfo.doctorProfile?.qualification && (
                               <tr>
-                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Qualification</td>
-                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{viewingFile.fileInfo.doctorProfile.qualification}</td>
+                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '5px 8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Qualification</td>
+                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '5px 8px' }}>{viewingFile.fileInfo.doctorProfile.qualification}</td>
                               </tr>
                             )}
                             {viewingFile?.fileInfo?.doctorProfile?.speciality && (
                               <tr>
-                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Speciality</td>
-                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{viewingFile.fileInfo.doctorProfile.speciality}</td>
+                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '5px 8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Speciality</td>
+                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '5px 8px' }}>{viewingFile.fileInfo.doctorProfile.speciality}</td>
                               </tr>
                             )}
                             {viewingFile?.fileInfo?.doctorProfile?.medicalCouncilReg && (
                               <tr>
-                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Medical Council Reg. No.</td>
-                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{viewingFile.fileInfo.doctorProfile.medicalCouncilReg}</td>
+                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '5px 8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Medical Council Reg. No.</td>
+                                <td style={{ border: `1px solid ${colors.borderColor}`, padding: '5px 8px' }}>{viewingFile.fileInfo.doctorProfile.medicalCouncilReg}</td>
                               </tr>
                             )}
                           </tbody>
@@ -772,43 +778,43 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                       </div>
                       
                       {/* Consultation Details */}
-                      <div style={{ marginBottom: '20px' }}>
-                        <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>CONSULTATION DETAILS</div>
+                      <div style={{ marginBottom: '10px' }}>
+                        <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '5px 10px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif', fontSize: '13px' }}>CONSULTATION DETAILS</div>
                         <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed', wordWrap: 'break-word' }}>
                           <tbody>
                             <tr>
-                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '30%', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>UHID Number</td>
-                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', fontWeight: 'bold' }}>
+                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '5px 8px', width: '30%', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>UHID Number</td>
+                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '5px 8px', fontWeight: 'bold' }}>
                                 {patient.uhid || parsed.patientUhid || 'PENDING'}
                               </td>
                             </tr>
                             <tr>
-                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '30%', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Consultation Date</td>
-                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>
+                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '5px 8px', width: '30%', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Consultation Date</td>
+                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '5px 8px' }}>
                                 {viewingFile?.fileInfo?.createdAt ? new Date(viewingFile.fileInfo.createdAt).toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata' }) : 'Unknown'}
                               </td>
                             </tr>
                             <tr>
-                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Consultation Mode</td>
-                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>
+                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '5px 8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Consultation Mode</td>
+                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '5px 8px' }}>
                                 {parsed.consultationMode || 'N/A'}
                               </td>
                             </tr>
                             <tr>
-                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Full Name</td>
-                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>
+                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '5px 8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Full Name</td>
+                              <td style={{ border: `1px solid ${colors.borderColor}`, padding: '5px 8px' }}>
                                 {patient.name || ''}
                               </td>
                             </tr>
                             <tr>
                               <td style={{ border: `1px solid ${colors.borderColor}`, padding: '0', height: '100%' }} colSpan={2}>
                                 <div style={{ display: 'flex', height: '100%' }}>
-                                  <div style={{ width: '30%', padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg, borderRight: `1px solid ${colors.borderColor}` }}>Age</div>
-                                  <div style={{ width: '20%', padding: '8px', borderRight: `1px solid ${colors.borderColor}` }}>
+                                  <div style={{ width: '30%', padding: '5px 8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg, borderRight: `1px solid ${colors.borderColor}` }}>Age</div>
+                                  <div style={{ width: '20%', padding: '5px 8px', borderRight: `1px solid ${colors.borderColor}` }}>
                                     {patient.age || parsed.patientAge || ''}
                                   </div>
-                                  <div style={{ width: '25%', padding: '8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg, borderRight: `1px solid ${colors.borderColor}` }}>Gender</div>
-                                  <div style={{ width: '25%', padding: '8px' }}>
+                                  <div style={{ width: '25%', padding: '5px 8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg, borderRight: `1px solid ${colors.borderColor}` }}>Gender</div>
+                                  <div style={{ width: '25%', padding: '5px 8px' }}>
                                     {patient.gender || parsed.patientGender || ''}
                                   </div>
                                 </div>
@@ -820,9 +826,9 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                       
                       {/* Clinical Summary */}
                       {Boolean(parsed.clinicalSummary && parsed.clinicalSummary.trim()) && (
-                        <div style={{ marginBottom: '20px', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
-                          <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>CLINICAL SUMMARY</div>
-                          <div style={{ border: `1px solid ${colors.borderColor}`, padding: '12px', minHeight: '80px', backgroundColor: colors.leftColBg }}>
+                        <div style={{ marginBottom: '10px' }}>
+                          <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '5px 10px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif', fontSize: '13px' }}>CLINICAL SUMMARY</div>
+                          <div style={{ border: `1px solid ${colors.borderColor}`, padding: '8px 10px', minHeight: '40px', backgroundColor: colors.leftColBg }}>
                             <div style={{ whiteSpace: 'pre-wrap' }}>{parsed.clinicalSummary}</div>
                           </div>
                         </div>
@@ -830,8 +836,8 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
 
                       {/* Medicines */}
                       {Array.isArray(parsed.medicines) && parsed.medicines.length > 0 && parsed.medicines.some((m:any) => m && m.name) && (
-                        <div style={{ marginBottom: '20px' }}>
-                          <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>PRESCRIBED MEDICINES</div>
+                        <div style={{ marginBottom: '12px' }}>
+                          <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '5px 10px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif', fontSize: '13px' }}>PRESCRIBED MEDICINES</div>
                           <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', tableLayout: 'fixed', wordWrap: 'break-word', pageBreakInside: 'auto' }}>
                             <thead>
                               <tr style={{ backgroundColor: colors.headerBg, color: 'white' }}>
@@ -995,11 +1001,11 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                         const cleanUhid = patientUhid ? patientUhid.replace(/BENVA-UHID-0+/, 'BENVA-UHID-') : 'PENDING';
                         
                         const opt = {
-                          margin:       [15, 0, 15, 0] as [number, number, number, number],
+                          margin:       [4, 0, 4, 0] as [number, number, number, number],
                           filename:     `${viewingFile?.fileInfo?.patient?.name || 'Patient'}_${cleanUhid}.pdf`,
                           image:        { type: 'jpeg' as const, quality: 0.98 },
                           html2canvas:  { scale: 2, useCORS: true, windowWidth: 1024, scrollX: 0, scrollY: 0 },
-                          pagebreak:    { mode: ['avoid-all', 'css', 'legacy'], avoid: ['tr', '.rx-section-header'] },
+                          pagebreak:    { mode: ['css', 'legacy'], avoid: ['tr'] },
                           jsPDF:        { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const }
                         };
 
@@ -1062,11 +1068,11 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                         const cleanUhid = patientUhid ? patientUhid.replace(/BENVA-UHID-0+/, 'BENVA-UHID-') : 'PENDING';
 
                         const opt = {
-                          margin:       [15, 0, 15, 0] as [number, number, number, number],
+                          margin:       [4, 0, 4, 0] as [number, number, number, number],
                           filename:     `${viewingFile?.fileInfo?.patient?.name || 'Patient'}_${cleanUhid}.pdf`,
                           image:        { type: 'jpeg' as const, quality: 0.98 },
                           html2canvas:  { scale: 2, useCORS: true, windowWidth: 1024, scrollX: 0, scrollY: 0 },
-                          pagebreak:    { mode: ['avoid-all', 'css', 'legacy'], avoid: ['tr', '.rx-section-header'] },
+                          pagebreak:    { mode: ['css', 'legacy'], avoid: ['tr'] },
                           jsPDF:        { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const }
                         };
 
