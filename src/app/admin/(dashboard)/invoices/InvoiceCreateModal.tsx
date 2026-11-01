@@ -17,12 +17,12 @@ interface ItemRow {
   hsn: string;
   batch: string;
   exp: string;
-  qty: number;
+  qty: number | string;
   unit: string;
-  price: number;
-  discount: number;
+  price: number | string;
+  discount: number | string;
   taxRate: number; // e.g. 5, 12, 18
-  benvaCost: number; // For Benva revenue calculation
+  benvaCost: number | string; // For Benva revenue calculation
 }
 
 interface Props {
@@ -64,7 +64,7 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
 
   // Payment details
   const [payMode, setPayMode] = useState('UPI');
-  const [paidAmount, setPaidAmount] = useState<number>(0);
+  const [paidAmount, setPaidAmount] = useState<number | string>('');
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -117,11 +117,11 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
         batch: '',
         exp: '',
         qty: 1,
-        unit: module === 'MEDICINES' ? 'Tbs' : 'Service',
-        price: 0,
-        discount: 0,
-        taxRate: billType === 'GST' ? 5 : 0,
-        benvaCost: 0,
+        unit: module === 'MEDICINES' ? 'Tbs' : module === 'LAB_TESTS' ? 'Test' : module === 'DOCTOR' ? 'Session' : 'Plan',
+        price: '',
+        discount: '',
+        taxRate: billType === 'GST' ? (module === 'MEDICINES' ? 5 : 0) : 0,
+        benvaCost: '',
       }
     ]);
   };
@@ -138,17 +138,24 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
 
   // Calculations
   const calculatedRows = items.map(it => {
-    const gross = (Number(it.price) || 0) * (Number(it.qty) || 1);
-    const disc = Number(it.discount) || 0;
-    const taxable = Math.max(0, gross - disc);
+    const p = Number(it.price) || 0;
+    const q = Number(it.qty) || 1;
+    const d = Number(it.discount) || 0;
+    const c = Number(it.benvaCost) || 0;
+    const gross = p * q;
+    const taxable = Math.max(0, gross - d);
     const taxRate = billType === 'GST' ? (Number(it.taxRate) || 0) : 0;
     const gstAmt = (taxable * taxRate) / 100;
     const cgst = gstAmt / 2;
     const sgst = gstAmt / 2;
     const total = taxable + gstAmt;
-    const benvaProfit = total - ((Number(it.benvaCost) || 0) * (Number(it.qty) || 1));
+    const benvaProfit = total - (c * q);
     return {
       ...it,
+      numericPrice: p,
+      numericQty: q,
+      numericDiscount: d,
+      numericCost: c,
       taxable,
       gstAmt,
       cgst,
@@ -158,13 +165,13 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
     };
   });
 
-  const subTotal = calculatedRows.reduce((acc, r) => acc + (r.price * r.qty), 0);
-  const totalDiscount = calculatedRows.reduce((acc, r) => acc + r.discount, 0);
+  const subTotal = calculatedRows.reduce((acc, r) => acc + (r.numericPrice * r.numericQty), 0);
+  const totalDiscount = calculatedRows.reduce((acc, r) => acc + r.numericDiscount, 0);
   const totalCgst = calculatedRows.reduce((acc, r) => acc + r.cgst, 0);
   const totalSgst = calculatedRows.reduce((acc, r) => acc + r.sgst, 0);
   const grandTotal = calculatedRows.reduce((acc, r) => acc + r.total, 0);
   const totalBenvaRevenue = Math.max(0, calculatedRows.reduce((acc, r) => acc + r.benvaProfit, 0));
-  const dueAmount = Math.max(0, grandTotal - paidAmount);
+  const dueAmount = Math.max(0, grandTotal - (Number(paidAmount) || 0));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -236,15 +243,15 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
           hsn: r.hsn,
           batch: r.batch,
           exp: r.exp,
-          qty: Number(r.qty),
+          qty: Number(r.qty) || 1,
           unit: r.unit,
-          price: Number(r.price),
-          discount: Number(r.discount),
-          taxRate: billType === 'GST' ? Number(r.taxRate) : 0,
-          cgst: Number(r.cgst),
-          sgst: Number(r.sgst),
-          total: Number(r.total),
-          benvaCost: Number(r.benvaCost),
+          price: Number(r.price) || 0,
+          discount: Number(r.discount) || 0,
+          taxRate: billType === 'GST' ? Number(r.taxRate) || 0 : 0,
+          cgst: Number(r.cgst) || 0,
+          sgst: Number(r.sgst) || 0,
+          total: Number(r.total) || 0,
+          benvaCost: Number(r.benvaCost) || 0,
         }))
       };
 
@@ -716,7 +723,6 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
                     <th style={{ padding: '8px 10px', width: '30px' }}>#</th>
                     <th style={{ padding: '8px 10px', minWidth: '160px' }}>Item / Service</th>
                     {module === 'MEDICINES' && <th style={{ padding: '8px 10px', width: '85px' }}>Batch / Exp</th>}
-                    <th style={{ padding: '8px 10px', width: '70px' }}>HSN</th>
                     <th style={{ padding: '8px 10px', width: '65px' }}>Qty</th>
                     <th style={{ padding: '8px 10px', width: '65px' }}>Unit</th>
                     <th style={{ padding: '8px 10px', width: '90px' }}>Price (₹)</th>
@@ -731,7 +737,7 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
                   {calculatedRows.length === 0 ? (
                     <tr>
                       <td
-                        colSpan={billType === 'GST' ? (module === 'MEDICINES' ? 12 : 11) : (module === 'MEDICINES' ? 11 : 10)}
+                        colSpan={billType === 'GST' ? (module === 'MEDICINES' ? 11 : 10) : (module === 'MEDICINES' ? 10 : 9)}
                         style={{ textAlign: 'center', padding: '36px 16px', color: '#64748b', fontSize: '13px' }}
                       >
                         <div style={{ fontWeight: '600', color: '#475569', marginBottom: '6px' }}>No line items added yet</div>
@@ -783,18 +789,11 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
                         )}
                         <td style={{ padding: '6px 8px' }}>
                           <input
-                            type="text"
-                            value={row.hsn}
-                            onChange={(e) => handleItemChange(idx, 'hsn', e.target.value)}
-                            style={{ width: '100%', padding: '6px 8px', fontSize: '11px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
-                          />
-                        </td>
-                        <td style={{ padding: '6px 8px' }}>
-                          <input
                             type="number"
                             min="1"
                             value={row.qty}
-                            onChange={(e) => handleItemChange(idx, 'qty', Number(e.target.value))}
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => handleItemChange(idx, 'qty', e.target.value)}
                             style={{ width: '100%', padding: '6px 8px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
                           />
                         </td>
@@ -818,8 +817,10 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
                             type="number"
                             min="0"
                             step="0.01"
+                            placeholder="0.00"
                             value={row.price}
-                            onChange={(e) => handleItemChange(idx, 'price', Number(e.target.value))}
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => handleItemChange(idx, 'price', e.target.value)}
                             style={{ width: '100%', padding: '6px 8px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
                           />
                         </td>
@@ -828,8 +829,10 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
                             type="number"
                             min="0"
                             step="0.01"
+                            placeholder="0"
                             value={row.discount}
-                            onChange={(e) => handleItemChange(idx, 'discount', Number(e.target.value))}
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => handleItemChange(idx, 'discount', e.target.value)}
                             style={{ width: '100%', padding: '6px 8px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '4px' }}
                           />
                         </td>
@@ -855,7 +858,8 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
                             step="0.01"
                             placeholder="Cost"
                             value={row.benvaCost}
-                            onChange={(e) => handleItemChange(idx, 'benvaCost', Number(e.target.value))}
+                            onFocus={(e) => e.target.select()}
+                            onChange={(e) => handleItemChange(idx, 'benvaCost', e.target.value)}
                             style={{ width: '100%', padding: '6px 8px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '4px', backgroundColor: '#f0fdf4' }}
                             title="Benva Purchase/Vendor Cost (Used to calculate Benva Revenue)"
                           />
@@ -917,8 +921,10 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
                     type="number"
                     min="0"
                     step="0.01"
+                    placeholder="0.00"
                     value={paidAmount}
-                    onChange={(e) => setPaidAmount(Number(e.target.value))}
+                    onFocus={(e) => e.target.select()}
+                    onChange={(e) => setPaidAmount(e.target.value)}
                     style={{ width: '100%', padding: '8px 10px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px', fontWeight: '700', color: '#16a34a' }}
                   />
                 </div>
@@ -1009,7 +1015,7 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
                   </tr>
                   <tr>
                     <td style={{ padding: '4px 0', color: '#16a34a', fontWeight: '600' }}>Paid:</td>
-                    <td style={{ padding: '4px 0', textAlign: 'right', fontWeight: '700', color: '#16a34a' }}>₹{paidAmount.toFixed(2)}</td>
+                    <td style={{ padding: '4px 0', textAlign: 'right', fontWeight: '700', color: '#16a34a' }}>₹{(Number(paidAmount) || 0).toFixed(2)}</td>
                   </tr>
                   <tr>
                     <td style={{ padding: '4px 0', color: dueAmount > 0 ? '#dc2626' : '#64748b', fontWeight: '600' }}>Balance Due:</td>

@@ -314,7 +314,7 @@ export default function InvoicePrintView({ invoice }: { invoice: InvoiceData }) 
             );
           })}
 
-          {/* Spacer rows to maintain professional Vyapar invoice height */}
+          {/* Spacer rows to maintain professional invoice height */}
           {items.length < 5 && Array.from({ length: 5 - items.length }).map((_, i) => (
             <tr key={`filler-${i}`} style={{ height: '32px', borderBottom: '1px solid #f3f4f6' }}>
               <td style={{ borderRight: '1px solid #d1d5db' }}>&nbsp;</td>

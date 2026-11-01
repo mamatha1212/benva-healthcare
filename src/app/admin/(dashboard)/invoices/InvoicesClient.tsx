@@ -274,7 +274,7 @@ export default function InvoicesClient({ initialInvoices }: Props) {
             </button>
           </div>
 
-          {/* Module 2: Medicines (Vyapar Style) */}
+          {/* Module 2: Medicines */}
           <div
             className={`${styles.moduleCard} ${selectedModule === 'MEDICINES' ? styles.moduleCardActive : ''}`}
             onClick={() => setSelectedModule(selectedModule === 'MEDICINES' ? 'ALL' : 'MEDICINES')}

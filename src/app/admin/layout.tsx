@@ -13,23 +13,19 @@ export default function AdminRootLayout({
 }) {
   return (
     <>
-      <Script id="register-admin-sw" strategy="afterInteractive">
+      <Script id="clear-admin-cache" strategy="beforeInteractive">
         {`
           if ('serviceWorker' in navigator) {
-            window.addEventListener('load', function() {
-              navigator.serviceWorker.register('/admin-sw.js', { scope: '/admin/' }).then(function(registration) {
-                console.log('Admin ServiceWorker registration successful with scope: ', registration.scope);
-              }, function(err) {
-                console.log('Admin ServiceWorker registration failed: ', err);
-              });
+            navigator.serviceWorker.getRegistrations().then(function(regs) {
+              for (var i = 0; i < regs.length; i++) {
+                regs[i].unregister();
+              }
             });
           }
           if ('caches' in window) {
             caches.keys().then(function(names) {
               for (var i = 0; i < names.length; i++) {
-                if (names[i].indexOf('next-static-js-assets') !== -1 || names[i].indexOf('pages') !== -1) {
-                  caches.delete(names[i]);
-                }
+                caches.delete(names[i]);
               }
             });
           }
