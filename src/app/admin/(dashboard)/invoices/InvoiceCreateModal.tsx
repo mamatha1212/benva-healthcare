@@ -87,17 +87,22 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
     }
   }, [initialModule, isOpen]);
 
-  // Default item setup based on module
+  // Initial blank item setup based on module
   useEffect(() => {
-    if (module === 'MEDICINES') {
-      setItems([{ itemName: '', hsn: '3004', batch: '', exp: '', qty: 10, unit: 'Tbs', price: 100, discount: 10, taxRate: 5, benvaCost: 50 }]);
-    } else if (module === 'LAB_TESTS') {
-      setItems([{ itemName: 'Complete Blood Picture (CBP)', hsn: '9983', batch: '', exp: '', qty: 1, unit: 'Test', price: 450, discount: 50, taxRate: 0, benvaCost: 200 }]);
-    } else if (module === 'DOCTOR') {
-      setItems([{ itemName: 'General Physician Consultation', hsn: '9983', batch: '', exp: '', qty: 1, unit: 'Session', price: 500, discount: 0, taxRate: 0, benvaCost: 150 }]);
-    } else if (module === 'DIETITIAN') {
-      setItems([{ itemName: '1-Month Weight Management Diet Plan', hsn: '9983', batch: '', exp: '', qty: 1, unit: 'Plan', price: 1500, discount: 200, taxRate: 5, benvaCost: 500 }]);
-    }
+    setItems([
+      {
+        itemName: '',
+        hsn: module === 'MEDICINES' ? '3004' : '9983',
+        batch: '',
+        exp: '',
+        qty: 1,
+        unit: module === 'MEDICINES' ? 'Tbs' : module === 'LAB_TESTS' ? 'Test' : module === 'DOCTOR' ? 'Session' : 'Plan',
+        price: 0,
+        discount: 0,
+        taxRate: module === 'MEDICINES' ? 5 : 0,
+        benvaCost: 0,
+      }
+    ]);
   }, [module]);
 
   // Auto search patient
