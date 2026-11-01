@@ -96,6 +96,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     totalMrp: '' as string | number,
     discount: '' as string | number,
     finalAmount: '' as string | number,
+    actualCost: '' as string | number,
     lastGivenDate: '',
     nextDueDate: '',
     notes: '',
@@ -117,7 +118,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     setFormData({
       patientName: '', mobile: '', address: '',
       prescriptionUrls: [], medicines: [],
-      totalMrp: '', discount: '', finalAmount: '',
+      totalMrp: '', discount: '', finalAmount: '', actualCost: '',
       lastGivenDate: '', nextDueDate: '', notes: '', status: 'ACTIVE',
       uhid: '', consignmentNo: '', consignmentImage: ''
     });
@@ -241,6 +242,26 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         finalAmount: mrp > 0 ? mrp : ''
       }));
     }
+  };
+
+  const handleBenvaCostChange = (val: string) => {
+    setFormData(prev => {
+      const numVal = parseFloat(val) || 0;
+      let newMeds = [...prev.medicines];
+      if (newMeds.length === 1) {
+        const custPrice = parseFloat(String(newMeds[0].discountPrice || newMeds[0].mrp)) || 0;
+        newMeds[0] = {
+          ...newMeds[0],
+          actualPrice: val,
+          profit: val !== '' && !isNaN(numVal) ? parseFloat((custPrice - numVal).toFixed(2)) : ''
+        };
+      }
+      return {
+        ...prev,
+        actualCost: val,
+        medicines: newMeds
+      };
+    });
   };
 
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -432,12 +453,23 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
       }
     }
 
+    const sumActualCost = activeMeds.reduce((acc: number, m: any) => {
+      const v = parseNum(m.actualPrice);
+      return acc + (isNaN(v) ? 0 : v);
+    }, 0);
+
+    let updatedActualCost = formData.actualCost;
+    if (sumActualCost > 0) {
+      updatedActualCost = parseFloat(sumActualCost.toFixed(2));
+    }
+
     setFormData({ 
       ...formData, 
       medicines: newMeds, 
       totalMrp: updatedTotalMrp, 
       discount: updatedDiscount,
-      finalAmount: updatedFinal 
+      finalAmount: updatedFinal,
+      actualCost: updatedActualCost 
     });
   };
 
@@ -449,13 +481,42 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     try {
+      let medsToSave = [...formData.medicines];
+      const costVal = formData.actualCost !== undefined && formData.actualCost !== '' ? parseFloat(String(formData.actualCost)) : 0;
+      const mrpVal = parseFloat(String(formData.totalMrp)) || 0;
+      const finalVal = parseFloat(String(formData.finalAmount)) || 0;
+
+      // If medicines array is empty, but admin specified MRP / Cost / Final Amount, add a representative medicine entry so reports/profit flow work automatically
+      if (medsToSave.length === 0 && (costVal > 0 || mrpVal > 0 || finalVal > 0)) {
+        medsToSave = [{
+          id: `med-${Date.now()}`,
+          name: 'Prescription Order Medicines',
+          type: 'Other',
+          quantity: '1 Order',
+          mrp: mrpVal || '',
+          discountPrice: finalVal || '',
+          actualPrice: costVal || '',
+          profit: costVal > 0 ? parseFloat((finalVal - costVal).toFixed(2)) : '',
+          isSelected: true
+        }];
+      } else if (medsToSave.length === 1 && costVal > 0) {
+        medsToSave[0].actualPrice = costVal;
+        const custPrice = parseFloat(String(medsToSave[0].discountPrice || medsToSave[0].mrp)) || finalVal;
+        medsToSave[0].profit = parseFloat((custPrice - costVal).toFixed(2));
+      }
+
+      const payload = {
+        ...formData,
+        medicines: medsToSave
+      };
+
       const url = editingOrder ? `/api/admin/medicines/${editingOrder.id}` : '/api/admin/medicines';
       const method = editingOrder ? 'PUT' : 'POST';
       
       const res = await fetch(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
+        body: JSON.stringify(payload)
       });
       
       if (!res.ok) throw new Error('Failed to save');
@@ -642,6 +703,12 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
       };
     });
 
+    let initialActualCost = order.actualCost ?? '';
+    if (!initialActualCost) {
+      const sumCost = normalizedMeds.reduce((sum: number, m: any) => sum + (Number(m.actualPrice) || 0), 0);
+      if (sumCost > 0) initialActualCost = sumCost;
+    }
+
     setFormData({
       patientName: order.patientName || '',
       mobile: order.mobile || '',
@@ -651,6 +718,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
       totalMrp: order.totalMrp ?? '',
       discount: order.discount ?? '',
       finalAmount: order.finalAmount ?? '',
+      actualCost: initialActualCost,
       lastGivenDate: order.lastGivenDate ? new Date(order.lastGivenDate).toISOString().split('T')[0] : '',
       nextDueDate: order.nextDueDate ? new Date(order.nextDueDate).toISOString().split('T')[0] : '',
       notes: order.notes || '',
@@ -1875,8 +1943,12 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     });
 
     const finalAmt = Number(o.finalAmount) || 0;
+    if (!hasMedActual && (o.actualCost !== undefined && o.actualCost !== '' && !isNaN(Number(o.actualCost)))) {
+      actualCost = Number(o.actualCost);
+      hasMedActual = true;
+    }
     if (!hasMedProfit && hasMedActual) {
-      profit = Math.max(0, finalAmt - actualCost);
+      profit = finalAmt - actualCost;
     }
 
     return { actualCost, profit, totalMedMrp };
@@ -4773,10 +4845,13 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
 
                 {/* Billing & Discount Card with Profit Breakdown (5-Step Calculation) */}
                 {(() => {
-                  const modalActualCost = formData.medicines.reduce((sum, m) => sum + (Number(m.actualPrice) || 0), 0);
+                  const medRowsActualCost = formData.medicines.reduce((sum, m) => sum + (Number(m.actualPrice) || 0), 0);
+                  const modalActualCost = formData.actualCost !== undefined && formData.actualCost !== ''
+                    ? (parseFloat(String(formData.actualCost)) || 0)
+                    : medRowsActualCost;
                   const modalMedicineProfit = formData.medicines.reduce((sum, m) => sum + (Number(m.profit) || 0), 0);
                   const finalPaid = Number(formData.finalAmount) || 0;
-                  const calculatedProfit = modalMedicineProfit > 0 ? modalMedicineProfit : (modalActualCost > 0 ? Math.max(0, finalPaid - modalActualCost) : 0);
+                  const calculatedProfit = modalActualCost > 0 ? (finalPaid - modalActualCost) : (modalMedicineProfit > 0 ? modalMedicineProfit : 0);
                   const totalMrpVal = Number(formData.totalMrp) || 0;
                   const discountVal = Number(formData.discount) || 0;
                   const discountPctVal = totalMrpVal > 0 ? ((discountVal / totalMrpVal) * 100).toFixed(1).replace(/\.0$/, '') : '';
@@ -4793,9 +4868,17 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                               🏷️ Benva Cost: ₹{modalActualCost.toLocaleString('en-IN')}
                             </span>
                           )}
-                          {calculatedProfit > 0 && (
-                            <span style={{ fontSize: '12px', background: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: '6px', fontWeight: 800, border: '1px solid #86efac' }}>
-                              💰 Benva Gross Profit: ₹{calculatedProfit.toLocaleString('en-IN')}
+                          {(modalActualCost > 0 || calculatedProfit !== 0) && (
+                            <span style={{ 
+                              fontSize: '12px', 
+                              background: calculatedProfit >= 0 ? '#dcfce7' : '#fee2e2', 
+                              color: calculatedProfit >= 0 ? '#15803d' : '#b91c1c', 
+                              padding: '3px 8px', 
+                              borderRadius: '6px', 
+                              fontWeight: 800, 
+                              border: calculatedProfit >= 0 ? '1px solid #86efac' : '1px solid #fca5a5' 
+                            }}>
+                              💰 Benva Gross Profit: {calculatedProfit >= 0 ? `+₹${calculatedProfit.toLocaleString('en-IN')}` : `-₹${Math.abs(calculatedProfit).toLocaleString('en-IN')}`}
                             </span>
                           )}
                         </div>
@@ -4873,17 +4956,32 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                           <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700, fontSize: '12px', color: '#4338ca' }}>
                             4. Benva Cost (₹)
                           </label>
-                          <div style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #c7d2fe', background: '#eef2ff', color: '#3730a3', fontWeight: 700, fontSize: '14px' }}>
-                            ₹{modalActualCost.toLocaleString('en-IN')}
-                          </div>
+                          <input 
+                            type="number" 
+                            min="0" 
+                            step="any"
+                            placeholder="e.g. 50" 
+                            value={formData.actualCost !== undefined && formData.actualCost !== '' ? formData.actualCost : (medRowsActualCost > 0 ? medRowsActualCost : '')} 
+                            onChange={e => handleBenvaCostChange(e.target.value)} 
+                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '2px solid #818cf8', background: '#eef2ff', color: '#3730a3', fontWeight: 700, fontSize: '14px' }} 
+                          />
                         </div>
 
                         <div>
-                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: 800, fontSize: '12px', color: '#15803d' }}>
+                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: 800, fontSize: '12px', color: calculatedProfit >= 0 ? '#15803d' : '#dc2626' }}>
                             5. Benva Gross Profit (₹)
                           </label>
-                          <div style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '2px solid #86efac', background: '#f0fdf4', color: '#15803d', fontWeight: 800, fontSize: '15px' }}>
-                            +₹{calculatedProfit.toLocaleString('en-IN')}
+                          <div style={{ 
+                            width: '100%', 
+                            padding: '10px', 
+                            borderRadius: '6px', 
+                            border: calculatedProfit >= 0 ? '2px solid #86efac' : '2px solid #fca5a5', 
+                            background: calculatedProfit >= 0 ? '#f0fdf4' : '#fef2f2', 
+                            color: calculatedProfit >= 0 ? '#15803d' : '#dc2626', 
+                            fontWeight: 800, 
+                            fontSize: '15px' 
+                          }}>
+                            {calculatedProfit >= 0 ? `+₹${calculatedProfit.toLocaleString('en-IN')}` : `-₹${Math.abs(calculatedProfit).toLocaleString('en-IN')}`}
                           </div>
                         </div>
                       </div>
