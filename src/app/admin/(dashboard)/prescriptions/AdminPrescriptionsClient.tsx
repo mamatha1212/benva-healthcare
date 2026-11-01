@@ -720,6 +720,17 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                         #prescription-pdf-content, #prescription-pdf-content * {
                           box-sizing: border-box !important;
                         }
+                        #prescription-pdf-content table {
+                          page-break-inside: auto;
+                        }
+                        #prescription-pdf-content tr {
+                          page-break-inside: avoid !important;
+                          break-inside: avoid !important;
+                        }
+                        #prescription-pdf-content td, #prescription-pdf-content th {
+                          page-break-inside: avoid !important;
+                          break-inside: avoid !important;
+                        }
                       ` }} />
                       <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: `2px solid ${colors.headerBg}`, paddingBottom: '24px', marginBottom: '24px', paddingTop: '16px' }}>
                         <div style={{ height: '120px', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
@@ -821,30 +832,33 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                       {Array.isArray(parsed.medicines) && parsed.medicines.length > 0 && parsed.medicines.some((m:any) => m && m.name) && (
                         <div style={{ marginBottom: '20px' }}>
                           <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>PRESCRIBED MEDICINES</div>
-                          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', tableLayout: 'fixed', wordWrap: 'break-word' }}>
+                          <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'center', tableLayout: 'fixed', wordWrap: 'break-word', pageBreakInside: 'auto' }}>
                             <thead>
                               <tr style={{ backgroundColor: colors.headerBg, color: 'white' }}>
-                                <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '5%' }}>S.No</th>
-                                <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '25%' }}>Medicine Name</th>
+                                <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '7%', whiteSpace: 'nowrap' }}>S.No</th>
+                                <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '28%' }}>Medicine Name</th>
                                 <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '10%' }}>Dosage</th>
-                                <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '20%' }}>Frequency (M - A - N)</th>
-                                <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '15%' }}>Duration</th>
-                                <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '25%' }}>Instructions</th>
+                                <th style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px', width: '18%', whiteSpace: 'nowrap' }}>
+                                  <div>Frequency</div>
+                                  <div style={{ fontSize: '11px', fontWeight: 'normal', opacity: 0.9 }}>(M - A - N)</div>
+                                </th>
+                                <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '14%' }}>Duration</th>
+                                <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '23%' }}>Instructions</th>
                               </tr>
                             </thead>
                             <tbody>
                               {Array.isArray(parsed.medicines) && parsed.medicines.map((med: any, idx: number) => {
                                 if (!med || typeof med !== 'object' || !med.name) return null;
                                 return (
-                                  <tr key={idx}>
-                                    <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{idx + 1}</td>
-                                    <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', textAlign: 'left' }}>{med.name}</td>
-                                    <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{med.dosage}</td>
-                                    <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', whiteSpace: 'nowrap' }}>
+                                  <tr key={idx} style={{ pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                                    <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', whiteSpace: 'nowrap', pageBreakInside: 'avoid', breakInside: 'avoid' }}>{idx + 1}</td>
+                                    <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', textAlign: 'left', pageBreakInside: 'avoid', breakInside: 'avoid' }}>{med.name}</td>
+                                    <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', pageBreakInside: 'avoid', breakInside: 'avoid' }}>{med.dosage}</td>
+                                    <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', whiteSpace: 'nowrap', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                                       {renderFrequencyPDF(med.frequency)}
                                     </td>
-                                    <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{med.duration}</td>
-                                    <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px' }}>{med.instructions}</td>
+                                    <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', pageBreakInside: 'avoid', breakInside: 'avoid' }}>{med.duration}</td>
+                                    <td style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', pageBreakInside: 'avoid', breakInside: 'avoid' }}>{med.instructions}</td>
                                   </tr>
                                 );
                               })}
@@ -985,7 +999,7 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                           filename:     `${viewingFile?.fileInfo?.patient?.name || 'Patient'}_${cleanUhid}.pdf`,
                           image:        { type: 'jpeg' as const, quality: 0.98 },
                           html2canvas:  { scale: 2, useCORS: true, windowWidth: 1024, scrollX: 0, scrollY: 0 },
-                          pagebreak:    { mode: ['css', 'legacy'] },
+                          pagebreak:    { mode: ['avoid-all', 'css', 'legacy'], avoid: ['tr', '.rx-section-header'] },
                           jsPDF:        { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const }
                         };
 
@@ -1052,7 +1066,7 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                           filename:     `${viewingFile?.fileInfo?.patient?.name || 'Patient'}_${cleanUhid}.pdf`,
                           image:        { type: 'jpeg' as const, quality: 0.98 },
                           html2canvas:  { scale: 2, useCORS: true, windowWidth: 1024, scrollX: 0, scrollY: 0 },
-                          pagebreak:    { mode: ['css', 'legacy'] },
+                          pagebreak:    { mode: ['avoid-all', 'css', 'legacy'], avoid: ['tr', '.rx-section-header'] },
                           jsPDF:        { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const }
                         };
 

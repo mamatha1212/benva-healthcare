@@ -223,6 +223,26 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     }));
   };
 
+  const handleOrderDiscountPercentChange = (pctVal: string) => {
+    const pct = parseFloat(pctVal);
+    const mrp = parseFloat(String(formData.totalMrp)) || 0;
+    if (!isNaN(pct) && mrp > 0) {
+      const discVal = parseFloat(((mrp * pct) / 100).toFixed(2));
+      const finalVal = Math.max(0, mrp - discVal);
+      setFormData(prev => ({
+        ...prev,
+        discount: discVal,
+        finalAmount: finalVal
+      }));
+    } else if (pctVal === '') {
+      setFormData(prev => ({
+        ...prev,
+        discount: 0,
+        finalAmount: mrp > 0 ? mrp : ''
+      }));
+    }
+  };
+
   const handleFileUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = e.target.files;
     if (!files || files.length === 0) return;
@@ -301,6 +321,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
           rack: '',
           pack: '',
           mrp: '',
+          discountPercent: '',
           discountPrice: '',
           instructions: '', 
           actualPrice: '', 
@@ -313,49 +334,101 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
 
   const handleMedicineChange = (index: number, field: string, value: any) => {
     const newMeds = [...formData.medicines];
-    newMeds[index] = { ...newMeds[index], [field]: value };
+    const target = { ...newMeds[index], [field]: value };
 
-    // Auto-calculate profit if discountPrice and actualPrice are present
-    if (field === 'discountPrice' || field === 'actualPrice') {
-      const dPrice = parseFloat(String(field === 'discountPrice' ? value : newMeds[index].discountPrice));
-      const aPrice = parseFloat(String(field === 'actualPrice' ? value : newMeds[index].actualPrice));
-      if (!isNaN(dPrice) && !isNaN(aPrice) && dPrice >= aPrice) {
-        newMeds[index].profit = dPrice - aPrice;
+    const parseNum = (v: any) => {
+      if (v === '' || v === undefined || v === null) return NaN;
+      const n = parseFloat(String(v));
+      return isNaN(n) ? NaN : n;
+    };
+
+    let mrp = parseNum(field === 'mrp' ? value : target.mrp);
+    let discPct = parseNum(field === 'discountPercent' ? value : target.discountPercent);
+    let custPrice = parseNum(field === 'discountPrice' ? value : target.discountPrice);
+    let benvaCost = parseNum(field === 'actualPrice' ? value : target.actualPrice);
+
+    // 1. If MRP changes: auto-calculate Customer Price & Profit based on Discount % or Customer Price
+    if (field === 'mrp') {
+      if (!isNaN(mrp)) {
+        if (!isNaN(discPct)) {
+          const payable = Math.max(0, mrp - (mrp * discPct / 100));
+          target.discountPrice = parseFloat(payable.toFixed(2));
+          custPrice = target.discountPrice;
+        } else if (!isNaN(custPrice) && mrp > 0) {
+          target.discountPercent = parseFloat((Math.max(0, (mrp - custPrice) / mrp) * 100).toFixed(1));
+          discPct = target.discountPercent;
+        }
+        if (!isNaN(custPrice) && !isNaN(benvaCost)) {
+          target.profit = parseFloat((custPrice - benvaCost).toFixed(2));
+        }
       }
     }
+
+    // 2. If Discount % changes: Customer Payable = MRP - (MRP * Discount % / 100)
+    if (field === 'discountPercent') {
+      if (!isNaN(discPct) && !isNaN(mrp)) {
+        const payable = Math.max(0, mrp - (mrp * discPct / 100));
+        target.discountPrice = parseFloat(payable.toFixed(2));
+        custPrice = target.discountPrice;
+        if (!isNaN(benvaCost)) {
+          target.profit = parseFloat((custPrice - benvaCost).toFixed(2));
+        }
+      } else if (value === '' && !isNaN(mrp)) {
+        target.discountPrice = mrp;
+        custPrice = mrp;
+        if (!isNaN(benvaCost)) {
+          target.profit = parseFloat((mrp - benvaCost).toFixed(2));
+        }
+      }
+    }
+
+    // 3. If Customer Payable (discountPrice) changes: Discount % = ((MRP - Customer Price) / MRP) * 100
+    if (field === 'discountPrice') {
+      if (!isNaN(custPrice)) {
+        if (!isNaN(mrp) && mrp > 0) {
+          const calculatedPct = Math.max(0, ((mrp - custPrice) / mrp) * 100);
+          target.discountPercent = parseFloat(calculatedPct.toFixed(1));
+          discPct = target.discountPercent;
+        }
+        if (!isNaN(benvaCost)) {
+          target.profit = parseFloat((custPrice - benvaCost).toFixed(2));
+        }
+      }
+    }
+
+    // 4. If Benva Purchase Cost (actualPrice) changes: Profit = Customer Price - Purchase Cost
+    if (field === 'actualPrice') {
+      if (!isNaN(benvaCost)) {
+        const payable = !isNaN(custPrice) ? custPrice : (!isNaN(mrp) ? mrp : NaN);
+        if (!isNaN(payable)) {
+          target.profit = parseFloat((payable - benvaCost).toFixed(2));
+        }
+      }
+    }
+
+    newMeds[index] = target;
+
+    // Recalculate order-level totals automatically
+    const activeMeds = newMeds.filter((m: any) => m.isSelected !== false);
+    const sumMrp = activeMeds.reduce((acc: number, m: any) => {
+      const v = parseNum(m.mrp);
+      return acc + (isNaN(v) ? 0 : v);
+    }, 0);
+
+    const sumCustPayable = activeMeds.reduce((acc: number, m: any) => {
+      const v = parseNum(m.discountPrice !== '' && m.discountPrice !== undefined ? m.discountPrice : m.mrp);
+      return acc + (isNaN(v) ? 0 : v);
+    }, 0);
 
     let updatedTotalMrp = formData.totalMrp;
+    let updatedDiscount = formData.discount;
     let updatedFinal = formData.finalAmount;
 
-    // Automatically recalculate Total MRP if individual medicine MRPs are updated
-    if (field === 'mrp') {
-      const sumMrp = newMeds
-        .filter((m: any) => m.isSelected !== false)
-        .reduce((acc: number, m: any) => acc + (parseFloat(String(m.mrp)) || 0), 0);
-      if (sumMrp > 0) {
-        updatedTotalMrp = sumMrp;
-        const disc = parseFloat(String(formData.discount)) || 0;
-        updatedFinal = Math.max(0, sumMrp - disc);
-      }
-    }
-
-    // Automatically calculate Final Amount if individual medicine discount prices are updated
-    if (field === 'discountPrice') {
-      const sumUserPrice = newMeds
-        .filter((m: any) => m.isSelected !== false)
-        .reduce((acc: number, m: any) => acc + (parseFloat(String(m.discountPrice)) || 0), 0);
-      if (sumUserPrice > 0) {
-        updatedFinal = sumUserPrice;
-        const mrpVal = parseFloat(String(updatedTotalMrp)) || 0;
-        if (mrpVal >= sumUserPrice) {
-          setFormData({
-            ...formData,
-            medicines: newMeds,
-            discount: mrpVal - sumUserPrice,
-            finalAmount: sumUserPrice
-          });
-          return;
-        }
+    if (sumMrp > 0) {
+      updatedTotalMrp = parseFloat(sumMrp.toFixed(2));
+      if (sumCustPayable > 0) {
+        updatedFinal = parseFloat(sumCustPayable.toFixed(2));
+        updatedDiscount = parseFloat(Math.max(0, sumMrp - sumCustPayable).toFixed(2));
       }
     }
 
@@ -363,6 +436,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
       ...formData, 
       medicines: newMeds, 
       totalMrp: updatedTotalMrp, 
+      discount: updatedDiscount,
       finalAmount: updatedFinal 
     });
   };
@@ -543,6 +617,13 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
     const STANDARD_TYPES = ['Tablet', 'Strip', 'Capsule', 'Syrup', 'Injection', 'Ointment'];
     const normalizedMeds = medList.map((m: any, idx: number) => {
       const isCustom = m.type === 'Other' || (m.type && !STANDARD_TYPES.includes(m.type));
+      const mrpNum = parseFloat(String(m.mrp)) || 0;
+      const dPriceNum = parseFloat(String(m.discountPrice)) || 0;
+      let discPct = m.discountPercent !== undefined && m.discountPercent !== '' ? m.discountPercent : '';
+      if (discPct === '' && mrpNum > 0 && dPriceNum >= 0 && mrpNum >= dPriceNum) {
+        discPct = (((mrpNum - dPriceNum) / mrpNum) * 100).toFixed(1).replace(/\.0$/, '');
+      }
+
       return {
         id: m.id || `${Date.now()}-${idx}`,
         name: m.name || '',
@@ -552,6 +633,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         rack: m.rack || '',
         pack: m.pack || '',
         mrp: m.mrp !== undefined ? m.mrp : '',
+        discountPercent: discPct,
         discountPrice: m.discountPrice !== undefined ? m.discountPrice : '',
         instructions: m.instructions || '',
         actualPrice: m.actualPrice !== undefined ? m.actualPrice : '',
@@ -1517,6 +1599,8 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
       rack: string;
       pack: string;
       mrp: string | number;
+      discountPercent: string | number;
+      discountPrice: string | number;
       actualPrice: string | number;
       profit: string | number;
       type: string;
@@ -1542,6 +1626,17 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
         const currentRack = m.rack !== undefined && m.rack !== '' ? m.rack : (existing ? existing.rack : '');
         const currentPack = m.pack !== undefined && m.pack !== '' ? m.pack : (existing ? existing.pack : '');
         const currentMrp = m.mrp !== undefined && m.mrp !== '' ? m.mrp : (existing ? existing.mrp : '');
+        const currentDiscountPrice = m.discountPrice !== undefined && m.discountPrice !== '' ? m.discountPrice : (existing ? existing.discountPrice : '');
+        
+        let currentDiscountPercent = m.discountPercent !== undefined && m.discountPercent !== '' ? m.discountPercent : (existing ? existing.discountPercent : '');
+        if (!currentDiscountPercent && currentMrp && currentDiscountPrice) {
+          const mNum = Number(currentMrp);
+          const dNum = Number(currentDiscountPrice);
+          if (mNum > 0 && mNum >= dNum) {
+            currentDiscountPercent = Math.round(((mNum - dNum) / mNum) * 100);
+          }
+        }
+
         const currentActual = m.actualPrice !== undefined && m.actualPrice !== '' ? m.actualPrice : (existing ? existing.actualPrice : '');
         const currentProfit = m.profit !== undefined && m.profit !== '' ? m.profit : (existing ? existing.profit : '');
         const currentType = m.type || (existing ? existing.type : 'Tablet');
@@ -1558,6 +1653,8 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
           if (m.rack) existing.rack = m.rack;
           if (m.pack) existing.pack = m.pack;
           if (m.mrp !== undefined && m.mrp !== '') existing.mrp = m.mrp;
+          if (currentDiscountPercent) existing.discountPercent = currentDiscountPercent;
+          if (m.discountPrice !== undefined && m.discountPrice !== '') existing.discountPrice = m.discountPrice;
           if (m.actualPrice !== undefined && m.actualPrice !== '') existing.actualPrice = m.actualPrice;
           if (m.profit !== undefined && m.profit !== '') existing.profit = m.profit;
           if (m.type) existing.type = m.type;
@@ -1572,6 +1669,8 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
             rack: currentRack,
             pack: currentPack,
             mrp: currentMrp,
+            discountPercent: currentDiscountPercent,
+            discountPrice: currentDiscountPrice,
             actualPrice: currentActual,
             profit: currentProfit,
             type: currentType,
@@ -1641,8 +1740,10 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
       'Rack Location',
       'Pack (Strips / Sheets)',
       'MRP (INR)',
-      'Cost Afforded (INR)',
-      'Profit (INR)',
+      'Discount (%)',
+      'Customer Price (INR)',
+      'Benva Purchase Cost (INR)',
+      'Benva Profit (INR)',
       'Times Prescribed',
       'Patients Prescribed'
     ];
@@ -1653,6 +1754,8 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
       `"${(m.rack || '-').replace(/"/g, '""')}"`,
       `"${(m.pack || '-').replace(/"/g, '""')}"`,
       m.mrp !== undefined && m.mrp !== '' ? Number(m.mrp).toFixed(2) : '0.00',
+      m.discountPercent !== undefined && m.discountPercent !== '' ? `${m.discountPercent}%` : (m.mrp && m.discountPrice ? `${Math.round(((Number(m.mrp) - Number(m.discountPrice)) / Number(m.mrp)) * 100)}%` : '0%'),
+      m.discountPrice !== undefined && m.discountPrice !== '' ? Number(m.discountPrice).toFixed(2) : (m.mrp ? Number(m.mrp).toFixed(2) : '0.00'),
       m.actualPrice !== undefined && m.actualPrice !== '' ? Number(m.actualPrice).toFixed(2) : '0.00',
       m.profit !== undefined && m.profit !== '' ? Number(m.profit).toFixed(2) : '0.00',
       m.ordersCount,
@@ -1671,6 +1774,9 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
 
   const handlePrescribeMedicineFromDirectory = (medItem: any) => {
     resetForm();
+    const mrp = medItem.mrp || '';
+    const dPrice = medItem.discountPrice || mrp;
+    const dPct = medItem.discountPercent || (mrp && dPrice && Number(mrp) > 0 ? Math.round(((Number(mrp) - Number(dPrice)) / Number(mrp)) * 100) : '');
     setFormData(prev => ({
       ...prev,
       medicines: [
@@ -1682,16 +1788,18 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
           quantity: '1',
           rack: medItem.rack || '',
           pack: medItem.pack || '',
-          mrp: medItem.mrp || '',
-          discountPrice: '',
+          mrp: mrp,
+          discountPercent: dPct,
+          discountPrice: dPrice,
           actualPrice: medItem.actualPrice || '',
           profit: medItem.profit || '',
           instructions: medItem.instructions || '',
           isSelected: true
         }
       ],
-      totalMrp: medItem.mrp ? Number(medItem.mrp) : '',
-      finalAmount: medItem.mrp ? Number(medItem.mrp) : ''
+      totalMrp: mrp ? Number(mrp) : '',
+      discount: (mrp && dPrice && Number(mrp) >= Number(dPrice)) ? Number(mrp) - Number(dPrice) : '',
+      finalAmount: dPrice ? Number(dPrice) : (mrp ? Number(mrp) : '')
     }));
     setIsPatientConfirmed(false);
     setIsAddModalOpen(true);
@@ -2928,7 +3036,10 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                               <div style={{ fontSize: '11px', color: '#64748b' }}>
                                 MRP: <span style={{ color: '#0f172a', fontWeight: 600 }}>₹{Number(order.totalMrp || 0).toLocaleString('en-IN')}</span>
                                 {Number(order.discount || 0) > 0 && (
-                                  <span style={{ color: '#dc2626', marginLeft: '4px' }}>(-₹{Number(order.discount || 0).toLocaleString('en-IN')})</span>
+                                  <span style={{ color: '#dc2626', marginLeft: '4px', fontWeight: 600 }}>
+                                    (-₹{Number(order.discount || 0).toLocaleString('en-IN')}
+                                    {Number(order.totalMrp || 0) > 0 ? ` | ${Math.round((Number(order.discount) / Number(order.totalMrp)) * 100)}% off` : ''})
+                                  </span>
                                 )}
                               </div>
                             </>
@@ -3489,11 +3600,13 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                   <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0', borderRadius: '8px 0 0 0' }}>#</th>
                   <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>Medicine Name</th>
                   <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>Type</th>
-                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>🗄️ Rack Location</th>
-                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>📦 Pack (No of Strips)</th>
-                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>💵 MRP (₹)</th>
-                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>🏷️ Cost (₹)</th>
-                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>💰 Profit (₹)</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>🗄️ Rack</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>📦 Pack</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>💵 1. MRP (₹)</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>🎁 2. Disc %</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>👤 3. Customer Price (₹)</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>🏷️ 4. Benva Cost (₹)</th>
+                  <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>💰 5. Benva Profit (₹)</th>
                   <th style={{ padding: '12px 14px', textAlign: 'left', borderBottom: '2px solid #e2e8f0' }}>👥 Prescribed In</th>
                   <th style={{ padding: '12px 14px', textAlign: 'right', borderBottom: '2px solid #e2e8f0', borderRadius: '0 8px 0 0' }}>Actions</th>
                 </tr>
@@ -3501,7 +3614,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
               <tbody>
                 {paginatedDirectoryMeds.length === 0 ? (
                   <tr>
-                    <td colSpan={10} style={{ textAlign: 'center', padding: '48px 20px', color: '#94a3b8' }}>
+                    <td colSpan={12} style={{ textAlign: 'center', padding: '48px 20px', color: '#94a3b8' }}>
                       <div style={{ fontSize: '36px', marginBottom: '8px' }}>🔍</div>
                       <div style={{ fontWeight: 700, fontSize: '15px', color: '#475569' }}>No medicines found</div>
                       <p style={{ margin: '4px 0 0 0', fontSize: '13px' }}>
@@ -3513,6 +3626,11 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                   paginatedDirectoryMeds.map((m: any, idx: number) => {
                     const rowNum = (medsPage - 1) * medPageSize + idx + 1;
                     const typeLabel = (m.type === 'Other' && m.customType) ? m.customType : m.type;
+                    const custPrice = m.discountPrice !== undefined && m.discountPrice !== '' ? m.discountPrice : (m.mrp || '');
+                    const discPercent = m.discountPercent !== undefined && m.discountPercent !== '' 
+                      ? `${m.discountPercent}%` 
+                      : (m.mrp && m.discountPrice && Number(m.mrp) > 0 ? `${Math.round(((Number(m.mrp) - Number(m.discountPrice)) / Number(m.mrp)) * 100)}%` : '-');
+
                     return (
                       <tr 
                         key={m.name} 
@@ -3560,6 +3678,16 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                         <td style={{ padding: '14px' }}>
                           <span style={{ color: '#0f766e', fontWeight: 700, fontSize: '13px' }}>
                             {m.mrp !== undefined && m.mrp !== '' ? `₹${Number(m.mrp).toLocaleString('en-IN')}` : '-'}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px' }}>
+                          <span style={{ background: '#fef3c7', color: '#92400e', padding: '3px 8px', borderRadius: '6px', fontSize: '12px', fontWeight: 700 }}>
+                            {discPercent}
+                          </span>
+                        </td>
+                        <td style={{ padding: '14px' }}>
+                          <span style={{ color: '#0284c7', fontWeight: 700, fontSize: '13px' }}>
+                            {custPrice !== '' ? `₹${Number(custPrice).toLocaleString('en-IN')}` : '-'}
                           </span>
                         </td>
                         <td style={{ padding: '14px' }}>
@@ -3656,8 +3784,17 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                     <div style={{ background: '#f0fdfa', padding: '6px 8px', borderRadius: '6px', color: '#0f766e', fontWeight: 700 }}>
                       💵 MRP: <strong>₹{m.mrp || '0'}</strong>
                     </div>
-                    <div style={{ background: '#f0fdf4', padding: '6px 8px', borderRadius: '6px', color: '#15803d', fontWeight: 700 }}>
-                      💰 Profit: <strong>+₹{m.profit || '0'}</strong>
+                    <div style={{ background: '#fffbeb', padding: '6px 8px', borderRadius: '6px', color: '#b45309', fontWeight: 700 }}>
+                      🎁 Disc: <strong>{m.discountPercent ? `${m.discountPercent}%` : '-'}</strong>
+                    </div>
+                    <div style={{ background: '#f0f9ff', padding: '6px 8px', borderRadius: '6px', color: '#0369a1', fontWeight: 700 }}>
+                      👤 Price: <strong>₹{m.discountPrice || m.mrp || '0'}</strong>
+                    </div>
+                    <div style={{ background: '#eef2ff', padding: '6px 8px', borderRadius: '6px', color: '#3730a3', fontWeight: 700 }}>
+                      🏷️ Cost: <strong>₹{m.actualPrice || '0'}</strong>
+                    </div>
+                    <div style={{ background: '#f0fdf4', padding: '6px 8px', borderRadius: '6px', color: '#15803d', fontWeight: 700, gridColumn: 'span 2' }}>
+                      💰 Benva Profit: <strong>+₹{m.profit || '0'}</strong>
                     </div>
                   </div>
 
@@ -4634,28 +4771,31 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                   </div>
                 </div>
 
-                {/* Billing & Discount Card with Profit Breakdown */}
+                {/* Billing & Discount Card with Profit Breakdown (5-Step Calculation) */}
                 {(() => {
                   const modalActualCost = formData.medicines.reduce((sum, m) => sum + (Number(m.actualPrice) || 0), 0);
                   const modalMedicineProfit = formData.medicines.reduce((sum, m) => sum + (Number(m.profit) || 0), 0);
                   const finalPaid = Number(formData.finalAmount) || 0;
                   const calculatedProfit = modalMedicineProfit > 0 ? modalMedicineProfit : (modalActualCost > 0 ? Math.max(0, finalPaid - modalActualCost) : 0);
+                  const totalMrpVal = Number(formData.totalMrp) || 0;
+                  const discountVal = Number(formData.discount) || 0;
+                  const discountPctVal = totalMrpVal > 0 ? ((discountVal / totalMrpVal) * 100).toFixed(1).replace(/\.0$/, '') : '';
 
                   return (
                     <div style={{ background: '#f8fafc', border: '1.5px solid #cbd5e1', borderRadius: '10px', padding: '16px', marginBottom: '20px' }}>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px', flexWrap: 'wrap', gap: '8px' }}>
                         <h4 style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#0f172a', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          💳 Billing & Profit Details
+                          💳 Billing & Profit Summary (5-Step Auto Calculation)
                         </h4>
-                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                        <div style={{ display: 'flex', gap: '8px', alignItems: 'center', flexWrap: 'wrap' }}>
                           {modalActualCost > 0 && (
                             <span style={{ fontSize: '12px', background: '#e0e7ff', color: '#4338ca', padding: '3px 8px', borderRadius: '6px', fontWeight: 700, border: '1px solid #c7d2fe' }}>
-                              🏷️ Afforded Cost: ₹{modalActualCost.toLocaleString('en-IN')}
+                              🏷️ Benva Cost: ₹{modalActualCost.toLocaleString('en-IN')}
                             </span>
                           )}
                           {calculatedProfit > 0 && (
                             <span style={{ fontSize: '12px', background: '#dcfce7', color: '#15803d', padding: '3px 8px', borderRadius: '6px', fontWeight: 800, border: '1px solid #86efac' }}>
-                              💰 Benva Profit: ₹{calculatedProfit.toLocaleString('en-IN')}
+                              💰 Benva Gross Profit: ₹{calculatedProfit.toLocaleString('en-IN')}
                             </span>
                           )}
                         </div>
@@ -4663,50 +4803,86 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
 
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '14px' }}>
                         <div>
-                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600, fontSize: '13px', color: '#475569' }}>Total MRP (₹)</label>
+                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700, fontSize: '12px', color: '#0f766e' }}>
+                            1. Total MRP (₹)
+                          </label>
                           <input 
                             type="number" 
                             min="0" 
                             step="any"
-                            placeholder="e.g. 1500" 
+                            placeholder="e.g. 100" 
                             value={formData.totalMrp} 
                             onChange={e => handleMrpChange(e.target.value)} 
-                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontWeight: 600, color: '#0f172a', backgroundColor: '#ffffff', colorScheme: 'light' }} 
+                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1.5px solid #99f6e4', fontWeight: 700, color: '#115e59', backgroundColor: '#f0fdfa' }} 
                           />
                         </div>
+
                         <div>
-                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600, fontSize: '13px', color: '#475569' }}>Discount Given (₹)</label>
+                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700, fontSize: '12px', color: '#b45309' }}>
+                            2. Discount % (%)
+                          </label>
+                          <input 
+                            type="number" 
+                            min="0" 
+                            max="100"
+                            step="any"
+                            placeholder="e.g. 20" 
+                            value={discountPctVal} 
+                            onChange={e => handleOrderDiscountPercentChange(e.target.value)} 
+                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1.5px solid #fde68a', color: '#92400e', fontWeight: 700, backgroundColor: '#fffbeb' }} 
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600, fontSize: '12px', color: '#dc2626' }}>
+                            Discount Given (₹)
+                          </label>
                           <input 
                             type="number" 
                             min="0" 
                             step="any"
-                            placeholder="e.g. 300" 
+                            placeholder="e.g. 20" 
                             value={formData.discount} 
                             onChange={e => handleDiscountChange(e.target.value)} 
-                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#16a34a', fontWeight: 600, backgroundColor: '#ffffff', colorScheme: 'light' }} 
+                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#dc2626', fontWeight: 600, backgroundColor: '#ffffff' }} 
                           />
                         </div>
+
                         <div>
-                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700, fontSize: '13px', color: '#065f46' }}>Final Paid Amount (₹)</label>
+                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: 800, fontSize: '12px', color: '#0369a1' }}>
+                            3. Customer Payable (₹)
+                          </label>
                           <input 
                             type="number" 
                             min="0" 
                             step="any"
-                            placeholder="e.g. 1200" 
+                            placeholder="e.g. 80" 
                             value={formData.finalAmount} 
-                            onChange={e => setFormData({ ...formData, finalAmount: e.target.value })} 
-                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1.5px solid #10b981', background: '#ecfdf5', color: '#065f46', fontWeight: 800, colorScheme: 'light' }} 
+                            onChange={e => {
+                              const val = e.target.value;
+                              const numVal = parseFloat(val) || 0;
+                              const mrp = parseFloat(String(formData.totalMrp)) || 0;
+                              const disc = mrp > 0 && mrp >= numVal ? mrp - numVal : formData.discount;
+                              setFormData({ ...formData, finalAmount: val, discount: disc });
+                            }} 
+                            style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '2px solid #0284c7', background: '#f0f9ff', color: '#0369a1', fontWeight: 800 }} 
                           />
                         </div>
+
                         <div>
-                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: 600, fontSize: '13px', color: '#4338ca' }}>Actual Cost Afforded (₹)</label>
+                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700, fontSize: '12px', color: '#4338ca' }}>
+                            4. Benva Cost (₹)
+                          </label>
                           <div style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #c7d2fe', background: '#eef2ff', color: '#3730a3', fontWeight: 700, fontSize: '14px' }}>
                             ₹{modalActualCost.toLocaleString('en-IN')}
                           </div>
                         </div>
+
                         <div>
-                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: 700, fontSize: '13px', color: '#15803d' }}>Benva Total Profit (₹)</label>
-                          <div style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1.5px solid #86efac', background: '#f0fdf4', color: '#15803d', fontWeight: 800, fontSize: '15px' }}>
+                          <label style={{ display: 'block', marginBottom: '6px', fontWeight: 800, fontSize: '12px', color: '#15803d' }}>
+                            5. Benva Gross Profit (₹)
+                          </label>
+                          <div style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '2px solid #86efac', background: '#f0fdf4', color: '#15803d', fontWeight: 800, fontSize: '15px' }}>
                             +₹{calculatedProfit.toLocaleString('en-IN')}
                           </div>
                         </div>
@@ -5074,17 +5250,17 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                         </div>
                       </div>
 
-                      {/* Under Each Medicine: MRP, Discount Price (For User), Actual Cost, Profit For Us, Rack, Pack (No of Sheets), and Instructions */}
+                      {/* Under Each Medicine: 5-Step Price & Profit Flow (MRP -> Discount % -> Customer Price -> Benva Cost -> Benva Profit) + Rack, Pack & Instructions */}
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(130px, 1fr))', gap: '10px', background: 'white', padding: '10px 12px', borderRadius: '8px', border: '1px solid #e2e8f0', alignItems: 'center' }}>
                         <div>
                           <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#0f766e', marginBottom: '4px' }}>
-                            💵 MRP (₹)
+                            💵 1. MRP (₹)
                           </label>
                           <input 
                             type="number" 
                             step="any"
                             min="0"
-                            placeholder="Catalog MRP ₹" 
+                            placeholder="e.g. 100" 
                             value={med.mrp ?? ''} 
                             onChange={e => handleMedicineChange(i, 'mrp', e.target.value)} 
                             style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #99f6e4', background: '#f0fdfa', color: '#115e59', fontWeight: 700, fontSize: '13px' }} 
@@ -5092,29 +5268,45 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                         </div>
 
                         <div>
-                          <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#0284c7', marginBottom: '4px' }}>
-                            🏷️ Discount Price (For User ₹)
+                          <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#b45309', marginBottom: '4px' }}>
+                            🎁 2. Discount % (%)
                           </label>
                           <input 
                             type="number" 
                             step="any"
                             min="0"
-                            placeholder="Price user pays ₹" 
+                            max="100"
+                            placeholder="e.g. 20%" 
+                            value={med.discountPercent ?? ''} 
+                            onChange={e => handleMedicineChange(i, 'discountPercent', e.target.value)} 
+                            style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #fde68a', background: '#fffbeb', color: '#92400e', fontWeight: 700, fontSize: '13px' }} 
+                          />
+                        </div>
+
+                        <div>
+                          <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#0284c7', marginBottom: '4px' }}>
+                            👤 3. Customer Payable (₹)
+                          </label>
+                          <input 
+                            type="number" 
+                            step="any"
+                            min="0"
+                            placeholder="e.g. 80" 
                             value={med.discountPrice ?? ''} 
                             onChange={e => handleMedicineChange(i, 'discountPrice', e.target.value)} 
-                            style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #7dd3fc', background: '#f0f9ff', color: '#0369a1', fontWeight: 700, fontSize: '13px' }} 
+                            style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '2px solid #7dd3fc', background: '#f0f9ff', color: '#0369a1', fontWeight: 800, fontSize: '13px' }} 
                           />
                         </div>
 
                         <div>
                           <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#4338ca', marginBottom: '4px' }}>
-                            🏷️ Actual Price (We Afford ₹)
+                            🏷️ 4. Benva Cost (₹)
                           </label>
                           <input 
                             type="number" 
                             step="any"
                             min="0"
-                            placeholder="Cost we afford ₹" 
+                            placeholder="e.g. 50 (Cost)" 
                             value={med.actualPrice ?? ''} 
                             onChange={e => handleMedicineChange(i, 'actualPrice', e.target.value)} 
                             style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #c7d2fe', background: '#f5f7ff', color: '#3730a3', fontWeight: 700, fontSize: '13px' }} 
@@ -5122,16 +5314,16 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                         </div>
 
                         <div>
-                          <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#15803d', marginBottom: '4px' }}>
-                            💰 Profit For Us (₹)
+                          <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#15803d', marginBottom: '4px' }}>
+                            💰 5. Benva Profit (₹)
                           </label>
                           <input 
                             type="number" 
                             step="any"
-                            placeholder="Profit for us ₹" 
+                            placeholder="+30" 
                             value={med.profit ?? ''} 
                             onChange={e => handleMedicineChange(i, 'profit', e.target.value)} 
-                            style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #86efac', background: '#f0fdf4', color: '#15803d', fontWeight: 700, fontSize: '13px' }} 
+                            style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '2px solid #86efac', background: '#f0fdf4', color: '#15803d', fontWeight: 800, fontSize: '13px' }} 
                           />
                         </div>
 
@@ -5141,7 +5333,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                           </label>
                           <input 
                             type="text" 
-                            placeholder="e.g. Rack A-12 / R-3" 
+                            placeholder="e.g. Rack A-12 / M1" 
                             value={med.rack || ''} 
                             onChange={e => handleMedicineChange(i, 'rack', e.target.value)} 
                             style={{ width: '100%', padding: '8px 10px', borderRadius: '6px', border: '1.5px solid #fde68a', background: '#fffbeb', color: '#92400e', fontWeight: 700, fontSize: '13px' }} 
@@ -5150,7 +5342,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
 
                         <div>
                           <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#0369a1', marginBottom: '4px' }}>
-                            📦 Pack (No of Sheets)
+                            📦 Pack (Sheets)
                           </label>
                           <input 
                             type="text" 
@@ -5163,7 +5355,7 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
 
                         <div>
                           <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>
-                            📝 Instructions / Frequency (Optional)
+                            📝 Frequency / Dosage
                           </label>
                           <input 
                             type="text" 

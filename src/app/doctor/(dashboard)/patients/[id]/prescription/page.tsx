@@ -477,7 +477,7 @@ export default function PrescriptionPage() {
           filename:     `${formData.patientName || 'Patient'}_${formData.patientUhid ? formData.patientUhid.replace(/BENVA-UHID-0+/, 'BENVA-UHID-') : 'PENDING'}.pdf`,
           image:        { type: 'jpeg' as const, quality: 0.98 },
           html2canvas:  { scale: 2, useCORS: true, windowWidth: 1024, scrollX: 0, scrollY: 0 },
-          pagebreak:    { mode: ['css', 'legacy'] },
+          pagebreak:    { mode: ['avoid-all', 'css', 'legacy'], avoid: ['tr', '.rx-section-header'] },
           jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
         };
         
@@ -503,7 +503,7 @@ export default function PrescriptionPage() {
           filename:     `${formData.patientName || 'Patient'}_${formData.patientUhid ? formData.patientUhid.replace(/BENVA-UHID-0+/, 'BENVA-UHID-') : 'PENDING'}.pdf`,
           image:        { type: 'jpeg' as const, quality: 0.98 },
           html2canvas:  { scale: 2, useCORS: true, windowWidth: 1024, scrollX: 0, scrollY: 0 },
-          pagebreak:    { mode: ['css', 'legacy'] },
+          pagebreak:    { mode: ['avoid-all', 'css', 'legacy'], avoid: ['tr', '.rx-section-header'] },
           jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' as const }
         };
         
@@ -854,6 +854,17 @@ export default function PrescriptionPage() {
                 #pdf-content, #pdf-content * {
                   box-sizing: border-box !important;
                 }
+                #pdf-content table {
+                  page-break-inside: auto;
+                }
+                #pdf-content tr {
+                  page-break-inside: avoid !important;
+                  break-inside: avoid !important;
+                }
+                #pdf-content td, #pdf-content th {
+                  page-break-inside: avoid !important;
+                  break-inside: avoid !important;
+                }
               ` }} />
           
           <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', borderBottom: `2px solid ${colors.headerBg}`, padding: '0', margin: '0' }}>
@@ -996,12 +1007,15 @@ export default function PrescriptionPage() {
             <table className="rx-med-table" style={{ tableLayout: 'fixed', wordWrap: 'break-word', minWidth: isGenerating ? '100%' : '800px' }}>
               <thead>
                 <tr style={{ backgroundColor: colors.headerBg, color: 'white', fontSize: '15px' }}>
-                  <th style={{ border: `1px solid ${colors.borderColor}`, padding: '6px', width: '5%', whiteSpace: 'nowrap' }}>S.No</th>
-                  <th style={{ border: `1px solid ${colors.borderColor}`, padding: '6px', width: '25%', whiteSpace: 'nowrap' }}>Medicine Name</th>
-                  <th style={{ border: `1px solid ${colors.borderColor}`, padding: '6px', width: '10%', whiteSpace: 'nowrap' }}>Dosage</th>
-                  <th style={{ border: `1px solid ${colors.borderColor}`, padding: '6px', width: '20%', whiteSpace: 'nowrap' }}>Frequency (M - A - N)</th>
-                  <th style={{ border: `1px solid ${colors.borderColor}`, padding: '6px', width: '15%', whiteSpace: 'nowrap' }}>Duration</th>
-                  <th style={{ border: `1px solid ${colors.borderColor}`, padding: '6px', width: '25%', whiteSpace: 'nowrap' }}>Instructions</th>
+                  <th style={{ border: `1px solid ${colors.borderColor}`, padding: '6px', width: '7%', whiteSpace: 'nowrap' }}>S.No</th>
+                  <th style={{ border: `1px solid ${colors.borderColor}`, padding: '6px', width: '28%' }}>Medicine Name</th>
+                  <th style={{ border: `1px solid ${colors.borderColor}`, padding: '6px', width: '10%' }}>Dosage</th>
+                  <th style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px', width: '18%', whiteSpace: 'nowrap' }}>
+                    <div>Frequency</div>
+                    <div style={{ fontSize: '11px', fontWeight: 'normal', opacity: 0.9 }}>(M - A - N)</div>
+                  </th>
+                  <th style={{ border: `1px solid ${colors.borderColor}`, padding: '6px', width: '14%' }}>Duration</th>
+                  <th style={{ border: `1px solid ${colors.borderColor}`, padding: '6px', width: '23%' }}>Instructions</th>
                 </tr>
               </thead>
               <tbody>
