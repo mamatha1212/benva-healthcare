@@ -227,6 +227,8 @@ model Doctor {
   speciality        String?
   medicalCouncilReg String?
   signature         String?  @db.Text
+  photoUrl          String?
+  documents         Json?
   createdAt         DateTime @default(now())
   updatedAt         DateTime @updatedAt
 }

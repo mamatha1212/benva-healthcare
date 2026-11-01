@@ -668,14 +668,24 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                 };
               
                 const renderFrequencyPDF = (freq: any) => {
-                  if (!freq || typeof freq !== 'string') return <>M [   ] &nbsp; A [   ] &nbsp; N [   ]</>;
-                  if (freq === 'SOS') return <span>SOS</span>;
-                  const parts = freq.split('-');
+                  if (!freq || typeof freq !== 'string') return <></>;
+                  const cleanFreq = freq.trim();
+                  if (cleanFreq.toUpperCase() === 'SOS') return <span style={{ fontWeight: 600 }}>SOS</span>;
+
+                  // Convert legacy or stored bracket format M [ ] A [ X ] N [ ] -> 0 - 1 - 0
+                  if (/m\s*\[/i.test(cleanFreq)) {
+                    const mMatch = cleanFreq.match(/m\s*\[\s*([xX1]?)\s*\]/i);
+                    const aMatch = cleanFreq.match(/a\s*\[\s*([xX1]?)\s*\]/i);
+                    const nMatch = cleanFreq.match(/n\s*\[\s*([xX1]?)\s*\]/i);
+                    const m = mMatch && mMatch[1] && mMatch[1].trim() !== '' ? '1' : '0';
+                    const a = aMatch && aMatch[1] && aMatch[1].trim() !== '' ? '1' : '0';
+                    const n = nMatch && nMatch[1] && nMatch[1].trim() !== '' ? '1' : '0';
+                    return <span style={{ fontWeight: 600, letterSpacing: '2px' }}>{`${m} - ${a} - ${n}`}</span>;
+                  }
+
+                  const parts = cleanFreq.split(/[-–—/]/).map((p: string) => p.trim());
                   if (parts.length === 3) {
-                    const m = parts[0] === '1' ? 'X' : ' ';
-                    const a = parts[1] === '1' ? 'X' : ' ';
-                    const n = parts[2] === '1' ? 'X' : ' ';
-                    return <>M [ {m} ] &nbsp; A [ {a} ] &nbsp; N [ {n} ]</>;
+                    return <span style={{ fontWeight: 600, letterSpacing: '2px' }}>{parts.join(' - ')}</span>;
                   }
                   return <span>{freq}</span>;
                 };
@@ -798,12 +808,14 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                       </div>
                       
                       {/* Clinical Summary */}
-                      <div style={{ marginBottom: '20px' }}>
-                        <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>CLINICAL SUMMARY</div>
-                        <div style={{ border: `1px solid ${colors.borderColor}`, padding: '12px', minHeight: '80px', backgroundColor: colors.leftColBg }}>
-                          <div style={{ whiteSpace: 'pre-wrap' }}>{parsed.clinicalSummary}</div>
+                      {Boolean(parsed.clinicalSummary && parsed.clinicalSummary.trim()) && (
+                        <div style={{ marginBottom: '20px', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
+                          <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>CLINICAL SUMMARY</div>
+                          <div style={{ border: `1px solid ${colors.borderColor}`, padding: '12px', minHeight: '80px', backgroundColor: colors.leftColBg }}>
+                            <div style={{ whiteSpace: 'pre-wrap' }}>{parsed.clinicalSummary}</div>
+                          </div>
                         </div>
-                      </div>
+                      )}
 
                       {/* Medicines */}
                       {Array.isArray(parsed.medicines) && parsed.medicines.length > 0 && parsed.medicines.some((m:any) => m && m.name) && (
@@ -815,7 +827,7 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                                 <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '5%' }}>S.No</th>
                                 <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '25%' }}>Medicine Name</th>
                                 <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '10%' }}>Dosage</th>
-                                <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '20%' }}>Frequency (M / A / N)</th>
+                                <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '20%' }}>Frequency (M - A - N)</th>
                                 <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '15%' }}>Duration</th>
                                 <th style={{ border: `1px solid ${colors.borderColor}`, padding: '8px', width: '25%' }}>Instructions</th>
                               </tr>
@@ -842,8 +854,8 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                       )}
 
                       {/* Investigations */}
-                      {!isGeneratingPdf && parsed.investigations && (
-                        <div data-html2canvas-ignore="true" style={{ marginBottom: '20px' }}>
+                      {Boolean(parsed.investigations && parsed.investigations.trim()) && (
+                        <div style={{ marginBottom: '20px', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                           <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>INVESTIGATIONS</div>
                           <div style={{ border: `1px solid ${colors.borderColor}`, padding: '12px', minHeight: '60px', backgroundColor: colors.leftColBg }}>
                             <div style={{ whiteSpace: 'pre-wrap' }}>{parsed.investigations}</div>
@@ -852,8 +864,8 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                       )}
 
                       {/* Advice */}
-                      {!isGeneratingPdf && parsed.advice && (
-                        <div data-html2canvas-ignore="true" style={{ marginBottom: '20px' }}>
+                      {Boolean(parsed.advice && parsed.advice.trim()) && (
+                        <div style={{ marginBottom: '20px', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                           <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>ADVICE</div>
                           <div style={{ border: `1px solid ${colors.borderColor}`, padding: '12px', minHeight: '60px', backgroundColor: colors.leftColBg }}>
                             <div style={{ whiteSpace: 'pre-wrap' }}>{parsed.advice}</div>
@@ -861,7 +873,7 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                         </div>
                       )}
 
-                      <div style={{ marginBottom: '20px' }}>
+                      <div style={{ marginBottom: '20px', pageBreakInside: 'avoid', breakInside: 'avoid' }}>
                         <div style={{ backgroundColor: colors.headerBg, color: 'white', padding: '8px 12px', fontWeight: 'bold', fontFamily: 'Arial, sans-serif' }}>IMPORTANT DISCLAIMER</div>
                         <ul style={{ fontSize: '12px', paddingLeft: '20px', marginTop: '8px' }}>
                           <li style={{ marginBottom: '4px' }}>This prescription has been generated following a telemedicine consultation.</li>

@@ -592,9 +592,22 @@ export default function PrescriptionPage() {
   };
 
   const renderFrequencyPDF = (freq: string) => {
-    if (!freq) return <></>;
-    if (freq === 'SOS') return <span>SOS</span>;
-    const parts = freq.split('-');
+    if (!freq || typeof freq !== 'string') return <></>;
+    const cleanFreq = freq.trim();
+    if (cleanFreq.toUpperCase() === 'SOS') return <span style={{ fontWeight: 600 }}>SOS</span>;
+
+    // Convert legacy or stored bracket format M [ ] A [ X ] N [ ] -> 0 - 1 - 0
+    if (/m\s*\[/i.test(cleanFreq)) {
+      const mMatch = cleanFreq.match(/m\s*\[\s*([xX1]?)\s*\]/i);
+      const aMatch = cleanFreq.match(/a\s*\[\s*([xX1]?)\s*\]/i);
+      const nMatch = cleanFreq.match(/n\s*\[\s*([xX1]?)\s*\]/i);
+      const m = mMatch && mMatch[1] && mMatch[1].trim() !== '' ? '1' : '0';
+      const a = aMatch && aMatch[1] && aMatch[1].trim() !== '' ? '1' : '0';
+      const n = nMatch && nMatch[1] && nMatch[1].trim() !== '' ? '1' : '0';
+      return <span style={{ fontWeight: 600, letterSpacing: '2px' }}>{`${m} - ${a} - ${n}`}</span>;
+    }
+
+    const parts = cleanFreq.split(/[-–—/]/).map((p: string) => p.trim());
     if (parts.length === 3) {
       return <span style={{ fontWeight: 600, letterSpacing: '2px' }}>{parts.join(' - ')}</span>;
     }
