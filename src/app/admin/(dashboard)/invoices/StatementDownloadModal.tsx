@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
+import DateInput from '@/components/DateInput/DateInput';
+import { formatDate } from '@/lib/dateUtils';
 
 interface Props {
   invoices: any[];
@@ -68,7 +70,7 @@ export default function StatementDownloadModal({ invoices, isOpen, onClose }: Pr
 
     const rows = filtered.map(i => [
       `"${i.invoiceNo}"`,
-      `"${new Date(i.billDate || i.createdAt).toLocaleDateString()}"`,
+      `"${formatDate(i.billDate || i.createdAt)}"`,
       `"${i.patient?.name || 'Customer'}"`,
       `"${i.patient?.uhid || 'N/A'}"`,
       `"${i.patient?.phone || ''}"`,
@@ -228,22 +230,20 @@ export default function StatementDownloadModal({ invoices, isOpen, onClose }: Pr
                   <label style={{ fontSize: '11px', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>
                     From Date
                   </label>
-                  <input
-                    type="date"
+                  <DateInput
                     value={fromDate}
                     onChange={(e) => setFromDate(e.target.value)}
-                    style={{ width: '100%', padding: '8px 10px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                    inputStyle={{ width: '100%', padding: '8px 10px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
                   />
                 </div>
                 <div>
                   <label style={{ fontSize: '11px', fontWeight: '700', color: '#475569', display: 'block', marginBottom: '4px' }}>
                     To Date
                   </label>
-                  <input
-                    type="date"
+                  <DateInput
                     value={toDate}
                     onChange={(e) => setToDate(e.target.value)}
-                    style={{ width: '100%', padding: '8px 10px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                    inputStyle={{ width: '100%', padding: '8px 10px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
                   />
                 </div>
               </>

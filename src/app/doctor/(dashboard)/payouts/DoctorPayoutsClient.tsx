@@ -1,6 +1,7 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import PayoutReport from '@/components/PayoutReport/PayoutReport';
+import { formatDate } from '@/lib/dateUtils';
 
 export default function DoctorPayoutsClient({ doctorName }: { doctorName: string }) {
   const [payouts, setPayouts] = useState<any[]>([]);
@@ -38,7 +39,11 @@ export default function DoctorPayoutsClient({ doctorName }: { doctorName: string
         filename: `Payout_${payoutData.reportingPeriod.replace(/\s+/g, '_')}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
         html2canvas: { scale: 2, useCORS: true, windowWidth: 1024, scrollX: 0, scrollY: 0 },
-        jsPDF: { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const }
+        jsPDF: { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const },
+        pagebreak: { 
+          mode: ['avoid-all', 'css'],
+          avoid: ['.section', '.sectionRecords', 'tr', '.screenshotContainer', '.infoBox', '.signature']
+        }
       };
       
       const clone = element.cloneNode(true) as HTMLElement;
@@ -81,7 +86,7 @@ export default function DoctorPayoutsClient({ doctorName }: { doctorName: string
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '16px' }}>
                 <div>
                   <div style={{ fontSize: '16px', fontWeight: 'bold', color: '#0f172a' }}>{payout.reportingPeriod}</div>
-                  <div style={{ fontSize: '13px', color: '#64748b' }}>Date: {payout.payoutDate}</div>
+                  <div style={{ fontSize: '13px', color: '#64748b' }}>Date: {formatDate(payout.payoutDate)}</div>
                 </div>
                 <div style={{ background: '#ecfdf5', color: '#059669', padding: '4px 10px', borderRadius: '12px', fontSize: '12px', fontWeight: 600 }}>
                   Paid

@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { formatDate, formatDateTime } from '@/lib/dateUtils';
 
 export interface MedicineOrderTransaction {
   sNo: number;
@@ -328,10 +329,10 @@ export default function MedicineRevenueStatementModal({
                 {dateRange.label}
               </div>
               <div style={{ fontSize: '11px', color: '#64748b', marginTop: '4px' }}>
-                {dateRange.from || 'Start'} to {dateRange.to || 'Present'}
+                {(dateRange.from ? formatDate(dateRange.from) : 'Start')} to {(dateRange.to ? formatDate(dateRange.to) : 'Present')}
               </div>
               <div style={{ fontSize: '10px', color: '#94a3b8', marginTop: '4px' }}>
-                Generated: {new Date().toLocaleDateString('en-IN', { day: '2-digit', month: 'short', year: 'numeric' })} {new Date().toLocaleTimeString('en-IN', { hour: '2-digit', minute: '2-digit' })}
+                Generated: {formatDateTime(new Date())}
               </div>
             </div>
           </div>

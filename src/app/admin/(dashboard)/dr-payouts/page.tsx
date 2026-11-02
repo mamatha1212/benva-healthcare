@@ -3,6 +3,8 @@
 import React, { useState, useRef, useEffect } from 'react';
 import styles from './DrPayouts.module.css';
 import PayoutReport, { ConsultationRecord } from '@/components/PayoutReport/PayoutReport';
+import DateInput from '@/components/DateInput/DateInput';
+import { formatDate } from '@/lib/dateUtils';
 
 export default function DrPayoutsPage() {
   const [isFormMode, setIsFormMode] = useState(false);
@@ -28,8 +30,11 @@ export default function DrPayoutsPage() {
     fetchDoctors();
   }, []);
 
+  const [isLoadingPayouts, setIsLoadingPayouts] = useState(true);
+
   useEffect(() => {
     const fetchPayouts = async () => {
+      setIsLoadingPayouts(true);
       try {
         const res = await fetch('/api/payouts');
         if (res.ok) {
@@ -38,6 +43,8 @@ export default function DrPayoutsPage() {
         }
       } catch (e) {
         console.error('Failed to fetch payouts', e);
+      } finally {
+        setIsLoadingPayouts(false);
       }
     };
     fetchPayouts();
@@ -57,7 +64,7 @@ export default function DrPayoutsPage() {
     }
   }, [isFormMode, isPreviewMode]);
 
-  const savePayout = async () => {
+  const savePayout = async (navigateToList = true) => {
     try {
       let payoutData: any = { ...formData, records };
       if (editingPayoutId) {
@@ -77,11 +84,16 @@ export default function DrPayoutsPage() {
           updated = savedPayouts.map(p => p.id === editingPayoutId ? savedData : p);
         } else {
           updated = [savedData, ...savedPayouts];
+          setEditingPayoutId(savedData.id);
         }
         setSavedPayouts(updated);
-        setEditingPayoutId(null);
-        setIsPreviewMode(false);
-        setIsFormMode(false);
+        if (navigateToList) {
+          setEditingPayoutId(null);
+          setIsPreviewMode(false);
+          setIsFormMode(false);
+          alert('Payout saved to list successfully!');
+        }
+        return savedData;
       } else {
         alert('Failed to save payout');
       }
@@ -111,15 +123,23 @@ export default function DrPayoutsPage() {
     setIsPreviewMode(true);
   };
 
+  const [payoutToDelete, setPayoutToDelete] = useState<any | null>(null);
+  const [reconfirmChecked, setReconfirmChecked] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
+
   const downloadPDF = async (payoutData: any, element: HTMLElement | null) => {
     if (typeof window !== 'undefined' && element) {
       const html2pdf = (await import('html2pdf.js')).default;
       const opt = {
-        margin: 0.5,
-        filename: `Payout_Report_${payoutData.consultingDoctor.replace(/\s+/g, '_')}_${payoutData.reportingPeriod}.pdf`,
+        margin: [0.35, 0.4, 0.35, 0.4],
+        filename: `Payout_Report_${(payoutData.consultingDoctor || 'Doctor').replace(/\s+/g, '_')}_${(payoutData.reportingPeriod || 'Period').replace(/\s+/g, '_')}.pdf`,
         image: { type: 'jpeg' as const, quality: 0.98 },
-        html2canvas: { scale: 2, useCORS: true },
-        jsPDF: { unit: 'in' as const, format: 'letter', orientation: 'portrait' as const }
+        html2canvas: { scale: 2, useCORS: true, letterRendering: true, scrollY: 0 },
+        jsPDF: { unit: 'in' as const, format: 'a4', orientation: 'portrait' as const },
+        pagebreak: { 
+          mode: ['avoid-all', 'css'],
+          avoid: ['.section', '.sectionRecords', 'tr', '.screenshotContainer', '.infoBox', '.signature']
+        }
       };
 
       await html2pdf().set(opt).from(element).save();
@@ -138,30 +158,34 @@ export default function DrPayoutsPage() {
     setDownloadingPayout(payout);
   };
 
-  const deletePayout = async (id: string) => {
-    if (!window.confirm('Do you want to delete are you sure?')) return;
+  const confirmDeletePayout = async () => {
+    if (!payoutToDelete || !reconfirmChecked) return;
+    setIsDeleting(true);
     try {
-      const res = await fetch(`/api/payouts/${id}`, { method: 'DELETE' });
+      const res = await fetch(`/api/payouts/${payoutToDelete.id}`, { method: 'DELETE' });
       if (res.ok) {
-        const updated = savedPayouts.filter(p => p.id !== id);
-        setSavedPayouts(updated);
+        setSavedPayouts(prev => prev.filter(p => p.id !== payoutToDelete.id));
+        setPayoutToDelete(null);
+        setReconfirmChecked(false);
       } else {
-        alert('Failed to delete payout');
+        alert('Failed to delete payout. Please try again.');
       }
     } catch (e) {
-      console.error(e);
-      alert('An error occurred');
+      console.error('Delete payout error:', e);
+      alert('An error occurred while deleting the payout.');
+    } finally {
+      setIsDeleting(false);
     }
   };
 
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<any>({
     consultingDoctor: '',
     consultationMode: 'Audio Consultation',
-    reportingPeriod: 'JULY & AUGUST',
+    reportingPeriod: '',
     year: new Date().getFullYear().toString(),
-    totalPatientsConsulted: 0,
-    totalConsultationsCompleted: 0,
-    totalPayoutAmount: 0,
+    totalPatientsConsulted: '',
+    totalConsultationsCompleted: '',
+    totalPayoutAmount: '',
     payoutDate: new Date().toISOString().split('T')[0],
     paymentMode: 'UPI',
     transactionReferenceNo: '',
@@ -185,11 +209,11 @@ export default function DrPayoutsPage() {
     setFormData({
       consultingDoctor: '',
       consultationMode: 'Audio Consultation',
-      reportingPeriod: 'JULY & AUGUST',
+      reportingPeriod: '',
       year: new Date().getFullYear().toString(),
-      totalPatientsConsulted: 0,
-      totalConsultationsCompleted: 0,
-      totalPayoutAmount: 0,
+      totalPatientsConsulted: '',
+      totalConsultationsCompleted: '',
+      totalPayoutAmount: '',
       payoutDate: new Date().toISOString().split('T')[0],
       paymentMode: 'UPI',
       transactionReferenceNo: '',
@@ -248,7 +272,38 @@ export default function DrPayoutsPage() {
     if (file) {
       const reader = new FileReader();
       reader.onloadend = () => {
-        setFormData(prev => ({ ...prev, paymentScreenshotUrl: reader.result as string }));
+        const rawResult = reader.result as string;
+        // Compress image using canvas to prevent slow network payloads
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          const maxDim = 1200;
+          if (width > maxDim || height > maxDim) {
+            if (width > height) {
+              height = Math.round((height * maxDim) / width);
+              width = maxDim;
+            } else {
+              width = Math.round((width * maxDim) / height);
+              height = maxDim;
+            }
+          }
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          if (ctx) {
+            ctx.drawImage(img, 0, 0, width, height);
+            const compressed = canvas.toDataURL('image/jpeg', 0.82);
+            setFormData(prev => ({ ...prev, paymentScreenshotUrl: compressed }));
+          } else {
+            setFormData(prev => ({ ...prev, paymentScreenshotUrl: rawResult }));
+          }
+        };
+        img.onerror = () => {
+          setFormData(prev => ({ ...prev, paymentScreenshotUrl: rawResult }));
+        };
+        img.src = rawResult;
       };
       reader.readAsDataURL(file);
     }
@@ -280,7 +335,16 @@ export default function DrPayoutsPage() {
                 </tr>
               </thead>
               <tbody>
-                {savedPayouts.length === 0 ? (
+                {isLoadingPayouts ? (
+                  <tr>
+                    <td colSpan={7} style={{ textAlign: 'center', padding: '36px', color: '#64748b' }}>
+                      <div style={{ display: 'inline-flex', alignItems: 'center', gap: '10px' }}>
+                        <div className={styles.spinner} />
+                        <span style={{ fontWeight: 500 }}>Loading payouts...</span>
+                      </div>
+                    </td>
+                  </tr>
+                ) : savedPayouts.length === 0 ? (
                   <tr>
                     <td colSpan={7} style={{ textAlign: 'center', padding: '30px', color: '#777' }}>
                       No payouts recorded yet. Click "+ Add New Payout" to generate a new report.
@@ -292,13 +356,36 @@ export default function DrPayoutsPage() {
                       <td>{index + 1}</td>
                       <td>{payout.consultingDoctor}</td>
                       <td>{payout.reportingPeriod}</td>
-                      <td>{payout.payoutDate}</td>
+                      <td>{formatDate(payout.payoutDate)}</td>
                       <td>₹ {payout.totalPayoutAmount}</td>
                       <td style={{ color: '#28a745', fontWeight: 'bold' }}>GENERATED</td>
                       <td>
-                        <button className={`${styles.btn} ${styles.btnPrimary}`} style={{ padding: '4px 8px', fontSize: '12px', marginRight: '5px' }} onClick={() => viewSavedPayout(payout)}>View</button>
-                        <button className={`${styles.btn} ${styles.btnSuccess}`} style={{ padding: '4px 8px', fontSize: '12px', marginRight: '5px' }} onClick={() => handleDownloadFromList(payout)}>Download</button>
-                        <button className={`${styles.btn} ${styles.btnSecondary}`} style={{ padding: '4px 8px', fontSize: '12px', color: 'red' }} onClick={() => deletePayout(payout.id)}>Delete</button>
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          <button 
+                            className={`${styles.btn} ${styles.btnPrimary}`} 
+                            style={{ padding: '6px 12px', fontSize: '12px' }} 
+                            onClick={() => viewSavedPayout(payout)}
+                          >
+                            View
+                          </button>
+                          <button 
+                            className={`${styles.btn} ${styles.btnSuccess}`} 
+                            style={{ padding: '6px 12px', fontSize: '12px' }} 
+                            onClick={() => handleDownloadFromList(payout)}
+                          >
+                            Download
+                          </button>
+                          <button 
+                            className={`${styles.btn} ${styles.btnDanger}`} 
+                            style={{ padding: '6px 12px', fontSize: '12px' }} 
+                            onClick={() => {
+                              setPayoutToDelete(payout);
+                              setReconfirmChecked(false);
+                            }}
+                          >
+                            Delete
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))
@@ -318,8 +405,19 @@ export default function DrPayoutsPage() {
                   <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => setIsPreviewMode(false)}>
                     Back to Edit
                   </button>
-                  <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={savePayout}>
+                  <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => savePayout(true)}>
                     Save to List
+                  </button>
+                  <button 
+                    className={`${styles.btn} ${styles.btnSuccess}`} 
+                    onClick={async () => {
+                      if (!editingPayoutId) {
+                        await savePayout(false);
+                      }
+                      downloadPDF(formData, reportRef.current);
+                    }}
+                  >
+                    Download PDF
                   </button>
                   <button className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => { setIsPreviewMode(false); setIsFormMode(false); }}>
                     Close
@@ -348,11 +446,23 @@ export default function DrPayoutsPage() {
             </div>
             <div className={styles.formGroup}>
               <label>Consultation Mode</label>
-              <input type="text" name="consultationMode" value={formData.consultationMode} onChange={handleInputChange} />
+              <select name="consultationMode" value={formData.consultationMode} onChange={handleInputChange}>
+                <option value="Audio Consultation">Audio Consultation</option>
+                <option value="Video Consultation">Video Consultation</option>
+                <option value="In-Person Consultation">In-Person Consultation</option>
+                <option value="Home Visit Consultation">Home Visit Consultation</option>
+                <option value="Chat Consultation">Chat Consultation</option>
+              </select>
             </div>
             <div className={styles.formGroup}>
               <label>Reporting Period (e.g. JULY & AUGUST)</label>
-              <input type="text" name="reportingPeriod" value={formData.reportingPeriod} onChange={handleInputChange} />
+              <input 
+                type="text" 
+                name="reportingPeriod" 
+                placeholder="e.g. JULY & AUGUST"
+                value={formData.reportingPeriod} 
+                onChange={handleInputChange} 
+              />
             </div>
             <div className={styles.formGroup}>
               <label>Year</label>
@@ -364,15 +474,33 @@ export default function DrPayoutsPage() {
           <div className={styles.grid}>
             <div className={styles.formGroup}>
               <label>Total Patients Consulted</label>
-              <input type="number" name="totalPatientsConsulted" value={formData.totalPatientsConsulted} onChange={handleInputChange} />
+              <input 
+                type="number" 
+                name="totalPatientsConsulted" 
+                placeholder="0"
+                value={formData.totalPatientsConsulted} 
+                onChange={handleInputChange} 
+              />
             </div>
             <div className={styles.formGroup}>
               <label>Total Consultations Completed</label>
-              <input type="number" name="totalConsultationsCompleted" value={formData.totalConsultationsCompleted} onChange={handleInputChange} />
+              <input 
+                type="number" 
+                name="totalConsultationsCompleted" 
+                placeholder="0"
+                value={formData.totalConsultationsCompleted} 
+                onChange={handleInputChange} 
+              />
             </div>
             <div className={styles.formGroup}>
               <label>Total Payout Amount (₹)</label>
-              <input type="number" name="totalPayoutAmount" value={formData.totalPayoutAmount} onChange={handleInputChange} />
+              <input 
+                type="number" 
+                name="totalPayoutAmount" 
+                placeholder="0"
+                value={formData.totalPayoutAmount} 
+                onChange={handleInputChange} 
+              />
             </div>
           </div>
 
@@ -380,7 +508,7 @@ export default function DrPayoutsPage() {
           <div className={styles.grid}>
             <div className={styles.formGroup}>
               <label>Payout Date</label>
-              <input type="date" name="payoutDate" value={formData.payoutDate} onChange={handleInputChange} />
+              <DateInput name="payoutDate" value={formData.payoutDate} onChange={handleInputChange} />
             </div>
             <div className={styles.formGroup}>
               <label>Payment Mode</label>
@@ -437,7 +565,7 @@ export default function DrPayoutsPage() {
                       <input type="text" value={record.patientName} onChange={(e) => handleRecordChange(index, 'patientName', e.target.value)} />
                     </td>
                     <td>
-                      <input type="date" value={record.labReportDate} onChange={(e) => handleRecordChange(index, 'labReportDate', e.target.value)} />
+                      <DateInput value={record.labReportDate} onChange={(e) => handleRecordChange(index, 'labReportDate', e.target.value)} />
                     </td>
                     <td>
                       <select value={record.genDrName} onChange={(e) => handleRecordChange(index, 'genDrName', e.target.value)}>
@@ -471,7 +599,10 @@ export default function DrPayoutsPage() {
           </div>
 
           <div className={styles.actions}>
-            <button className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => setIsPreviewMode(true)}>
+            <button type="button" className={`${styles.btn} ${styles.btnSecondary}`} onClick={() => savePayout(true)}>
+              Save Payout
+            </button>
+            <button type="button" className={`${styles.btn} ${styles.btnPrimary}`} onClick={() => setIsPreviewMode(true)}>
               Preview & Generate Report
             </button>
           </div>
@@ -518,6 +649,84 @@ export default function DrPayoutsPage() {
             records={downloadingPayout.records}
             paymentScreenshotUrl={downloadingPayout.paymentScreenshotUrl}
           />
+        </div>
+      )}
+      {/* Reconfirmation Modal for Deleting Payout */}
+      {payoutToDelete && (
+        <div className={styles.modalOverlay} onClick={() => !isDeleting && setPayoutToDelete(null)}>
+          <div className={styles.deleteModal} onClick={e => e.stopPropagation()}>
+            <div className={styles.deleteModalHeader}>
+              <div className={styles.deleteIconContainer}>
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                  <line x1="10" y1="11" x2="10" y2="17"></line>
+                  <line x1="14" y1="11" x2="14" y2="17"></line>
+                </svg>
+              </div>
+              <div>
+                <h3 className={styles.deleteModalTitle}>Confirm Delete Payout</h3>
+                <p className={styles.deleteModalSubtitle}>Please reconfirm before deleting this record.</p>
+              </div>
+            </div>
+
+            <div className={styles.reconfirmWarning}>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" style={{ flexShrink: 0, marginTop: '2px' }}>
+                <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"></path>
+                <line x1="12" y1="9" x2="12" y2="13"></line>
+                <line x1="12" y1="17" x2="12.01" y2="17"></line>
+              </svg>
+              <span>Warning: This action is permanent and cannot be undone. All consultation records in this report will be deleted.</span>
+            </div>
+
+            <div className={styles.deleteDetailsBox}>
+              <div className={styles.deleteDetailRow}>
+                <span className={styles.deleteDetailLabel}>Doctor Name:</span>
+                <span className={styles.deleteDetailValue}>{payoutToDelete.consultingDoctor}</span>
+              </div>
+              <div className={styles.deleteDetailRow}>
+                <span className={styles.deleteDetailLabel}>Reporting Period:</span>
+                <span className={styles.deleteDetailValue}>{payoutToDelete.reportingPeriod} ({payoutToDelete.year})</span>
+              </div>
+              <div className={styles.deleteDetailRow}>
+                <span className={styles.deleteDetailLabel}>Payout Amount:</span>
+                <span className={styles.deleteDetailValue} style={{ color: '#059669', fontWeight: 700 }}>₹ {payoutToDelete.totalPayoutAmount}</span>
+              </div>
+              <div className={styles.deleteDetailRow}>
+                <span className={styles.deleteDetailLabel}>Payout Date:</span>
+                <span className={styles.deleteDetailValue}>{formatDate(payoutToDelete.payoutDate)}</span>
+              </div>
+            </div>
+
+            <label className={styles.reconfirmCheckboxLabel}>
+              <input 
+                type="checkbox" 
+                className={styles.reconfirmCheckbox}
+                checked={reconfirmChecked} 
+                onChange={e => setReconfirmChecked(e.target.checked)} 
+              />
+              <span>Yes, I reconfirm that I want to permanently delete this doctor payout report.</span>
+            </label>
+
+            <div className={styles.deleteModalActions}>
+              <button 
+                type="button"
+                className={`${styles.btn} ${styles.btnSecondary}`} 
+                disabled={isDeleting}
+                onClick={() => setPayoutToDelete(null)}
+              >
+                Cancel
+              </button>
+              <button 
+                type="button"
+                className={`${styles.btn} ${styles.btnDanger}`} 
+                disabled={!reconfirmChecked || isDeleting}
+                onClick={confirmDeletePayout}
+              >
+                {isDeleting ? 'Deleting...' : 'Confirm & Delete'}
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

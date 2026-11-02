@@ -2,6 +2,8 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from './ReferralsClient.module.css';
+import DateInput from '@/components/DateInput/DateInput';
+import { formatDate } from '@/lib/dateUtils';
 
 export default function ReferralsClient({ initialStates = [] }: { initialStates?: any[] }) {
   const [categories, setCategories] = useState<any[]>([]);
@@ -126,7 +128,7 @@ export default function ReferralsClient({ initialStates = [] }: { initialStates?
                   <tr key={referrer.id} className={styles.tr}>
                     <td className={styles.td}>
                       <div style={{ fontWeight: 600, color: '#0f172a' }}>{referrer.name}</div>
-                      <div style={{ fontSize: '12px', color: '#64748b' }}>Added: {new Date(referrer.createdAt).toLocaleDateString()}</div>
+                      <div style={{ fontSize: '12px', color: '#64748b' }}>Added: {formatDate(referrer.createdAt)}</div>
                       {referrer.area && <div style={{ fontSize: '11px', color: '#059669', fontWeight: 600, marginTop: '4px', textTransform: 'uppercase' }}>📍 {referrer.area}</div>}
                     </td>
                     <td className={styles.td}>
@@ -258,7 +260,7 @@ function CategoriesListModal({ categories, onClose, onRefresh }: { categories: a
                       <input type="text" value={editName} onChange={e => setEditName(e.target.value)} style={{ padding: '6px', borderRadius: '4px', border: '1px solid #cbd5e1' }} />
                     ) : cat.name}
                   </td>
-                  <td style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>{new Date(cat.createdAt).toLocaleDateString()}</td>
+                  <td style={{ padding: '12px', fontSize: '13px', color: '#64748b' }}>{formatDate(cat.createdAt)}</td>
                   <td style={{ padding: '12px', textAlign: 'right' }}>
                     {editingId === cat.id ? (
                       <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
@@ -669,7 +671,7 @@ export function TransactionModal({ referrer, services, transactionToEdit, onClos
             )}
             <div style={{ flex: '1 1 200px' }}>
               <label style={{ display: 'block', marginBottom: '6px', fontSize: '12px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Referral Date</label>
-              <input type="date" value={formData.referralDate} onChange={e => setFormData({...formData, referralDate: e.target.value})} required style={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '15px', color: '#0f172a', outline: 'none', transition: 'border-color 0.2s' }} onFocus={e => e.target.style.borderColor = '#3b82f6'} onBlur={e => e.target.style.borderColor = '#cbd5e1'} />
+              <DateInput value={formData.referralDate} onChange={e => setFormData({...formData, referralDate: e.target.value})} required inputStyle={{ width: '100%', padding: '12px 14px', borderRadius: '8px', border: '1px solid #cbd5e1', background: '#f8fafc', fontSize: '15px', color: '#0f172a' }} />
             </div>
             {transactionToEdit && formData.serviceName === 'Others' && (
               <div style={{ flex: '1 1 200px' }}>
@@ -737,7 +739,7 @@ function HistoryModal({ referrer, onClose, onRefresh, onEdit }: { referrer: any,
       csvContent += `No data found between ${fromDate} and ${toDate},,,,,,\n`;
     } else {
       filtered.forEach((tx: any) => {
-        const txDate = new Date(tx.createdAt).toLocaleDateString();
+        const txDate = formatDate(tx.createdAt);
         const patientName = `"${(tx.patientName || '').replace(/"/g, '""')}"`;
         const patientPhone = `"${(tx.patientPhone || '').replace(/"/g, '""')}"`;
         const service = `"${(tx.serviceName || '').replace(/"/g, '""')}"`;
@@ -785,11 +787,11 @@ function HistoryModal({ referrer, onClose, onRefresh, onEdit }: { referrer: any,
         <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', marginBottom: '16px', background: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
           <div>
             <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>From Date</label>
-            <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }} />
+            <DateInput value={fromDate} onChange={e => setFromDate(e.target.value)} inputStyle={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
           </div>
           <div>
             <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>To Date</label>
-            <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }} />
+            <DateInput value={toDate} onChange={e => setToDate(e.target.value)} inputStyle={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1' }} />
           </div>
           <button onClick={handleDownloadStatement} style={{ padding: '9px 16px', background: '#10b981', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px' }}>
             <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -814,7 +816,7 @@ function HistoryModal({ referrer, onClose, onRefresh, onEdit }: { referrer: any,
               {referrer.transactions && referrer.transactions.length > 0 ? referrer.transactions.map((tx: any) => (
                 <tr key={tx.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                   <td style={{ padding: '12px', fontSize: '14px', color: '#334155' }}>
-                    {new Date(tx.createdAt).toLocaleDateString()}
+                    {formatDate(tx.createdAt)}
                   </td>
                   <td style={{ padding: '12px', fontSize: '14px', color: '#0f172a', fontWeight: 500 }}>
                     <div>{tx.patientName || 'N/A'}</div>

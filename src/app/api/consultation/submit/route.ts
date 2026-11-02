@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { getOrCreateUhidForPatient } from '@/lib/uhid';
+import { formatDate } from '@/lib/dateUtils';
 
 export async function POST(req: NextRequest) {
   try {
@@ -30,10 +31,10 @@ export async function POST(req: NextRequest) {
 
         if (lastYearRequest) {
           const bookedDate = lastYearRequest.createdAt;
-          const dateStr = bookedDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+          const dateStr = formatDate(bookedDate);
           const renewalDate = new Date(bookedDate);
           renewalDate.setFullYear(renewalDate.getFullYear() + 1);
-          const renewalDateStr = renewalDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+          const renewalDateStr = formatDate(renewalDate);
 
           return NextResponse.json(
             { error: `Your yearly limit is completed. General users get only one free consultation per year.\n(Last booked on: ${dateStr})\n\nYour limit will automatically renew on ${renewalDateStr}, after which you can book again.` },
@@ -52,13 +53,13 @@ export async function POST(req: NextRequest) {
 
         if (pastYearRequests.length >= 4) {
           const bookedDatesList = pastYearRequests
-            .map(req => req.createdAt.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' }))
+            .map(req => formatDate(req.createdAt))
             .join(', ');
             
           const oldestRequestDate = pastYearRequests[0].createdAt;
           const renewalDate = new Date(oldestRequestDate);
           renewalDate.setFullYear(renewalDate.getFullYear() + 1);
-          const renewalDateStr = renewalDate.toLocaleDateString('en-IN', { year: 'numeric', month: 'short', day: 'numeric' });
+          const renewalDateStr = formatDate(renewalDate);
 
           return NextResponse.json(
             { error: `Your yearly limit is completed. Corporate users get 4 free consultations per year.\n\nYou have used them on:\n${bookedDatesList}\n\nYour next available consultation will unlock on ${renewalDateStr}.` },

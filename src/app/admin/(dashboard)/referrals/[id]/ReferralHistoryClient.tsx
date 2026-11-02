@@ -2,6 +2,8 @@
 
 import React, { useState } from 'react';
 import { TransactionModal } from '../ReferralsClient';
+import DateInput from '@/components/DateInput/DateInput';
+import { formatDate } from '@/lib/dateUtils';
 
 export default function ReferralHistoryClient({ initialReferrer, services }: { initialReferrer: any, services: any[] }) {
   const [referrer, setReferrer] = useState(initialReferrer);
@@ -43,7 +45,7 @@ export default function ReferralHistoryClient({ initialReferrer, services }: { i
       csvContent += `No data found between ${fromDate} and ${toDate},,,,,,\n`;
     } else {
       filtered.forEach((tx: any) => {
-        const txDate = new Date(tx.createdAt).toLocaleDateString();
+        const txDate = formatDate(tx.createdAt);
         const patientName = `"${(tx.patientName || '').replace(/"/g, '""')}"`;
         const patientPhone = `"${(tx.patientPhone || '').replace(/"/g, '""')}"`;
         const service = `"${(tx.serviceName || '').replace(/"/g, '""')}"`;
@@ -88,11 +90,11 @@ export default function ReferralHistoryClient({ initialReferrer, services }: { i
       <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', marginBottom: '24px', background: 'white', padding: '16px', borderRadius: '12px', border: '1px solid #e2e8f0', flexWrap: 'wrap' }}>
         <div>
           <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#475569', marginBottom: '6px' }}>From Date</label>
-          <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', color: '#0f172a' }} />
+          <DateInput value={fromDate} onChange={e => setFromDate(e.target.value)} inputStyle={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#0f172a' }} />
         </div>
         <div>
           <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#475569', marginBottom: '6px' }}>To Date</label>
-          <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} style={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none', color: '#0f172a' }} />
+          <DateInput value={toDate} onChange={e => setToDate(e.target.value)} inputStyle={{ padding: '10px', borderRadius: '8px', border: '1px solid #cbd5e1', color: '#0f172a' }} />
         </div>
         <button onClick={handleDownloadStatement} style={{ padding: '10px 20px', background: '#10b981', color: 'white', border: 'none', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -117,7 +119,7 @@ export default function ReferralHistoryClient({ initialReferrer, services }: { i
             {referrer.transactions && referrer.transactions.length > 0 ? referrer.transactions.map((tx: any) => (
               <tr key={tx.id} style={{ borderBottom: '1px solid #f1f5f9' }}>
                 <td style={{ padding: '16px', fontSize: '14px', color: '#334155' }}>
-                  {new Date(tx.createdAt).toLocaleDateString()}
+                  {formatDate(tx.createdAt)}
                 </td>
                 <td style={{ padding: '16px', fontSize: '14px', color: '#0f172a', fontWeight: 500 }}>
                   <div>{tx.patientName || 'N/A'}</div>

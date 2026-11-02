@@ -1,6 +1,7 @@
 'use client';
 import React, { useState } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
+import DateInput from '@/components/DateInput/DateInput';
 
 export default function LeadsFilters({ availableDistricts = [], availableStates = [], availablePackages = [], availableYears = [] }: { availableDistricts?: string[], availableStates?: string[], availablePackages?: string[], availableYears?: string[] }) {
   const router = useRouter();
@@ -139,12 +140,10 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
         <option value="12">December</option>
       </select>
 
-      <input
-        type="date"
+      <DateInput
         value={searchParams.get('date') || ''}
         onChange={(e) => updateParams('date', e.target.value)}
-        style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: 1, minWidth: '0' }}
-        title="Filter by Specific Date"
+        inputStyle={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', flex: 1, minWidth: '0' }}
       />
     </>
   );

@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import CustomFileInput from '@/components/CustomFileInput/CustomFileInput';
+import DateInput from '@/components/DateInput/DateInput';
 import styles from '@/app/(main)/doctor-onboarding/page.module.css';
 
 const MOBILE_REGEX = /^(\+91|91)?[6-9]\d{9}$/;
@@ -202,7 +203,7 @@ export default function DoctorOnboardingForm() {
             </div>
             <div className={styles.formGroup}>
               <label>Date of Birth {reqStar}</label>
-              <input type="date" name="dob" required />
+              <DateInput name="dob" required />
             </div>
             <div className={styles.formGroup}>
               <label>Mobile Number {reqStar}</label>
@@ -469,13 +470,11 @@ export default function DoctorOnboardingForm() {
             </div>
             <div className={styles.formGroup}>
               <label>Date</label>
-              <input
-                type="date"
+              <DateInput
                 name="signatureDate"
                 defaultValue={today}
                 readOnly
-                suppressHydrationWarning
-                style={{ background: '#f1f5f9', cursor: 'not-allowed', color: '#475569' }}
+                inputStyle={{ background: '#f1f5f9', cursor: 'not-allowed', color: '#475569' }}
               />
             </div>
           </div>

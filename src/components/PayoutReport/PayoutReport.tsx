@@ -1,7 +1,10 @@
 import React, { forwardRef } from 'react';
 import styles from './PayoutReport.module.css';
 
+import { formatDate } from '@/lib/dateUtils';
+
 export interface ConsultationRecord {
+
   sNo: number;
   patientId: string;
   patientName: string;
@@ -81,7 +84,7 @@ const PayoutReport = forwardRef<HTMLDivElement, PayoutReportProps>((props, ref) 
           <tbody>
             <tr>
               <td style={{ fontWeight: 'bold', width: '70%' }}>Payout Date</td>
-              <td style={{ fontWeight: 'bold', color: '#0b4e8c' }}>{props.payoutDate}</td>
+              <td style={{ fontWeight: 'bold', color: '#0b4e8c' }}>{formatDate(props.payoutDate)}</td>
             </tr>
             <tr>
               <td style={{ fontWeight: 'bold' }}>Payment Mode</td>
@@ -95,7 +98,7 @@ const PayoutReport = forwardRef<HTMLDivElement, PayoutReportProps>((props, ref) 
         </table>
       </div>
 
-      <div className={styles.section}>
+      <div className={styles.sectionRecords}>
         <h2 className={styles.sectionTitle}>Consultation Records</h2>
         <table className={styles.table}>
           <thead>
@@ -115,7 +118,7 @@ const PayoutReport = forwardRef<HTMLDivElement, PayoutReportProps>((props, ref) 
                 <td>{record.sNo}</td>
                 <td>{record.patientId || '-'}</td>
                 <td>{record.patientName}</td>
-                <td>{record.labReportDate}</td>
+                <td>{formatDate(record.labReportDate)}</td>
                 <td>{record.genDrName}</td>
                 <td>{record.dietDrName}</td>
                 <td className={record.status.toLowerCase() === 'completed' ? styles.statusCompleted : styles.statusPending}>

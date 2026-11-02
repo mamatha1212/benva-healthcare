@@ -1,4 +1,5 @@
 import { prisma } from '@/lib/prisma';
+import { formatDate } from '@/lib/dateUtils';
 import Link from 'next/link';
 import { redirect } from 'next/navigation';
 import { cookies } from 'next/headers';
@@ -99,7 +100,7 @@ export default async function GenericModulePage({ params }: { params: Promise<{ 
               <tbody>
                 {data.map((row: any, i) => (
                   <tr key={i} style={{ borderBottom: '1px solid #e2e8f0', color: '#0f172a' }}>
-                    <td style={{ padding: '12px 16px' }}>{new Date(row.createdAt).toLocaleDateString()}</td>
+                    <td style={{ padding: '12px 16px' }}>{formatDate(row.createdAt)}</td>
                     <td style={{ padding: '12px 16px', fontWeight: 600 }}>{row.fullName || row.name || 'N/A'}</td>
                     <td style={{ padding: '12px 16px' }}>{row.mobile || row.phone || 'N/A'}</td>
                     <td style={{ padding: '12px 16px' }}>{row.district || 'N/A'}, {row.state || 'N/A'}</td>

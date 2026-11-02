@@ -1,6 +1,8 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import DateInput from '@/components/DateInput/DateInput';
+import { formatDate } from '@/lib/dateUtils';
 
 const RemarkInput = ({ req, onSave }: { req: any, onSave: (id: string, text: string) => void }) => {
   const [value, setValue] = useState(req.adminRemarks || '');
@@ -542,11 +544,11 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
         <div className="filter-group">
           <div className="filter-item">
             <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>From Date</label>
-            <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} />
+            <DateInput value={fromDate} onChange={e => setFromDate(e.target.value)} />
           </div>
           <div className="filter-item">
             <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>To Date</label>
-            <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} />
+            <DateInput value={toDate} onChange={e => setToDate(e.target.value)} />
           </div>
           <div className="filter-item">
             <label style={{ fontSize: '12px', fontWeight: 600, color: '#64748b' }}>Type</label>
@@ -589,7 +591,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
                   {index + 1}
                 </td>
                 <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0', fontSize: '14px', color: '#334155' }}>
-                  {new Date(req.createdAt).toLocaleDateString()}
+                  {formatDate(req.createdAt)}
                 </td>
                 <td style={{ padding: '16px', borderBottom: '1px solid #e2e8f0' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '6px', flexWrap: 'wrap' }}>
@@ -781,7 +783,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
                    <div style={{ fontSize: '12px', color: '#64748b', marginTop: '4px', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Patient Consultation Record</div>
                  </div>
                  <div style={{ textAlign: 'left' }}>
-                   <div style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>Date: {new Date(viewingRequest.createdAt).toLocaleDateString()}</div>
+                   <div style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>Date: {formatDate(viewingRequest.createdAt)}</div>
                    <div style={{ marginTop: '8px' }}>
                      <span style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, background: viewingRequest.type === 'CORPORATE' ? '#e0e7ff' : '#f1f5f9', color: viewingRequest.type === 'CORPORATE' ? '#4338ca' : '#475569', display: 'inline-block', border: `1px solid ${viewingRequest.type === 'CORPORATE' ? '#c7d2fe' : '#e2e8f0'}` }}>
                        {viewingRequest.type} CONSULTATION
@@ -866,7 +868,7 @@ export default function FreeConsultationsClient({ initialRequests }: { initialRe
                           <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px', fontWeight: 600, letterSpacing: '0.5px', textTransform: 'uppercase' }}>Patient Consultation Record</div>
                         </td>
                         <td style={{ verticalAlign: 'middle', width: '50%', textAlign: 'right' }}>
-                          <div style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>Date: {new Date(viewingRequest.createdAt).toLocaleDateString()}</div>
+                          <div style={{ fontSize: '14px', fontWeight: 700, color: '#334155' }}>Date: {formatDate(viewingRequest.createdAt)}</div>
                           <div style={{ marginTop: '8px' }}>
                             <span style={{ padding: '6px 12px', borderRadius: '6px', fontSize: '11px', fontWeight: 800, background: viewingRequest.type === 'CORPORATE' ? '#e0e7ff' : '#f1f5f9', color: viewingRequest.type === 'CORPORATE' ? '#4338ca' : '#475569', display: 'inline-block', border: `1px solid ${viewingRequest.type === 'CORPORATE' ? '#c7d2fe' : '#e2e8f0'}` }}>
                               {viewingRequest.type} CONSULTATION

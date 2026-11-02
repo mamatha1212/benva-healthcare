@@ -2,6 +2,7 @@ import React from 'react';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
+import { formatDate } from '@/lib/dateUtils';
 
 export default async function DoctorDashboardPage() {
   const cookieStore = await cookies();
@@ -91,7 +92,7 @@ export default async function DoctorDashboardPage() {
                   </div>
                 </div>
                 <div style={{ color: '#64748b', fontSize: '13px' }}>
-                  {new Date(activity.createdAt).toLocaleDateString()}
+                  {formatDate(activity.createdAt)}
                 </div>
               </div>
             ))}

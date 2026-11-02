@@ -2,6 +2,7 @@ import { prisma } from '@/lib/prisma';
 import styles from './page.module.css';
 import React from 'react';
 import Link from 'next/link';
+import { formatDate } from '@/lib/dateUtils';
 import LeadStatusDropdown from '@/components/LeadStatusDropdown/LeadStatusDropdown';
 import LeadsFilters from '@/components/LeadsFilters/LeadsFilters';
 import LeadSearch from '@/components/LeadsFilters/LeadSearch';
@@ -255,7 +256,7 @@ export default async function AdminDashboard({
               return (
                 <div key={report.id} style={{ background: 'white', padding: '12px', borderRadius: '8px', borderLeft: `4px solid ${isOverdue ? '#ef4444' : '#10b981'}` }}>
                   <div style={{ fontWeight: 600, color: isOverdue ? '#ef4444' : '#1e293b' }}>
-                    Patient Follow-up Due on {rDate.toLocaleDateString()}
+                    Patient Follow-up Due on {formatDate(rDate)}
                   </div>
                   <div style={{ fontSize: '13px', color: '#64748b', marginTop: '4px' }}>
                     <strong>Name:</strong> {report.patientName || 'Unknown'} <br/>

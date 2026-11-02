@@ -6,6 +6,7 @@ import styles from './page.module.css';
 import LeadStatusDropdown from '@/components/LeadStatusDropdown/LeadStatusDropdown';
 import LeadRemarksUpdater from '@/components/LeadRemarksUpdater/LeadRemarksUpdater';
 import ServiceabilityCheck from '@/components/ServiceabilityCheck/ServiceabilityCheck';
+import { formatDate } from '@/lib/dateUtils';
 
 export default function LeadsTableClient({
   paginatedLeads,
@@ -182,7 +183,7 @@ export default function LeadsTableClient({
               {tab === 'contact' ? (
                 <>
                   <td className={styles.td} suppressHydrationWarning>
-                    {new Date(lead.createdAt).toLocaleDateString()}
+                    {formatDate(lead.createdAt)}
                   </td>
                   <td className={styles.td}>
                     <strong>{lead.fullName}</strong>
@@ -207,7 +208,7 @@ export default function LeadsTableClient({
                   </td>
                   )}
                   <td className={styles.td} suppressHydrationWarning>
-                    {new Date(lead.createdAt).toLocaleDateString()}<br/>
+                    {formatDate(lead.createdAt)}<br/>
                     {tab !== 'availability' && tab !== 'diet-plan' && tab !== 'checkups' && tab !== 'membership' && tab !== 'callback' && (
                     <span style={{ 
                       fontSize: '12px', 

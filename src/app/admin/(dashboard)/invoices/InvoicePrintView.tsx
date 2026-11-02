@@ -1,6 +1,7 @@
 'use client';
 
 import React from 'react';
+import { formatDate } from '@/lib/dateUtils';
 
 export interface InvoiceItemData {
   id?: string;
@@ -140,7 +141,7 @@ export default function InvoicePrintView({
   const customerAddress = invoice.patient?.address || invoice.patientAddress || 'Kakinada, Andhra Pradesh';
 
   const dateObj = new Date(invoice.billDate || Date.now());
-  const formattedDate = `${String(dateObj.getDate()).padStart(2, '0')}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${dateObj.getFullYear()}`;
+  const formattedDate = formatDate(invoice.billDate || dateObj);
   const formattedDateTime = formatDateTime(invoice.billDate || dateObj);
 
   // Totals calculations

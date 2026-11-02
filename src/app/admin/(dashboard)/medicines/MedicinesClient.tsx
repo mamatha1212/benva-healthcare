@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import MedicineRevenueStatementModal, { MedicineOrderTransaction, MedicineRevenueSummary } from './MedicineRevenueStatementModal';
+import DateInput from '@/components/DateInput/DateInput';
+import { formatDate } from '@/lib/dateUtils';
 
 export default function MedicinesClient({ initialOrders }: { initialOrders: any[] }) {
   const [orders, setOrders] = useState(initialOrders);
@@ -2939,22 +2941,18 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
 
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>From:</span>
-              <input 
-                type="date" 
-                className="date-filter-input"
+              <DateInput 
                 value={fromDate} 
                 onChange={e => { setFromDate(e.target.value); setSelectedPreset('all'); }} 
-                style={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: 'white', color: '#0f172a', colorScheme: 'light', fontWeight: 500 }} 
+                inputStyle={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: 'white', color: '#0f172a', fontWeight: 500 }} 
               />
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
               <span style={{ fontSize: '13px', fontWeight: 700, color: '#475569' }}>To:</span>
-              <input 
-                type="date" 
-                className="date-filter-input"
+              <DateInput 
                 value={toDate} 
                 onChange={e => { setToDate(e.target.value); setSelectedPreset('all'); }} 
-                style={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: 'white', color: '#0f172a', colorScheme: 'light', fontWeight: 500 }} 
+                inputStyle={{ padding: '7px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', background: 'white', color: '#0f172a', fontWeight: 500 }} 
               />
             </div>
             {(fromDate || toDate) && (
@@ -5048,20 +5046,18 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px', marginBottom: '20px' }}>
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, color: '#334155' }}>Last Given Date</label>
-                    <input 
-                      type="date" 
+                    <DateInput 
                       value={formData.lastGivenDate} 
                       onChange={e => setFormData({...formData, lastGivenDate: e.target.value})} 
-                      style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#0f172a', backgroundColor: '#ffffff', colorScheme: 'light', fontSize: '14px', fontWeight: 500 }} 
+                      inputStyle={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#0f172a', backgroundColor: '#ffffff', fontSize: '14px', fontWeight: 500 }} 
                     />
                   </div>
                   <div>
                     <label style={{ display: 'block', marginBottom: '8px', fontWeight: 600, color: '#334155' }}>Next Due Date</label>
-                    <input 
-                      type="date" 
+                    <DateInput 
                       value={formData.nextDueDate} 
                       onChange={e => setFormData({...formData, nextDueDate: e.target.value})} 
-                      style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#0f172a', backgroundColor: '#ffffff', colorScheme: 'light', fontSize: '14px', fontWeight: 500 }} 
+                      inputStyle={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1', color: '#0f172a', backgroundColor: '#ffffff', fontSize: '14px', fontWeight: 500 }} 
                     />
                   </div>
                 </div>
@@ -5887,11 +5883,10 @@ export default function MedicinesClient({ initialOrders }: { initialOrders: any[
               <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#334155', marginBottom: '6px' }}>
                 Next Refill Due Date:
               </label>
-              <input
-                type="date"
+              <DateInput
                 value={newDueDateValue}
                 onChange={e => setNewDueDateValue(e.target.value)}
-                style={{ width: '100%', padding: '10px 12px', borderRadius: '7px', border: '1.5px solid #0284c7', fontSize: '14px', outline: 'none', color: '#0f172a', backgroundColor: '#ffffff', colorScheme: 'light', fontWeight: 500 }}
+                inputStyle={{ width: '100%', padding: '10px 12px', borderRadius: '7px', border: '1.5px solid #0284c7', fontSize: '14px', color: '#0f172a', backgroundColor: '#ffffff', fontWeight: 500 }}
               />
             </div>
 

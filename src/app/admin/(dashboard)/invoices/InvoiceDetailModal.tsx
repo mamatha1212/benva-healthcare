@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import InvoicePrintView, { InvoiceData } from './InvoicePrintView';
+import { formatDateTime } from '@/lib/dateUtils';
 
 interface Props {
   invoice: any | null;
@@ -383,7 +384,7 @@ export default function InvoiceDetailModal({ invoice, isOpen, onClose, onUpdate 
                   <div style={{ position: 'absolute', left: '-22px', top: '2px', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#0284c7' }} />
                   <div style={{ fontWeight: '700', fontSize: '13px', color: '#0f172a' }}>Invoice Created</div>
                   <div style={{ fontSize: '12px', color: '#64748b' }}>
-                    Date: {new Date(invoice.createdAt || invoice.billDate).toLocaleString()}
+                    Date: {formatDateTime(invoice.createdAt || invoice.billDate)}
                   </div>
                   <div style={{ fontSize: '12px', color: '#334155', marginTop: '2px' }}>
                     Created by Administrator • Initial Total: ₹{Number(invoice.totalAmount).toFixed(2)}
@@ -395,7 +396,7 @@ export default function InvoiceDetailModal({ invoice, isOpen, onClose, onUpdate 
                     <div style={{ position: 'absolute', left: '-22px', top: '2px', width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#64748b' }} />
                     <div style={{ fontWeight: '700', fontSize: '13px', color: '#0f172a' }}>{h.action || 'Activity'}</div>
                     <div style={{ fontSize: '12px', color: '#64748b' }}>
-                      Date: {new Date(h.date || Date.now()).toLocaleString()}
+                      Date: {formatDateTime(h.date || Date.now())}
                     </div>
                     {h.reason && <div style={{ fontSize: '12px', color: '#dc2626', marginTop: '2px' }}>Reason: {h.reason}</div>}
                   </div>

@@ -4,6 +4,8 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import modalStyles from './DoctorApplicationsModal.module.css';
+import DateInput from '@/components/DateInput/DateInput';
+import { formatDate } from '@/lib/dateUtils';
 import { 
   User, 
   FileText, 
@@ -116,6 +118,12 @@ const DetailTile = ({
           <span className={`${modalStyles.tileValue} ${isMono ? modalStyles.tileMono : ''}`}>
             {value || '-'}
           </span>
+        ) : type === 'date' ? (
+          <DateInput
+            name={name}
+            value={value as string || ''}
+            onChange={onChange}
+          />
         ) : (
           <input
             type={type}
@@ -128,7 +136,7 @@ const DetailTile = ({
       ) : (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px' }}>
           <span className={`${modalStyles.tileValue} ${isMono ? modalStyles.tileMono : ''}`}>
-            {value || '-'}
+            {type === 'date' ? formatDate(value as string) : (value || '-')}
           </span>
           {action && action.href && (
             <a
@@ -302,7 +310,7 @@ export default function DoctorApplicationsTableClient({
                     <Stethoscope size={14} /> DOCTOR ONBOARDING APPLICATION
                   </span>
                   <span style={{ fontSize: '12px', color: '#94a3b8' }}>
-                    Applied {selectedApp.createdAt ? new Date(selectedApp.createdAt).toLocaleDateString('en-US', { day: '2-digit', month: 'short', year: 'numeric' }) : '-'}
+                    Applied {formatDate(selectedApp.createdAt)}
                   </span>
                 </div>
                 <button
@@ -754,7 +762,7 @@ export default function DoctorApplicationsTableClient({
                         Submission Timestamp
                       </span>
                       <span style={{ fontSize: '13px', color: '#15803d', fontWeight: 700 }}>
-                        {selectedApp.signatureDate || (selectedApp.createdAt ? new Date(selectedApp.createdAt).toLocaleDateString() : '-')}
+                        {formatDate(selectedApp.signatureDate || selectedApp.createdAt)}
                       </span>
                     </div>
                   </div>
@@ -938,12 +946,12 @@ export default function DoctorApplicationsTableClient({
                   {(currentPage - 1) * pageSize + index + 1}
                 </td>
                 <td className={styles.td} suppressHydrationWarning>
-                  {new Date(app.createdAt).toLocaleDateString()}
+                  {formatDate(app.createdAt)}
                 </td>
                 <td className={styles.td}>
                   <strong>{app.fullName}</strong><br />
                   <span style={{ fontSize: '13px', color: '#4a5568' }}>{app.title}</span><br />
-                  <span style={{ fontSize: '12px', color: '#718096' }}>{app.gender} | {app.dob}</span>
+                  <span style={{ fontSize: '12px', color: '#718096' }}>{app.gender} | {formatDate(app.dob)}</span>
                 </td>
                 <td className={styles.td}>
                   <strong style={{ color: 'var(--color-primary)' }}>{app.primarySpecialization}</strong><br />

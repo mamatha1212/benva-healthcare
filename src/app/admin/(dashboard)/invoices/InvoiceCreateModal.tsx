@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import styles from './Invoices.module.css';
+import DateInput from '@/components/DateInput/DateInput';
 
 interface PatientRecord {
   id: string;
@@ -680,11 +681,10 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
                   </div>
                   <div>
                     <label style={{ fontSize: '11px', fontWeight: '700', color: '#475569' }}>Start Date</label>
-                    <input
-                      type="date"
+                    <DateInput
                       value={startDate}
                       onChange={(e) => setStartDate(e.target.value)}
-                      style={{ width: '100%', padding: '8px 10px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
+                      inputStyle={{ width: '100%', padding: '8px 10px', fontSize: '13px', border: '1px solid #cbd5e1', borderRadius: '6px' }}
                     />
                   </div>
                 </>

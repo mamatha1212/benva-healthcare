@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Loader2, Download, Plus, Trash2 } from 'lucide-react';
 import { useSearchParams, useRouter, useParams } from 'next/navigation';
+import DateInput from '@/components/DateInput/DateInput';
+import { formatDate } from '@/lib/dateUtils';
 
 const DurationSelector = ({ value, onChange }: { value: string, onChange: (v: string) => void }) => {
   const [isOpen, setIsOpen] = useState(false);
@@ -938,7 +940,7 @@ export default function PrescriptionPage() {
                 <tr>
                   <td className="rx-label-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Consultation Date</td>
                   <td className="rx-val-cell" style={{ border: `1px solid ${colors.borderColor}`, padding: '6px 8px' }}>
-                    {isViewMode ? (formData.consultationDate ? formData.consultationDate.split('-').reverse().join('-') : '') : <input type="date" name="consultationDate" value={formData.consultationDate} onChange={handleInputChange} style={inputStyle} />}
+                    {isViewMode ? (formData.consultationDate ? formatDate(formData.consultationDate) : '') : <DateInput name="consultationDate" value={formData.consultationDate} onChange={handleInputChange} inputStyle={inputStyle} />}
                   </td>
                 </tr>
                 <tr>

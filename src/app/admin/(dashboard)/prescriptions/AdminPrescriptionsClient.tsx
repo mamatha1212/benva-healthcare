@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import { formatDate } from '@/lib/dateUtils';
 
 const getFormattedPrescription = (rawText: string) => {
   try {
@@ -490,7 +491,7 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#f8fafc', padding: '8px 12px', borderRadius: '8px', fontSize: '12px', color: '#475569', flexWrap: 'wrap', gap: '6px' }}>
                 <span style={{ fontWeight: 600, color: '#4338ca' }}>{formatDoctorName(file?.patient?.consultant)}</span>
                 <span suppressHydrationWarning style={{ color: '#64748b' }}>
-                  {file.createdAt ? new Date(file.createdAt).toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata', month: 'short', day: 'numeric', year: 'numeric' }) : 'Unknown Date'}
+                  {formatDate(file.createdAt, 'Unknown Date')}
                 </span>
               </div>
 
@@ -556,7 +557,7 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                   </div>
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: '4px', background: '#f8fafc', padding: '3px 8px', borderRadius: '16px', border: '1px solid #e2e8f0', fontSize: '11px' }}>
                     <span style={{ color: '#64748b', fontWeight: 600 }}>DATE:</span>
-                    <span style={{ color: '#475569', fontWeight: 600 }}>{viewingFile?.fileInfo?.createdAt ? new Date(viewingFile.fileInfo.createdAt).toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata', year: 'numeric', month: 'short', day: 'numeric' }) : 'Unknown'}</span>
+                    <span style={{ color: '#475569', fontWeight: 600 }}>{formatDate(viewingFile?.fileInfo?.createdAt, 'Unknown')}</span>
                   </div>
                 </div>
               </div>
@@ -789,7 +790,7 @@ export default function AdminPrescriptionsClient({ initialPrescriptions }: { ini
                             <tr>
                               <td style={{ border: `1px solid ${colors.borderColor}`, padding: '5px 8px', width: '30%', backgroundColor: colors.leftColBg, fontWeight: 'bold', color: colors.headerBg }}>Consultation Date</td>
                               <td style={{ border: `1px solid ${colors.borderColor}`, padding: '5px 8px' }}>
-                                {viewingFile?.fileInfo?.createdAt ? new Date(viewingFile.fileInfo.createdAt).toLocaleDateString('en-US', { timeZone: 'Asia/Kolkata' }) : 'Unknown'}
+                                {formatDate(viewingFile?.fileInfo?.createdAt, 'Unknown')}
                               </td>
                             </tr>
                             <tr>

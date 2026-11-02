@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
+import { formatDate } from '@/lib/dateUtils';
 
 export default function DoctorPatientsClient({ initialPatients, doctorName }: { initialPatients: any[], doctorName: string }) {
   const [patients, setPatients] = useState(initialPatients);
@@ -264,7 +265,7 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
                 </td>
                 <td suppressHydrationWarning>
                   <div style={{ fontSize: '13px', color: '#64748b' }}>
-                    {new Date(patient.createdAt).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
+                    {formatDate(patient.createdAt)}
                   </div>
                 </td>
                 <td style={{ textAlign: 'right' }}>

@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
+import DateInput from '@/components/DateInput/DateInput';
+import { formatDate } from '@/lib/dateUtils';
 
 export default function ReferrerDashboardClient() {
   const [data, setData] = useState<any>(null);
@@ -58,7 +60,7 @@ export default function ReferrerDashboardClient() {
       csvContent += `There is no data for the period between ${fromDate} and ${toDate},,,,\n`;
     } else {
       filtered.forEach((tx: any) => {
-        const txDate = new Date(tx.createdAt).toLocaleDateString();
+        const txDate = formatDate(tx.createdAt);
         const patientName = `"${(tx.patientName || '').replace(/"/g, '""')}"`;
         const service = `"${(tx.serviceName || '').replace(/"/g, '""')}"`;
         const amount = tx.amount || 0;
@@ -109,11 +111,11 @@ export default function ReferrerDashboardClient() {
             <div style={{ display: 'flex', gap: '12px', alignItems: 'flex-end', background: 'white', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>From Date</label>
-                <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: '#f8fafc' }} />
+                <DateInput value={fromDate} onChange={e => setFromDate(e.target.value)} inputStyle={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc' }} />
               </div>
               <div>
                 <label style={{ display: 'block', fontSize: '12px', fontWeight: 600, color: '#475569', marginBottom: '4px' }}>To Date</label>
-                <input type="date" value={toDate} onChange={e => setToDate(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none', background: '#f8fafc' }} />
+                <DateInput value={toDate} onChange={e => setToDate(e.target.value)} inputStyle={{ padding: '8px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#f8fafc' }} />
               </div>
               <button onClick={handleDownloadStatement} style={{ padding: '9px 16px', background: '#2563eb', color: 'white', border: 'none', borderRadius: '6px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '6px', transition: 'background 0.2s' }} onMouseOver={e => e.currentTarget.style.background = '#1d4ed8'} onMouseOut={e => e.currentTarget.style.background = '#2563eb'}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
@@ -136,7 +138,7 @@ export default function ReferrerDashboardClient() {
                 {data.transactions && data.transactions.length > 0 ? data.transactions.map((tx: any) => (
                   <tr key={tx.id}>
                     <td style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0', color: '#334155', fontSize: '14px' }}>
-                      {new Date(tx.createdAt).toLocaleDateString()}
+                      {formatDate(tx.createdAt)}
                     </td>
                     <td style={{ padding: '16px 24px', borderBottom: '1px solid #e2e8f0', color: '#0f172a', fontWeight: 500, fontSize: '14px' }}>
                       {tx.patientName || 'N/A'}

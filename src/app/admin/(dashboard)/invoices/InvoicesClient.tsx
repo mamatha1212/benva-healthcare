@@ -5,6 +5,7 @@ import styles from './Invoices.module.css';
 import InvoiceCreateModal from './InvoiceCreateModal';
 import InvoiceDetailModal from './InvoiceDetailModal';
 import StatementDownloadModal from './StatementDownloadModal';
+import { formatDate } from '@/lib/dateUtils';
 
 interface Props {
   initialInvoices: any[];
@@ -476,8 +477,7 @@ export default function InvoicesClient({ initialInvoices }: Props) {
                 </tr>
               ) : (
                 filteredInvoices.map((inv) => {
-                  const dateObj = new Date(inv.billDate || inv.createdAt);
-                  const formattedDate = `${String(dateObj.getDate()).padStart(2, '0')}-${String(dateObj.getMonth() + 1).padStart(2, '0')}-${dateObj.getFullYear()}`;
+                  const formattedDate = formatDate(inv.billDate || inv.createdAt);
 
                   return (
                     <tr key={inv.id}>

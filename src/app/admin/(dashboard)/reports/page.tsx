@@ -6,6 +6,7 @@ import JSZip from 'jszip';
 import { saveAs } from 'file-saver';
 import InvoiceGeneratorModal from '../patient-records/InvoiceGeneratorModal';
 import InvoiceView from '../patient-records/InvoiceView';
+import { formatDate } from '@/lib/dateUtils';
 
 function ReportsManagementContent() {
   const router = useRouter();
@@ -616,7 +617,7 @@ function ReportsManagementContent() {
       t += `Lab: ${report.labName || 'N/A'}\n`;
       if (report.reference) t += `Ref: ${report.reference}\n`;
       if (report.remarks) t += `Remarks: ${report.remarks}\n`;
-      if (report.needsReminder && report.reminderDate) t += `Reminder: ${new Date(report.reminderDate).toLocaleDateString()}\n`;
+      if (report.needsReminder && report.reminderDate) t += `Reminder: ${formatDate(report.reminderDate)}\n`;
       t += `File: ${report.fileName || 'N/A'}\n`;
       
       await navigator.clipboard.writeText(t);
@@ -689,7 +690,7 @@ function ReportsManagementContent() {
               {selectedDate && view !== 'SEARCH' && (
                 <>
                   <span>/</span>
-                  <span style={{ color: view === 'REPORTS' ? '#1a202c' : '#2563eb', fontWeight: view === 'REPORTS' ? 600 : 400 }}>{selectedDate.toLocaleDateString()}</span>
+                  <span style={{ color: view === 'REPORTS' ? '#1a202c' : '#2563eb', fontWeight: view === 'REPORTS' ? 600 : 400 }}>{formatDate(selectedDate)}</span>
                 </>
               )}
               {view === 'SEARCH' && (
@@ -893,7 +894,7 @@ function ReportsManagementContent() {
           <div>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '16px' }}>
               <h2 style={{ color: '#1e293b', margin: 0 }}>
-                {view === 'SEARCH' ? `Search Results (${searchResults.length})` : `Reports for ${selectedDate?.toLocaleDateString()}`}
+                {view === 'SEARCH' ? `Search Results (${searchResults.length})` : `Reports for ${formatDate(selectedDate)}`}
               </h2>
               <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                 {selectedReportIds.size > 0 && (
@@ -972,7 +973,7 @@ function ReportsManagementContent() {
                   
                   {view === 'SEARCH' && (
                     <div style={{ fontSize: '12px', color: '#f59e0b', fontWeight: 600, marginTop: '-8px' }}>
-                      📅 Date: {new Date(mainReport.date).toLocaleDateString()}
+                      📅 Date: {formatDate(mainReport.date)}
                     </div>
                   )}
                   
@@ -985,7 +986,7 @@ function ReportsManagementContent() {
                     {mainReport.remarks && <div style={{ gridColumn: '1 / -1' }}><strong>Remarks:</strong> {mainReport.remarks}</div>}
                     {mainReport.needsReminder && (
                       <div style={{ gridColumn: '1 / -1', color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '4px' }}>
-                        🔔 Reminder: {new Date(mainReport.reminderDate).toLocaleDateString()}
+                        🔔 Reminder: {formatDate(mainReport.reminderDate)}
                       </div>
                     )}
                   </div>
