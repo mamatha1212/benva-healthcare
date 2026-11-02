@@ -42,7 +42,7 @@ export default function DoctorPayoutsClient({ doctorName }: { doctorName: string
         jsPDF: { unit: 'mm' as const, format: 'a4', orientation: 'portrait' as const },
         pagebreak: { 
           mode: ['avoid-all', 'css'],
-          avoid: ['.section', '.sectionRecords', 'tr', '.screenshotContainer', '.infoBox', '.signature']
+          avoid: ['tr', '.screenshotContainer', '.infoBox', '.signature']
         }
       };
       

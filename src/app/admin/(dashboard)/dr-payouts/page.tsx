@@ -138,7 +138,7 @@ export default function DrPayoutsPage() {
         jsPDF: { unit: 'in' as const, format: 'a4', orientation: 'portrait' as const },
         pagebreak: { 
           mode: ['avoid-all', 'css'],
-          avoid: ['.section', '.sectionRecords', 'tr', '.screenshotContainer', '.infoBox', '.signature']
+          avoid: ['tr', '.screenshotContainer', '.infoBox', '.signature']
         }
       };
 

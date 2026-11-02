@@ -4,7 +4,7 @@
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
-  padding: 12px 28px 24px 28px;
+  padding: 10px 24px 18px 24px;
   background-color: white;
   box-sizing: border-box;
 }
@@ -12,33 +12,33 @@
 .header {
   text-align: center;
   margin-top: 0;
-  margin-bottom: 18px;
+  margin-bottom: 12px;
   border-bottom: 2px solid #e2e8f0;
   padding-top: 0;
-  padding-bottom: 14px;
+  padding-bottom: 10px;
   page-break-inside: avoid !important;
   break-inside: avoid !important;
 }
 
 .logo {
-  max-width: 170px;
+  max-width: 140px;
   height: auto;
-  margin: 0 auto 10px auto;
+  margin: 0 auto 6px auto;
   display: block;
 }
 
 .title {
   color: #0f172a;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 800;
   letter-spacing: -0.3px;
-  margin: 0 0 4px 0;
+  margin: 0 0 3px 0;
   line-height: 1.25;
 }
 
 .year {
   color: #2563eb;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
   letter-spacing: 1px;
   margin: 0;
@@ -48,17 +48,17 @@
   background: linear-gradient(to right, #f8fafc, #f1f5f9);
   border: 1px solid #e2e8f0;
   border-left: 4px solid #2563eb;
-  border-radius: 8px;
-  padding: 12px 18px;
-  margin-bottom: 18px;
+  border-radius: 6px;
+  padding: 8px 14px;
+  margin-bottom: 12px;
   page-break-inside: avoid !important;
   break-inside: avoid !important;
 }
 
 .infoRow {
   display: flex;
-  margin-bottom: 8px;
-  font-size: 14px;
+  margin-bottom: 4px;
+  font-size: 12px;
 }
 
 .infoRow:last-child {
@@ -68,7 +68,7 @@
 .infoLabel {
   font-weight: 600;
   color: #64748b;
-  width: 180px;
+  width: 160px;
 }
 
 .infoValue {
@@ -77,25 +77,25 @@
 }
 
 .section {
-  margin-bottom: 20px;
+  margin-bottom: 12px;
   page-break-inside: avoid !important;
   break-inside: avoid !important;
 }
 
 .sectionRecords {
-  margin-bottom: 20px;
-  page-break-inside: auto;
-  break-inside: auto;
+  margin-bottom: 14px;
+  page-break-inside: auto !important;
+  break-inside: auto !important;
 }
 
 .sectionTitle {
   color: #0f172a;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
-  margin: 0 0 10px 0;
+  margin: 0 0 6px 0;
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: 6px;
   page-break-after: avoid !important;
   break-after: avoid !important;
 }
@@ -103,27 +103,36 @@
 .sectionTitle::before {
   content: '';
   display: block;
-  width: 4px;
-  height: 16px;
+  width: 3px;
+  height: 14px;
   background-color: #2563eb;
-  border-radius: 4px;
+  border-radius: 3px;
 }
 
 .table {
   width: 100%;
   border-collapse: collapse;
   border-spacing: 0;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   border: 1px solid #cbd5e1;
+  page-break-inside: auto !important;
+  break-inside: auto !important;
+}
+
+.table thead {
+  display: table-header-group;
+}
+
+.table tbody {
   page-break-inside: auto !important;
   break-inside: auto !important;
 }
 
 .table th, .table td {
   border-bottom: 1px solid #e2e8f0;
-  padding: 9px 12px;
+  padding: 6px 8px;
   text-align: left;
-  font-size: 13px;
+  font-size: 11px;
 }
 
 .table tr {
@@ -140,7 +149,7 @@
   color: #334155;
   font-weight: 700;
   text-transform: uppercase;
-  font-size: 11px;
+  font-size: 10px;
   letter-spacing: 0.5px;
 }
 
@@ -152,36 +161,36 @@
   color: #059669;
   font-weight: 700;
   background: #d1fae5;
-  padding: 3px 8px;
+  padding: 2px 6px;
   border-radius: 4px;
   display: inline-block;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .statusPending {
   color: #d97706;
   font-weight: 700;
   background: #fef3c7;
-  padding: 3px 8px;
+  padding: 2px 6px;
   border-radius: 4px;
   display: inline-block;
-  font-size: 11px;
+  font-size: 10px;
 }
 
 .signature {
-  margin-top: 24px;
+  margin-top: 14px;
   text-align: left;
   border-top: 1px solid #e2e8f0;
-  padding-top: 14px;
+  padding-top: 8px;
   display: inline-block;
-  min-width: 260px;
+  min-width: 220px;
   page-break-inside: avoid !important;
   break-inside: avoid !important;
 }
 
 .signature p {
-  margin: 3px 0;
-  font-size: 13px;
+  margin: 2px 0;
+  font-size: 11px;
 }
 
 .screenshotContainer {
