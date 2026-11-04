@@ -65,7 +65,7 @@ export default function StatementDownloadModal({ invoices, isOpen, onClose }: Pr
       'Pending Amount (₹)',
       'Payment Status',
       'Invoice Status',
-      'Benva Revenue (₹)'
+      'Gross Margin (₹)'
     ];
 
     const rows = filtered.map(i => [

@@ -179,7 +179,7 @@ export default function InvoicesClient({ initialInvoices }: Props) {
         </div>
 
         <div className={styles.summaryCard} style={{ borderLeft: '4px solid #8b5cf6' }}>
-          <div className={styles.summaryLabel}>Benva Revenue</div>
+          <div className={styles.summaryLabel}>Gross Margin</div>
           <div className={styles.summaryValue} style={{ color: '#8b5cf6' }}>
             ₹{benvaRevenue.toLocaleString('en-IN', { maximumFractionDigits: 0 })}
           </div>
@@ -258,7 +258,7 @@ export default function InvoicesClient({ initialInvoices }: Props) {
                   <span>₹{labMetrics.business.toFixed(0)}</span>
                 </div>
                 <div className={styles.moduleMetricItem} style={{ gridColumn: 'span 2' }}>
-                  <span>Benva Revenue</span>
+                  <span>Gross Margin</span>
                   <span style={{ color: '#0284c7' }}>₹{labMetrics.revenue.toFixed(0)}</span>
                 </div>
               </div>
@@ -299,7 +299,7 @@ export default function InvoicesClient({ initialInvoices }: Props) {
                   <span>₹{medicinesMetrics.business.toFixed(0)}</span>
                 </div>
                 <div className={styles.moduleMetricItem} style={{ gridColumn: 'span 2' }}>
-                  <span>Benva Revenue</span>
+                  <span>Gross Margin</span>
                   <span style={{ color: '#0284c7' }}>₹{medicinesMetrics.revenue.toFixed(0)}</span>
                 </div>
               </div>
@@ -340,7 +340,7 @@ export default function InvoicesClient({ initialInvoices }: Props) {
                   <span>₹{doctorMetrics.business.toFixed(0)}</span>
                 </div>
                 <div className={styles.moduleMetricItem} style={{ gridColumn: 'span 2' }}>
-                  <span>Benva Revenue</span>
+                  <span>Gross Margin</span>
                   <span style={{ color: '#0284c7' }}>₹{doctorMetrics.revenue.toFixed(0)}</span>
                 </div>
               </div>
@@ -381,7 +381,7 @@ export default function InvoicesClient({ initialInvoices }: Props) {
                   <span>₹{dietitianMetrics.business.toFixed(0)}</span>
                 </div>
                 <div className={styles.moduleMetricItem} style={{ gridColumn: 'span 2' }}>
-                  <span>Benva Revenue</span>
+                  <span>Gross Margin</span>
                   <span style={{ color: '#0284c7' }}>₹{dietitianMetrics.revenue.toFixed(0)}</span>
                 </div>
               </div>

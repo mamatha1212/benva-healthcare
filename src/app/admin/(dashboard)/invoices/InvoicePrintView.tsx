@@ -820,7 +820,7 @@ export default function InvoicePrintView({
                 <th style={{ padding: '8px 10px', borderRight: '1px solid #d1d5db', width: '75px', textAlign: 'center' }}>HSN/ SAC</th>
                 <th style={{ padding: '8px 10px', borderRight: '1px solid #d1d5db', width: '60px', textAlign: 'center' }}>Quantity</th>
                 <th style={{ padding: '8px 10px', borderRight: '1px solid #d1d5db', width: '50px', textAlign: 'center' }}>Unit</th>
-                <th style={{ padding: '8px 10px', borderRight: '1px solid #d1d5db', width: '90px', textAlign: 'right' }}>Price/ Unit (₹)</th>
+                <th style={{ padding: '8px 10px', borderRight: '1px solid #d1d5db', width: '100px', textAlign: 'right' }}>MRP (Incl. GST)</th>
                 <th style={{ padding: '8px 10px', borderRight: '1px solid #d1d5db', width: '100px', textAlign: 'right' }}>Discount (₹)</th>
                 {isGst && (
                   <th style={{ padding: '8px 10px', borderRight: '1px solid #d1d5db', width: '95px', textAlign: 'right' }}>GST(₹)</th>
@@ -968,11 +968,29 @@ export default function InvoicePrintView({
               <table style={{ width: '100%', fontSize: '12px', borderCollapse: 'collapse' }}>
                 <tbody>
                   <tr>
-                    <td style={{ padding: '3px 0', color: '#4b5563' }}>Sub Total</td>
-                    <td style={{ padding: '3px 0', textAlign: 'right', fontWeight: '600' }}>: ₹ {grandTotal.toFixed(2)}</td>
+                    <td style={{ padding: '2px 0', color: '#4b5563' }}>Gross MRP</td>
+                    <td style={{ padding: '2px 0', textAlign: 'right', fontWeight: '600' }}>: ₹ {totalMrp.toFixed(2)}</td>
                   </tr>
-                  <tr style={{ borderBottom: '1px solid #d1d5db' }}>
-                    <td style={{ padding: '4px 0', fontWeight: '700', color: '#111827' }}>Total</td>
+                  {totalDiscount > 0 && (
+                    <tr>
+                      <td style={{ padding: '2px 0', color: '#16a34a' }}>Customer Discount</td>
+                      <td style={{ padding: '2px 0', textAlign: 'right', fontWeight: '600', color: '#16a34a' }}>: -₹ {totalDiscount.toFixed(2)}</td>
+                    </tr>
+                  )}
+                  {isGst && (
+                    <>
+                      <tr>
+                        <td style={{ padding: '2px 0', color: '#4b5563' }}>Taxable Value</td>
+                        <td style={{ padding: '2px 0', textAlign: 'right', fontWeight: '600' }}>: ₹ {taxableTotal.toFixed(2)}</td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: '2px 0', color: '#4b5563' }}>Total GST (Incl.)</td>
+                        <td style={{ padding: '2px 0', textAlign: 'right', fontWeight: '600' }}>: ₹ {totalGst.toFixed(2)}</td>
+                      </tr>
+                    </>
+                  )}
+                  <tr style={{ borderTop: '1px solid #d1d5db', borderBottom: '1px solid #d1d5db' }}>
+                    <td style={{ padding: '4px 0', fontWeight: '700', color: '#111827' }}>Grand Total</td>
                     <td style={{ padding: '4px 0', textAlign: 'right', fontWeight: '800', fontSize: '14px', color: '#0284c7' }}>: ₹ {grandTotal.toFixed(2)}</td>
                   </tr>
                   <tr>

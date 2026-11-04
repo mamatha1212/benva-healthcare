@@ -32,7 +32,7 @@ function SidebarContent({ isOpen, onClose }: { isOpen?: boolean; onClose?: () =>
   return (
     <aside className={`${styles.sidebar} ${isOpen ? styles.open : ''}`}>
       <div className={styles.logoContainer} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-        <img src="/images/Benva%20NEW.png" alt="BENVA Healthcare" style={{ height: '60px', width: 'auto', transform: 'scale(2)', transformOrigin: 'left center' }} className={styles.logo} />
+        <img src="/images/Benva%20NEW.png" alt="BENVA Healthcare" style={{ height: '50px', width: 'auto' }} className={styles.logo} />
         <button className={styles.mobileCloseBtn} onClick={onClose} aria-label="Close Menu">
           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="18" y1="6" x2="6" y2="18"></line>

@@ -4,7 +4,7 @@
   width: 100%;
   max-width: 800px;
   margin: 0 auto;
-  padding: 10px 24px 18px 24px;
+  padding: 0 24px 18px 24px;
   background-color: white;
   box-sizing: border-box;
 }
@@ -15,16 +15,17 @@
   margin-bottom: 12px;
   border-bottom: 2px solid #e2e8f0;
   padding-top: 0;
-  padding-bottom: 10px;
+  padding-bottom: 8px;
   page-break-inside: avoid !important;
   break-inside: avoid !important;
 }
 
 .logo {
-  max-width: 140px;
+  max-width: 200px;
   height: auto;
-  margin: 0 auto 6px auto;
+  margin: 0 auto 4px auto;
   display: block;
+  object-fit: contain;
 }
 
 .title {
@@ -45,14 +46,15 @@
 }
 
 .infoBox {
-  background: linear-gradient(to right, #f8fafc, #f1f5f9);
-  border: 1px solid #e2e8f0;
-  border-left: 4px solid #2563eb;
-  border-radius: 6px;
-  padding: 8px 14px;
-  margin-bottom: 12px;
+  background: linear-gradient(to right, #eff6ff, #f0f9ff);
+  border: 1px solid #bfdbfe;
+  border-left: 5px solid #2563eb;
+  border-radius: 8px;
+  padding: 12px 16px;
+  margin-bottom: 20px;
   page-break-inside: avoid !important;
   break-inside: avoid !important;
+  box-shadow: 0 1px 4px rgba(37,99,235,0.07);
 }
 
 .infoRow {
@@ -77,13 +79,13 @@
 }
 
 .section {
-  margin-bottom: 12px;
+  margin-bottom: 22px;
   page-break-inside: avoid !important;
   break-inside: avoid !important;
 }
 
 .sectionRecords {
-  margin-bottom: 14px;
+  margin-bottom: 22px;
   page-break-inside: auto !important;
   break-inside: auto !important;
 }
@@ -91,11 +93,13 @@
 .sectionTitle {
   color: #0f172a;
   font-size: 13px;
-  font-weight: 700;
-  margin: 0 0 6px 0;
+  font-weight: 800;
+  margin: 0 0 10px 0;
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 8px;
+  letter-spacing: 0.2px;
+  text-transform: uppercase;
   page-break-after: avoid !important;
   break-after: avoid !important;
 }
@@ -103,10 +107,10 @@
 .sectionTitle::before {
   content: '';
   display: block;
-  width: 3px;
-  height: 14px;
-  background-color: #2563eb;
-  border-radius: 3px;
+  width: 4px;
+  height: 16px;
+  background: linear-gradient(to bottom, #2563eb, #60a5fa);
+  border-radius: 4px;
 }
 
 .table {
@@ -115,8 +119,11 @@
   border-spacing: 0;
   margin-bottom: 6px;
   border: 1px solid #cbd5e1;
+  border-radius: 8px;
+  overflow: hidden;
   page-break-inside: auto !important;
   break-inside: auto !important;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 
 .table thead {
@@ -130,7 +137,7 @@
 
 .table th, .table td {
   border-bottom: 1px solid #e2e8f0;
-  padding: 6px 8px;
+  padding: 8px 10px;
   text-align: left;
   font-size: 11px;
 }
@@ -145,43 +152,49 @@
 }
 
 .table th {
-  background-color: #f1f5f9;
-  color: #334155;
-  font-weight: 700;
+  background: linear-gradient(to right, #1e3a5f, #2563eb);
+  color: #ffffff;
+  font-weight: 600;
   text-transform: uppercase;
-  font-size: 10px;
-  letter-spacing: 0.5px;
+  font-size: 8px;
+  letter-spacing: 0.4px;
 }
 
 .table tr:nth-child(even) {
-  background-color: #f8fafc;
+  background-color: #f0f6ff;
+}
+
+.table tr:hover {
+  background-color: #e8f0fe;
 }
 
 .statusCompleted {
   color: #059669;
   font-weight: 700;
   background: #d1fae5;
-  padding: 2px 6px;
+  padding: 3px 8px;
   border-radius: 4px;
   display: inline-block;
   font-size: 10px;
+  text-align: center;
 }
 
 .statusPending {
   color: #d97706;
   font-weight: 700;
   background: #fef3c7;
-  padding: 2px 6px;
+  padding: 3px 8px;
   border-radius: 4px;
   display: inline-block;
   font-size: 10px;
+  text-align: center;
 }
 
 .signature {
-  margin-top: 14px;
+  margin-top: 20px;
   text-align: left;
   border-top: 1px solid #e2e8f0;
-  padding-top: 8px;
+  padding-top: 12px;
   display: inline-block;
   min-width: 220px;
   page-break-inside: avoid !important;

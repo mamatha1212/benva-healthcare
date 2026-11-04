@@ -33,11 +33,11 @@ const PayoutReport = forwardRef<HTMLDivElement, PayoutReportProps>((props, ref) 
   return (
     <div className={styles.reportContainer} ref={ref}>
       <div className={styles.header}>
-        <img 
-          src="/images/Benva%20NEW.png" 
-          alt="Benva Healthcare" 
-          className={styles.logo} 
-          crossOrigin="anonymous" 
+        <img
+          src="/images/Benva%20NEW.png"
+          alt="Benva Healthcare"
+          className={styles.logo}
+          crossOrigin="anonymous"
         />
         <h1 className={styles.title}>DOCTOR CONSULTATION PAYOUT REPORT</h1>
         <div className={styles.year}>{props.year}</div>
@@ -121,8 +121,10 @@ const PayoutReport = forwardRef<HTMLDivElement, PayoutReportProps>((props, ref) 
                 <td>{formatDate(record.labReportDate)}</td>
                 <td>{record.genDrName}</td>
                 <td>{record.dietDrName}</td>
-                <td className={record.status.toLowerCase() === 'completed' ? styles.statusCompleted : styles.statusPending}>
-                  {record.status.toUpperCase()}
+                <td style={{ textAlign: 'center', verticalAlign: 'middle' }}>
+                  <span className={record.status.toLowerCase() === 'completed' ? styles.statusCompleted : styles.statusPending}>
+                    {record.status.toUpperCase()}
+                  </span>
                 </td>
               </tr>
             ))}
@@ -142,11 +144,11 @@ const PayoutReport = forwardRef<HTMLDivElement, PayoutReportProps>((props, ref) 
       {props.paymentScreenshotUrl && (
         <div className={styles.screenshotContainer}>
           <h2 className={styles.sectionTitle} style={{ textAlign: 'left' }}>Payment Screenshot</h2>
-          <img 
-            src={props.paymentScreenshotUrl} 
-            alt="Payment Screenshot" 
-            className={styles.screenshot} 
-            crossOrigin="anonymous" 
+          <img
+            src={props.paymentScreenshotUrl}
+            alt="Payment Screenshot"
+            className={styles.screenshot}
+            crossOrigin="anonymous"
           />
         </div>
       )}

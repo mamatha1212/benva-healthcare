@@ -36,7 +36,7 @@ interface Props {
 export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen, onClose, onSuccess }: Props) {
   const [module, setModule] = useState<'LAB_TESTS' | 'MEDICINES' | 'DOCTOR' | 'DIETITIAN'>(initialModule);
   const [billType, setBillType] = useState<'GST' | 'NON_GST'>('GST');
-  
+
   // Customer selection / creation
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<PatientRecord[]>([]);
@@ -137,41 +137,65 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
     setItems(next);
   };
 
-  // Calculations
+  // GST-Compliant Calculations (Universal GST-Inclusive Reverse Extraction for MRP billing)
   const calculatedRows = items.map(it => {
-    const p = Number(it.price) || 0;
+    const p = Number(it.price) || 0; // MRP (Incl. GST)
     const q = Number(it.qty) || 1;
     const d = Number(it.discount) || 0;
-    const c = Number(it.benvaCost) || 0;
-    const gross = p * q;
-    const taxable = Math.max(0, gross - d);
+    const c = Number(it.benvaCost) || 0; // Purchase Cost per unit
+    const grossMrp = p * q;
+    // Step 1: Customer selling price after discount (MRP is GST-inclusive)
+    const netCustomerPrice = Math.max(0, grossMrp - d);
+
+    // Step 2 & 3: Reverse-calculate Taxable Value and GST from the final discounted price
     const taxRate = billType === 'GST' ? (Number(it.taxRate) || 0) : 0;
-    const gstAmt = (taxable * taxRate) / 100;
-    const cgst = gstAmt / 2;
-    const sgst = gstAmt / 2;
-    const total = taxable + gstAmt;
-    const benvaProfit = total - (c * q);
+    let taxable = netCustomerPrice;
+    let gstAmt = 0;
+    let cgst = 0;
+    let sgst = 0;
+
+    if (taxRate > 0) {
+      taxable = (netCustomerPrice * 100) / (100 + taxRate);
+      gstAmt = netCustomerPrice - taxable;
+      cgst = gstAmt / 2;
+      sgst = gstAmt / 2;
+    }
+
+    // Step 4: Final customer total is netCustomerPrice (GST is included within it, NOT added over MRP)
+    const total = netCustomerPrice;
+    const purchaseCost = c * q;
+    const grossMargin = total - purchaseCost;
+
     return {
       ...it,
       numericPrice: p,
       numericQty: q,
       numericDiscount: d,
       numericCost: c,
+      grossMrp,
       taxable,
       gstAmt,
       cgst,
       sgst,
       total,
-      benvaProfit,
+      purchaseCost,
+      grossMargin,
+      benvaProfit: grossMargin,
     };
   });
 
   const subTotal = calculatedRows.reduce((acc, r) => acc + (r.numericPrice * r.numericQty), 0);
   const totalDiscount = calculatedRows.reduce((acc, r) => acc + r.numericDiscount, 0);
+  const netCustomerValue = calculatedRows.reduce((acc, r) => acc + r.total, 0);
+  const taxableTotal = calculatedRows.reduce((acc, r) => acc + r.taxable, 0);
   const totalCgst = calculatedRows.reduce((acc, r) => acc + r.cgst, 0);
   const totalSgst = calculatedRows.reduce((acc, r) => acc + r.sgst, 0);
-  const grandTotal = calculatedRows.reduce((acc, r) => acc + r.total, 0);
-  const totalBenvaRevenue = Math.max(0, calculatedRows.reduce((acc, r) => acc + r.benvaProfit, 0));
+  const totalGst = totalCgst + totalSgst;
+  const roundOff = Number((netCustomerValue - (taxableTotal + totalGst)).toFixed(2));
+  const grandTotal = netCustomerValue;
+  const totalPurchaseCost = calculatedRows.reduce((acc, r) => acc + r.purchaseCost, 0);
+  const totalGrossMargin = Math.max(0, netCustomerValue - totalPurchaseCost);
+  const totalBenvaRevenue = totalGrossMargin;
   const dueAmount = Math.max(0, grandTotal - (Number(paidAmount) || 0));
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -232,6 +256,8 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
         payMode,
         placeOfSupply,
         benvaRevenue: totalBenvaRevenue,
+        taxableAmount: taxableTotal,
+        roundOff,
         doctorName,
         consultationType,
         dietitianName,
@@ -248,6 +274,7 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
           unit: r.unit,
           price: Number(r.price) || 0,
           discount: Number(r.discount) || 0,
+          amount: Number(r.taxable) || 0,
           taxRate: billType === 'GST' ? Number(r.taxRate) || 0 : 0,
           cgst: Number(r.cgst) || 0,
           sgst: Number(r.sgst) || 0,
@@ -346,48 +373,64 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-            {/* GST / Non-GST Selection Pill */}
-            <div style={{
-              display: 'flex',
-              backgroundColor: '#e2e8f0',
-              padding: '3px',
-              borderRadius: '8px'
-            }}>
-              <button
-                type="button"
-                onClick={() => setBillType('GST')}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  fontSize: '12px',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  backgroundColor: billType === 'GST' ? '#0284c7' : 'transparent',
-                  color: billType === 'GST' ? '#ffffff' : '#475569',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                🧾 With GST
-              </button>
-              <button
-                type="button"
-                onClick={() => setBillType('NON_GST')}
-                style={{
-                  padding: '6px 14px',
-                  borderRadius: '6px',
-                  border: 'none',
-                  fontSize: '12px',
-                  fontWeight: '700',
-                  cursor: 'pointer',
-                  backgroundColor: billType === 'NON_GST' ? '#0284c7' : 'transparent',
-                  color: billType === 'NON_GST' ? '#ffffff' : '#475569',
-                  transition: 'all 0.15s ease'
-                }}
-              >
-                📄 Without GST
-              </button>
-            </div>
+            {module === 'MEDICINES' ? (
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                padding: '6px 14px',
+                borderRadius: '8px',
+                backgroundColor: '#eff6ff',
+                border: '1px solid #bfdbfe',
+                fontSize: '12px',
+                fontWeight: '700',
+                color: '#1d4ed8'
+              }}>
+                <span>🧾</span> GST Tax Invoice (MRP Inclusive)
+              </div>
+            ) : (
+              <div style={{
+                display: 'flex',
+                backgroundColor: '#e2e8f0',
+                padding: '3px',
+                borderRadius: '8px'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setBillType('GST')}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    backgroundColor: billType === 'GST' ? '#0284c7' : 'transparent',
+                    color: billType === 'GST' ? '#ffffff' : '#475569',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  🧾 Tax Invoice
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setBillType('NON_GST')}
+                  style={{
+                    padding: '6px 14px',
+                    borderRadius: '6px',
+                    border: 'none',
+                    fontSize: '12px',
+                    fontWeight: '700',
+                    cursor: 'pointer',
+                    backgroundColor: billType === 'NON_GST' ? '#0284c7' : 'transparent',
+                    color: billType === 'NON_GST' ? '#ffffff' : '#475569',
+                    transition: 'all 0.15s ease'
+                  }}
+                >
+                  📄 Exempt / Non-GST
+                </button>
+              </div>
+            )}
 
             <button
               onClick={onClose}
@@ -725,10 +768,10 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
                     {module === 'MEDICINES' && <th style={{ padding: '8px 10px', width: '85px' }}>Batch / Exp</th>}
                     <th style={{ padding: '8px 10px', width: '65px' }}>Qty</th>
                     <th style={{ padding: '8px 10px', width: '105px', minWidth: '105px' }}>Unit</th>
-                    <th style={{ padding: '8px 10px', width: '90px' }}>Price (₹)</th>
-                    <th style={{ padding: '8px 10px', width: '80px' }}>Disc (₹)</th>
+                    <th style={{ padding: '8px 10px', width: '100px' }}>{module === 'MEDICINES' ? 'MRP (Incl. GST)' : 'Price (₹)'}</th>
+                    <th style={{ padding: '8px 10px', width: '80px' }}>Discount (₹)</th>
                     {billType === 'GST' && <th style={{ padding: '8px 10px', width: '75px' }}>GST %</th>}
-                    <th style={{ padding: '8px 10px', width: '90px' }}>Benva Cost</th>
+                    <th style={{ padding: '8px 10px', width: '90px' }}>Purchase Cost</th>
                     <th style={{ padding: '8px 10px', width: '90px', textAlign: 'right' }}>Total (₹)</th>
                     <th style={{ padding: '8px 10px', width: '35px' }}></th>
                   </tr>
@@ -861,7 +904,7 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
                             onFocus={(e) => e.target.select()}
                             onChange={(e) => handleItemChange(idx, 'benvaCost', e.target.value)}
                             style={{ width: '100%', padding: '6px 8px', fontSize: '12px', border: '1px solid #cbd5e1', borderRadius: '4px', backgroundColor: '#f0fdf4' }}
-                            title="Benva Purchase/Vendor Cost (Used to calculate Benva Revenue)"
+                            title="Purchase Cost per unit (Used to calculate Gross Margin)"
                           />
                         </td>
                         <td style={{ padding: '6px 10px', textAlign: 'right', fontWeight: '700', color: '#0f172a' }}>
@@ -988,23 +1031,39 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
               <table style={{ width: '100%', fontSize: '12px', borderCollapse: 'collapse' }}>
                 <tbody>
                   <tr>
-                    <td style={{ padding: '3px 0', color: '#64748b' }}>Gross Amount:</td>
+                    <td style={{ padding: '3px 0', color: '#64748b' }}>Gross MRP Value:</td>
                     <td style={{ padding: '3px 0', textAlign: 'right', fontWeight: '600' }}>₹{subTotal.toFixed(2)}</td>
                   </tr>
                   <tr>
                     <td style={{ padding: '3px 0', color: '#16a34a' }}>Customer Discount:</td>
                     <td style={{ padding: '3px 0', textAlign: 'right', fontWeight: '600', color: '#16a34a' }}>-₹{totalDiscount.toFixed(2)}</td>
                   </tr>
+                  <tr style={{ borderTop: '1px dashed #e2e8f0' }}>
+                    <td style={{ padding: '4px 0', color: '#0f172a', fontWeight: '700' }}>Net Customer Value:</td>
+                    <td style={{ padding: '4px 0', textAlign: 'right', fontWeight: '700', color: '#0f172a' }}>₹{netCustomerValue.toFixed(2)}</td>
+                  </tr>
                   {billType === 'GST' && (
                     <>
                       <tr>
+                        <td style={{ padding: '3px 0', color: '#64748b' }}>Taxable Value:</td>
+                        <td style={{ padding: '3px 0', textAlign: 'right', fontWeight: '600' }}>₹{taxableTotal.toFixed(2)}</td>
+                      </tr>
+                      <tr>
                         <td style={{ padding: '3px 0', color: '#64748b' }}>CGST:</td>
-                        <td style={{ padding: '3px 0', textAlign: 'right', fontWeight: '600' }}>+₹{totalCgst.toFixed(2)}</td>
+                        <td style={{ padding: '3px 0', textAlign: 'right', fontWeight: '600' }}>₹{totalCgst.toFixed(2)}</td>
                       </tr>
                       <tr>
                         <td style={{ padding: '3px 0', color: '#64748b' }}>SGST:</td>
-                        <td style={{ padding: '3px 0', textAlign: 'right', fontWeight: '600' }}>+₹{totalSgst.toFixed(2)}</td>
+                        <td style={{ padding: '3px 0', textAlign: 'right', fontWeight: '600' }}>₹{totalSgst.toFixed(2)}</td>
                       </tr>
+                      {Math.abs(roundOff) > 0 && (
+                        <tr>
+                          <td style={{ padding: '3px 0', color: '#64748b' }}>Round Off:</td>
+                          <td style={{ padding: '3px 0', textAlign: 'right', fontWeight: '600' }}>
+                            {roundOff >= 0 ? `+₹${roundOff.toFixed(2)}` : `-₹${Math.abs(roundOff).toFixed(2)}`}
+                          </td>
+                        </tr>
+                      )}
                     </>
                   )}
                   <tr style={{ borderTop: '1.5px solid #0f172a', borderBottom: '1.5px solid #0f172a' }}>
@@ -1014,17 +1073,25 @@ export default function InvoiceCreateModal({ initialModule = 'MEDICINES', isOpen
                     </td>
                   </tr>
                   <tr>
-                    <td style={{ padding: '4px 0', color: '#16a34a', fontWeight: '600' }}>Paid:</td>
+                    <td style={{ padding: '4px 0', color: '#16a34a', fontWeight: '600' }}>Amount Paid:</td>
                     <td style={{ padding: '4px 0', textAlign: 'right', fontWeight: '700', color: '#16a34a' }}>₹{(Number(paidAmount) || 0).toFixed(2)}</td>
                   </tr>
                   <tr>
                     <td style={{ padding: '4px 0', color: dueAmount > 0 ? '#dc2626' : '#64748b', fontWeight: '600' }}>Balance Due:</td>
                     <td style={{ padding: '4px 0', textAlign: 'right', fontWeight: '700', color: dueAmount > 0 ? '#dc2626' : '#64748b' }}>₹{dueAmount.toFixed(2)}</td>
                   </tr>
-                  <tr style={{ borderTop: '1px dashed #cbd5e1' }}>
-                    <td style={{ paddingTop: '6px', color: '#0369a1', fontWeight: '700' }}>Benva Revenue:</td>
-                    <td style={{ paddingTop: '6px', textAlign: 'right', fontWeight: '800', color: '#0369a1' }}>₹{totalBenvaRevenue.toFixed(2)}</td>
-                  </tr>
+                  {totalPurchaseCost > 0 && (
+                    <>
+                      <tr style={{ borderTop: '1px dashed #cbd5e1' }}>
+                        <td style={{ paddingTop: '6px', color: '#64748b', fontSize: '11px' }}>Purchase Cost:</td>
+                        <td style={{ paddingTop: '6px', textAlign: 'right', fontWeight: '600', color: '#64748b', fontSize: '11px' }}>₹{totalPurchaseCost.toFixed(2)}</td>
+                      </tr>
+                      <tr>
+                        <td style={{ padding: '2px 0', color: '#0369a1', fontWeight: '700', fontSize: '11px' }}>Est. Gross Margin:</td>
+                        <td style={{ padding: '2px 0', textAlign: 'right', fontWeight: '800', color: '#0369a1', fontSize: '11px' }}>₹{totalGrossMargin.toFixed(2)}</td>
+                      </tr>
+                    </>
+                  )}
                 </tbody>
               </table>
             </div>

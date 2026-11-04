@@ -6,6 +6,18 @@
   color: #1a202c;
 }
 
+/* Hide number input spinners */
+.formGroup input[type="number"]::-webkit-outer-spin-button,
+.formGroup input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+.formGroup input[type="number"] {
+  -moz-appearance: textfield;
+  appearance: textfield;
+}
+
 .header {
   display: flex;
   flex-wrap: wrap;
