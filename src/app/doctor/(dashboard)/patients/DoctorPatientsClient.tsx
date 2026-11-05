@@ -13,17 +13,69 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
   const [searchTerm, setSearchTerm] = useState('');
   const [formError, setFormError] = useState('');
   const [familyMembers, setFamilyMembers] = useState<any[]>([]);
+  const [isLookingUpUhid, setIsLookingUpUhid] = useState(false);
+  const [detectedUhid, setDetectedUhid] = useState<string | null>(null);
+  const [uhidStatusType, setUhidStatusType] = useState<'found' | 'new' | null>(null);
   const submitActionRef = React.useRef<'save' | 'save-and-add'>('save');
   
   const router = useRouter();
+
+  // Auto-fetch UHID and patient records across database whenever 10 digits entered
+  React.useEffect(() => {
+    const cleanPhone = formData.phone.replace(/\D/g, '');
+    if (cleanPhone.length < 10 || editingPatient) {
+      if (!editingPatient) {
+        setDetectedUhid(null);
+        setUhidStatusType(null);
+      }
+      return;
+    }
+
+    const timer = setTimeout(async () => {
+      setIsLookingUpUhid(true);
+      try {
+        const res = await fetch(`/api/doctor/patients/lookup?phone=${encodeURIComponent(cleanPhone)}`);
+        if (res.ok) {
+          const data = await res.json();
+          if (data.found && data.primary) {
+            setDetectedUhid(data.primary.uhid || null);
+            setUhidStatusType('found');
+            setFormData(prev => ({
+              ...prev,
+              name: prev.name || data.primary.name || '',
+              age: prev.age || data.primary.age || '',
+              gender: prev.gender || data.primary.gender || '',
+            }));
+            if (data.patients && data.patients.length > 0) {
+              setFamilyMembers(data.patients);
+            }
+          } else if (data.nextUhid) {
+            setDetectedUhid(data.nextUhid);
+            setUhidStatusType('new');
+            setFamilyMembers([]);
+          }
+        }
+      } catch (err) {
+        console.error('Error fetching UHID:', err);
+      } finally {
+        setIsLookingUpUhid(false);
+      }
+    }, 250);
+
+    return () => clearTimeout(timer);
+  }, [formData.phone, editingPatient]);
 
   const handleOpenModal = (patient: any = null) => {
     if (patient) {
       setEditingPatient(patient);
       setFormData({ name: patient.name, phone: patient.phone, age: patient.age || '', gender: patient.gender || '' });
+      setDetectedUhid(patient.uhid || null);
+      setUhidStatusType(patient.uhid ? 'found' : null);
     } else {
       setEditingPatient(null);
       setFormData({ name: '', phone: '', age: '', gender: '' });
+      setDetectedUhid(null);
+      setUhidStatusType(null);
     }
     setFormError('');
     setFamilyMembers([]);
@@ -272,6 +324,13 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
                   <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
                     <button onClick={() => router.push(`/doctor/patients/${patient.id}`)} className="action-btn">View</button>
                     <button onClick={() => handleOpenModal(patient)} className="action-btn edit">Edit</button>
+                    <button 
+                      onClick={() => router.push(`/doctor/patients/${patient.id}/diet-chart`)} 
+                      style={{ background: '#059669', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 1px 3px rgba(5,150,105,0.2)' }}
+                    >
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                      Diet Chart
+                    </button>
                     <button onClick={() => router.push(`/doctor/patients/${patient.id}`)} className="action-btn prescribe">
                       <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
                       Prescriptions
@@ -319,53 +378,66 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
                   onChange={(e) => {
                     const newPhone = e.target.value;
                     setFormData({...formData, phone: newPhone});
-                    
-                    if (newPhone.trim().length >= 10 && !editingPatient) {
-                      const phone = newPhone.trim();
-                      const data = patients.filter((p: any) => p.phone === phone);
-                      
-                      if (data.length > 0) {
-                        setFamilyMembers(data);
-                        const primary = data[0];
-                        setFormData(prev => ({
-                          ...prev,
-                          name: prev.name || primary.name,
-                          age: prev.age || primary.age,
-                          gender: prev.gender || primary.gender
-                        }));
-                        setFormError(`Found ${data.length} family member(s) with this number. Auto-filled primary member.`);
-                      } else {
-                        setFamilyMembers([]);
-                      }
-                    } else if (newPhone.trim().length < 10) {
-                      setFamilyMembers([]);
-                    }
                   }}
                   required
+                  placeholder="Enter 10-digit mobile number"
                   style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} 
                 />
               </div>
 
+              {/* UHID Auto-Detected Banner */}
+              {isLookingUpUhid ? (
+                <div style={{ background: '#f8fafc', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '10px 14px', fontSize: '13px', color: '#64748b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <span>⏳</span> Checking database for patient UHID...
+                </div>
+              ) : detectedUhid ? (
+                <div style={{ background: uhidStatusType === 'found' ? '#f0fdf4' : '#f8fafc', border: `1px solid ${uhidStatusType === 'found' ? '#86efac' : '#cbd5e1'}`, borderRadius: '8px', padding: '10px 14px', display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                    <span style={{ fontSize: '18px' }}>🆔</span>
+                    <div>
+                      <div style={{ fontSize: '11px', fontWeight: 700, color: uhidStatusType === 'found' ? '#166534' : '#64748b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        {uhidStatusType === 'found' ? 'Patient UHID (Auto-Fetched)' : 'Assigned UHID Preview'}
+                      </div>
+                      <div style={{ fontSize: '15px', fontWeight: 800, color: '#0f172a', letterSpacing: '0.5px' }}>
+                        {detectedUhid}
+                      </div>
+                    </div>
+                  </div>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: uhidStatusType === 'found' ? '#15803d' : '#475569', background: uhidStatusType === 'found' ? '#dcfce7' : '#e2e8f0', padding: '3px 8px', borderRadius: '12px' }}>
+                    {uhidStatusType === 'found' ? '✓ Auto-Fetched' : 'New Patient'}
+                  </span>
+                </div>
+              ) : null}
+
               {familyMembers.length > 0 && (
                 <div style={{ backgroundColor: '#f8fafc', padding: '12px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Select Family Member or Add New:</label>
+                  <label style={{ display: 'block', marginBottom: '8px', fontSize: '13px', fontWeight: 600, color: '#475569' }}>Registered Family Members on this Phone:</label>
                   <div style={{ display: 'flex', flexWrap: 'wrap', gap: '8px' }}>
                     {familyMembers.map((member, idx) => (
                       <button
                         key={idx}
                         type="button"
                         onClick={() => {
-                          router.push(`/doctor/patients/${member.id}`);
+                          setFormData(prev => ({
+                            ...prev,
+                            name: member.name,
+                            age: member.age || '',
+                            gender: member.gender || ''
+                          }));
+                          setDetectedUhid(member.uhid || null);
+                          setUhidStatusType(member.uhid ? 'found' : 'new');
                         }}
-                        style={{ padding: '6px 12px', borderRadius: '16px', border: '1px solid #cbd5e1', background: formData.name === member.name ? '#0ea5e9' : 'white', color: formData.name === member.name ? 'white' : '#0f172a', fontSize: '13px', cursor: 'pointer' }}
+                        style={{ padding: '6px 12px', borderRadius: '16px', border: '1px solid #cbd5e1', background: formData.name === member.name ? '#0ea5e9' : 'white', color: formData.name === member.name ? 'white' : '#0f172a', fontSize: '13px', cursor: 'pointer', fontWeight: formData.name === member.name ? 700 : 500 }}
                       >
-                        {member.name}
+                        {member.name} {member.uhid ? `(${member.uhid})` : ''}
                       </button>
                     ))}
                     <button
                       type="button"
                       onClick={() => {
                         setFormData(prev => ({ ...prev, name: '', age: '', gender: '' }));
+                        setDetectedUhid(null);
+                        setUhidStatusType('new');
                         setFormError('');
                       }}
                       style={{ padding: '6px 12px', borderRadius: '16px', border: '1px dashed #3b82f6', background: '#eff6ff', color: '#1d4ed8', fontSize: '13px', cursor: 'pointer', fontWeight: 500 }}

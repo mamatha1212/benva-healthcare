@@ -214,9 +214,10 @@
 
 .filtersContainer {
   display: flex;
-  flex-wrap: nowrap;
+  flex-wrap: wrap;
   gap: 12px;
   width: 100%;
+  align-items: center;
 }
 
 @media (max-width: 1024px) {

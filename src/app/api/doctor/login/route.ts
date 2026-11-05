@@ -36,7 +36,7 @@ export async function POST(request: Request) {
 
     // Set auth cookie
     const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'benva-super-secret-key-2026');
-    const token = await new SignJWT({ id: doctor.id, email: doctor.email, name: doctor.name, role: 'doctor' })
+    const token = await new SignJWT({ id: doctor.id, email: doctor.email, name: doctor.name, type: doctor.type, role: 'doctor' })
       .setProtectedHeader({ alg: 'HS256' })
       .setExpirationTime('24h')
       .sign(secret);

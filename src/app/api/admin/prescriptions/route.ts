@@ -20,10 +20,7 @@ export async function GET(req: NextRequest) {
 
     const submittedPrescriptions = await prisma.patientFile.findMany({
       where: {
-        OR: [
-          { fileType: 'PRESCRIPTION' },
-          { status: 'SUBMITTED' }
-        ]
+        fileType: 'PRESCRIPTION'
       },
       include: {
         patient: true
@@ -32,7 +29,7 @@ export async function GET(req: NextRequest) {
     });
 
     const doctors = await prisma.doctor.findMany();
-    
+
     const mappedPrescriptions = submittedPrescriptions.map(file => {
       const doctor = doctors.find(d => d.name === file.patient.consultant);
       return {

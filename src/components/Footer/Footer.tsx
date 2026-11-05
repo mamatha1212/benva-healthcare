@@ -12,7 +12,7 @@ export default function Footer() {
           {/* Column 1: About & Contact */}
           <div className={styles.col}>
             <div className={styles.logoGroup}>
-              <img src="/images/Benva%20NEW.png" alt="Benva Healthcare" style={{ height: '70px', width: 'auto', transform: 'scale(2.5)', transformOrigin: 'left center' }} />
+              <img src="/images/Benva%20NEW.png" alt="Benva Healthcare" style={{ height: '48px', width: 'auto', objectFit: 'contain' }} />
             </div>
             <p className={styles.aboutText}>
               BENVA Healthcare is a healthcare aggregator and facilitator helping individuals and families access healthcare services through trusted healthcare partners.

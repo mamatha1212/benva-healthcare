@@ -8,10 +8,7 @@ export const revalidate = 0;
 export default async function AdminPrescriptionsPage() {
   const submittedPrescriptions = await prisma.patientFile.findMany({
     where: {
-      OR: [
-        { fileType: 'PRESCRIPTION' },
-        { status: 'SUBMITTED' }
-      ]
+      fileType: 'PRESCRIPTION'
     },
     include: {
       patient: true

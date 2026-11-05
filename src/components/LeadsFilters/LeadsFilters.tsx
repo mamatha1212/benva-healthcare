@@ -16,15 +16,28 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
     router.push(`?${params.toString()}`);
   };
 
+  const filterControlStyle: React.CSSProperties = {
+    padding: '8px 12px',
+    border: '1px solid #cbd5e0',
+    borderRadius: '8px',
+    outline: 'none',
+    cursor: 'pointer',
+    fontSize: '13px',
+    backgroundColor: '#ffffff',
+    color: '#1e293b',
+    flex: '1 1 140px',
+    minWidth: '130px',
+    height: '38px',
+    boxSizing: 'border-box',
+  };
+
   return (
     <>
-
-      
       {searchParams.get('tab') !== 'availability' && searchParams.get('tab') !== 'contact' && (
         <select 
           value={searchParams.get('status') || 'all'}
           onChange={(e) => updateParams('status', e.target.value)}
-          style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: 1, minWidth: '0' }}
+          style={filterControlStyle}
         >
           <option value="all">All Statuses</option>
           {searchParams.get('tab') === 'doctor-applications' ? (
@@ -60,7 +73,7 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
         <select 
           value={searchParams.get('membershipType') || 'all'}
           onChange={(e) => updateParams('membershipType', e.target.value)}
-          style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: 1, minWidth: '0' }}
+          style={filterControlStyle}
         >
           <option value="all">All Memberships</option>
           <option value="Individual Membership">Individual</option>
@@ -72,7 +85,7 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
         <select 
           value={searchParams.get('state') || 'all'}
           onChange={(e) => updateParams('state', e.target.value)}
-          style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: 1, minWidth: '0' }}
+          style={filterControlStyle}
         >
           <option value="all">All States</option>
           {availableStates.sort().map(s => (
@@ -85,7 +98,7 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
         <select 
           value={searchParams.get('district') || 'all'}
           onChange={(e) => updateParams('district', e.target.value)}
-          style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: 1, minWidth: '0' }}
+          style={filterControlStyle}
         >
           <option value="all">All Districts</option>
           {availableDistricts.sort().map(d => (
@@ -98,7 +111,7 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
         <select 
           value={searchParams.get('package') || 'all'}
           onChange={(e) => updateParams('package', e.target.value)}
-          style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: 1, minWidth: '0' }}
+          style={filterControlStyle}
         >
           <option value="all">All Packages</option>
           {availablePackages.sort().map(p => (
@@ -111,7 +124,7 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
       <select 
         value={searchParams.get('year') || 'all'}
         onChange={(e) => updateParams('year', e.target.value)}
-        style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: 1, minWidth: '0' }}
+        style={filterControlStyle}
       >
         <option value="all">All Years</option>
         {availableYears.map(y => (
@@ -123,7 +136,7 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
       <select 
         value={searchParams.get('month') || 'all'}
         onChange={(e) => updateParams('month', e.target.value)}
-        style={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', outline: 'none', cursor: 'pointer', flex: 1, minWidth: '0' }}
+        style={filterControlStyle}
       >
         <option value="all">All Months</option>
         <option value="01">January</option>
@@ -143,7 +156,18 @@ export default function LeadsFilters({ availableDistricts = [], availableStates 
       <DateInput
         value={searchParams.get('date') || ''}
         onChange={(e) => updateParams('date', e.target.value)}
-        inputStyle={{ padding: '8px 12px', border: '1px solid #cbd5e0', borderRadius: '8px', flex: 1, minWidth: '0' }}
+        style={{ flex: '1 1 140px', minWidth: '130px', height: '38px' }}
+        inputStyle={{
+          padding: '8px 36px 8px 12px',
+          border: '1px solid #cbd5e0',
+          borderRadius: '8px',
+          height: '38px',
+          fontSize: '13px',
+          backgroundColor: '#ffffff',
+          color: '#1e293b',
+          width: '100%',
+          boxSizing: 'border-box',
+        }}
       />
     </>
   );

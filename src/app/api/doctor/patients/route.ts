@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { cookies } from 'next/headers';
 import { jwtVerify } from 'jose';
-import { generateNextUhid } from '@/lib/uhid';
+import { generateNextUhid, getOrCreateUhidForPatient } from '@/lib/uhid';
 
 export async function POST(req: NextRequest) {
   try {
@@ -34,19 +34,23 @@ export async function POST(req: NextRequest) {
     });
 
     if (existingPatient) {
-      if (existingPatient.uhid) {
-        return NextResponse.json({ error: `User already exists with UHID number: ${existingPatient.uhid}` }, { status: 400 });
-      } else {
-        const nextUhid = await generateNextUhid();
-        const updated = await prisma.patientRecord.update({
-          where: { id: existingPatient.id },
-          data: { uhid: nextUhid, age: age || existingPatient.age, gender: gender || existingPatient.gender, consultant: consultant || existingPatient.consultant }
-        });
-        return NextResponse.json({ error: `User already exists. Assigned new UHID: ${nextUhid}` }, { status: 400 });
+      let uhid = existingPatient.uhid;
+      if (!uhid) {
+        uhid = await generateNextUhid();
       }
+      const updated = await prisma.patientRecord.update({
+        where: { id: existingPatient.id },
+        data: {
+          uhid,
+          consultant: consultant || existingPatient.consultant,
+          age: age || existingPatient.age,
+          gender: gender || existingPatient.gender,
+        }
+      });
+      return NextResponse.json(updated);
     }
 
-    const nextUhid = await generateNextUhid();
+    const nextUhid = await getOrCreateUhidForPatient(phone, name);
 
     const created = await prisma.patientRecord.create({
       data: { name, phone, age, gender, consultant, uhid: nextUhid }

@@ -298,6 +298,10 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
   const [viewingFileText, setViewingFileText] = useState<string | null>(null);
 
   const handleViewPrescription = (file: any) => {
+    if (file.fileType === 'DIET_CHART') {
+      router.push(`/doctor/patients/${patient.id}/diet-chart?fileId=${file.id}&view=true`);
+      return;
+    }
     if (file.fileUrl.startsWith('data:')) {
       router.push(`/doctor/patients/${patient.id}/prescription?fileId=${file.id}&view=true`);
     } else {
@@ -306,6 +310,10 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
   };
 
   const handleEditPrescription = (file: any) => {
+    if (file.fileType === 'DIET_CHART') {
+      router.push(`/doctor/patients/${patient.id}/diet-chart?fileId=${file.id}`);
+      return;
+    }
     if (file.fileUrl.startsWith('data:')) {
       router.push(`/doctor/patients/${patient.id}/prescription?fileId=${file.id}`);
     } else {
@@ -405,7 +413,14 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
           </div>
         </div>
         
-        <div className="pd-write-btn-wrap">
+        <div className="pd-write-btn-wrap" style={{ gap: '10px' }}>
+          <button 
+            onClick={() => router.push(`/doctor/patients/${patient.id}/diet-chart`)}
+            style={{ background: '#059669', color: 'white', border: 'none', padding: '10px 18px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap', boxShadow: '0 2px 4px rgba(5,150,105,0.2)' }}
+          >
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            Create Diet Chart
+          </button>
           <button 
             onClick={() => router.push(`/doctor/patients/${patient.id}/prescription`)}
             className="pd-write-btn"
@@ -418,11 +433,11 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '24px' }}>
         
-        {/* Prescriptions Section */}
+        {/* Prescriptions & Diet Charts Section */}
         <div style={{ background: 'white', borderRadius: '12px', padding: '24px', border: '1px solid #e2e8f0' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#0f172a', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-            Prescriptions & Notes
+            Prescriptions & Diet Charts
           </h2>
           
           {patient.files && patient.files.length > 0 ? (
@@ -430,12 +445,17 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
               {patient.files.map((file: any) => (
                 <div key={file.id} className="pd-file-card">
                   <div className="pd-file-info">
-                    <div style={{ width: '40px', height: '40px', background: '#e0f2fe', color: '#0284c7', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <div style={{ width: '40px', height: '40px', background: file.fileType === 'DIET_CHART' ? '#dcfce7' : '#e0f2fe', color: file.fileType === 'DIET_CHART' ? '#15803d' : '#0284c7', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline></svg>
                     </div>
                     <div>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                         <div style={{ fontWeight: 600, color: '#0f172a', fontSize: '15px' }}>{file.fileName}</div>
+                        {file.fileType === 'DIET_CHART' ? (
+                          <span style={{ background: '#dcfce7', color: '#15803d', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>Diet Chart</span>
+                        ) : (
+                          <span style={{ background: '#eff6ff', color: '#1d4ed8', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 700 }}>Prescription</span>
+                        )}
                         {file.status === 'SUBMITTED' ? (
                           <span style={{ background: '#dcfce7', color: '#166534', padding: '2px 8px', borderRadius: '12px', fontSize: '11px', fontWeight: 600 }}>Submitted</span>
                         ) : (

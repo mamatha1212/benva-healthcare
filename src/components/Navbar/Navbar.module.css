@@ -87,14 +87,12 @@
   align-items: center;
   gap: 8px;
   text-decoration: none;
-  margin-left: -24px;
 }
 
 .logoImage {
-  height: 70px;
+  height: 40px;
   width: auto;
-  transform: scale(2.2);
-  transform-origin: left center;
+  object-fit: contain;
 }
 
 .logoIcon {
