@@ -129,3 +129,35 @@
     padding: 16px;
   }
 }
+
+@media print {
+  .sidebar,
+  .topbar,
+  .overlay,
+  .mobileCloseBtn {
+    display: none !important;
+  }
+
+  .layout {
+    display: block !important;
+    background: #ffffff !important;
+    padding: 0 !important;
+    margin: 0 !important;
+    min-height: auto !important;
+    width: 100% !important;
+  }
+
+  .main {
+    margin: 0 !important;
+    padding: 0 !important;
+    width: 100% !important;
+    display: block !important;
+  }
+
+  .contentContainer {
+    padding: 0 !important;
+    margin: 0 !important;
+    width: 100% !important;
+  }
+}
+

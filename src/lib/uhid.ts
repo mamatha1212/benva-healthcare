@@ -63,56 +63,93 @@ export async function generateNextUhid(): Promise<string> {
 }
 
 export async function getOrCreateUhidForPatient(phone: string, name?: string): Promise<string> {
-  const cleanPhone = phone?.trim();
+  const digits = (phone || '').replace(/\D/g, '');
+  const last10 = digits.length >= 10 ? digits.slice(-10) : digits;
   const cleanName = name?.trim();
 
-  if (cleanPhone) {
+  if (last10) {
+    // 1. Raw SQL regex across all tables
     try {
-      // 1. PatientRecord
+      const rawResults: any = await prisma.$queryRawUnsafe(
+        `SELECT uhid FROM (
+           SELECT uhid, "createdAt" FROM "PatientRecord" WHERE uhid IS NOT NULL AND regexp_replace(phone, '[^0-9]', '', 'g') LIKE '%${last10}%'
+           UNION ALL
+           SELECT uhid, "createdAt" FROM "Lead" WHERE uhid IS NOT NULL AND (regexp_replace(mobile, '[^0-9]', '', 'g') LIKE '%${last10}%' OR regexp_replace(whatsapp, '[^0-9]', '', 'g') LIKE '%${last10}%')
+           UNION ALL
+           SELECT uhid, "createdAt" FROM "MedicineOrder" WHERE uhid IS NOT NULL AND regexp_replace(mobile, '[^0-9]', '', 'g') LIKE '%${last10}%'
+           UNION ALL
+           SELECT uhid, "createdAt" FROM "FreeConsultationRequest" WHERE uhid IS NOT NULL AND phone IS NOT NULL AND regexp_replace(phone, '[^0-9]', '', 'g') LIKE '%${last10}%'
+         ) AS all_records WHERE uhid IS NOT NULL AND uhid != '' ORDER BY "createdAt" DESC LIMIT 1;`
+      );
+      if (rawResults && rawResults.length > 0 && rawResults[0].uhid) {
+        return rawResults[0].uhid;
+      }
+    } catch (rawErr) {
+      // Fall back to Prisma queries
+    }
+
+    // 2. Prisma queries with formatted chunks
+    const searchTerms = [
+      last10,
+      `${last10.slice(0, 5)} ${last10.slice(-5)}`,
+      `+91 ${last10}`,
+      `+91${last10}`,
+      `0${last10}`
+    ];
+
+    try {
+      // 2.1 PatientRecord
       const existingPatient = await prisma.patientRecord.findFirst({
         where: {
-          phone: cleanPhone,
+          OR: searchTerms.map(t => ({ phone: { contains: t } })),
           ...(cleanName ? { name: { equals: cleanName, mode: 'insensitive' } } : {}),
           uhid: { not: null },
         },
         select: { uhid: true },
+        orderBy: { createdAt: 'desc' }
       });
       if (existingPatient?.uhid) return existingPatient.uhid;
 
-      // 2. MedicineOrder
-      const existingOrder = await prisma.medicineOrder.findFirst({
-        where: {
-          mobile: cleanPhone,
-          ...(cleanName ? { patientName: { equals: cleanName, mode: 'insensitive' } } : {}),
-          uhid: { not: null },
-        },
-        select: { uhid: true },
-      });
-      if (existingOrder?.uhid) return existingOrder.uhid;
-
-      // 3. Lead
+      // 2.2 Lead
       const existingLead = await prisma.lead.findFirst({
         where: {
-          mobile: cleanPhone,
+          OR: [
+            ...searchTerms.map(t => ({ mobile: { contains: t } })),
+            ...searchTerms.map(t => ({ whatsapp: { contains: t } }))
+          ],
           ...(cleanName ? { fullName: { equals: cleanName, mode: 'insensitive' } } : {}),
           uhid: { not: null },
         },
         select: { uhid: true },
+        orderBy: { createdAt: 'desc' }
       });
       if (existingLead?.uhid) return existingLead.uhid;
 
-      // 4. FreeConsultationRequest
+      // 2.3 MedicineOrder
+      const existingOrder = await prisma.medicineOrder.findFirst({
+        where: {
+          OR: searchTerms.map(t => ({ mobile: { contains: t } })),
+          ...(cleanName ? { patientName: { equals: cleanName, mode: 'insensitive' } } : {}),
+          uhid: { not: null },
+        },
+        select: { uhid: true },
+        orderBy: { createdAt: 'desc' }
+      });
+      if (existingOrder?.uhid) return existingOrder.uhid;
+
+      // 2.4 FreeConsultationRequest
       const existingConsult = await prisma.freeConsultationRequest.findFirst({
         where: {
-          phone: cleanPhone,
+          OR: searchTerms.map(t => ({ phone: { contains: t } })),
           ...(cleanName ? { name: { equals: cleanName, mode: 'insensitive' } } : {}),
           uhid: { not: null },
         },
         select: { uhid: true },
+        orderBy: { createdAt: 'desc' }
       });
       if (existingConsult?.uhid) return existingConsult.uhid;
     } catch (err) {
-      console.error('Error finding existing UHID:', err);
+      console.error('Error finding existing UHID via Prisma:', err);
     }
   }
 

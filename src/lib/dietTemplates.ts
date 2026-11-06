@@ -574,6 +574,89 @@ export const PREDEFINED_DIET_TEMPLATES: Record<string, DietPlanData> = {
   }
 };
 
+export const TIME_SLOTS_BY_MEAL: Record<string, string[]> = {
+  earlyMorning: [
+    '5:30 – 6:30 AM',
+    '6:00 – 7:00 AM',
+    '6:30 – 7:30 AM',
+    '7:00 – 7:30 AM',
+    '7:00 – 8:00 AM'
+  ],
+  breakfast: [
+    '7:30 – 8:30 AM',
+    '8:00 – 9:00 AM',
+    '8:30 – 9:30 AM',
+    '9:00 – 10:00 AM',
+    '9:30 – 10:30 AM'
+  ],
+  midMorning: [
+    '10:30 – 11:00 AM',
+    '11:00 AM',
+    '11:00 – 11:30 AM',
+    '11:30 AM – 12:00 PM',
+    '12:00 PM'
+  ],
+  lunch: [
+    '12:30 – 1:30 PM',
+    '1:00 – 2:00 PM',
+    '1:30 – 2:30 PM',
+    '2:00 – 3:00 PM'
+  ],
+  evening: [
+    '4:00 – 5:00 PM',
+    '4:30 – 5:30 PM',
+    '5:00 – 6:00 PM',
+    '5:30 – 6:30 PM',
+    '6:00 – 7:00 PM'
+  ],
+  dinner: [
+    '7:00 – 8:00 PM',
+    '7:30 – 8:30 PM',
+    '8:00 – 9:00 PM',
+    '8:30 – 9:30 PM',
+    '9:00 – 10:00 PM'
+  ],
+  beforeBed: [
+    '9:00 – 9:30 PM',
+    '9:30 PM',
+    '9:30 – 10:00 PM',
+    '10:00 PM',
+    '10:00 – 10:30 PM'
+  ]
+};
+
+export const STANDARD_TIME_SLOTS = [
+  '6:00 – 7:00 AM',
+  '6:30 – 7:30 AM',
+  '7:00 – 7:30 AM',
+  '7:00 – 8:00 AM',
+  '7:30 – 8:30 AM',
+  '8:00 – 9:00 AM',
+  '8:30 – 9:30 AM',
+  '9:00 – 10:00 AM',
+  '10:30 – 11:00 AM',
+  '11:00 AM',
+  '11:00 – 11:30 AM',
+  '11:30 AM – 12:00 PM',
+  '12:30 – 1:30 PM',
+  '1:00 – 2:00 PM',
+  '1:30 – 2:30 PM',
+  '2:00 – 3:00 PM',
+  '4:00 – 5:00 PM',
+  '4:30 – 5:30 PM',
+  '5:00 – 6:00 PM',
+  '5:30 – 6:30 PM',
+  '7:00 – 8:00 PM',
+  '7:30 – 8:30 PM',
+  '8:00 – 9:00 PM',
+  '8:30 – 9:30 PM',
+  '9:00 – 9:30 PM',
+  '9:30 PM',
+  '9:30 – 10:00 PM',
+  '10:00 PM',
+  '10:00 – 10:30 PM'
+];
+
 export const QUICK_ADD_OPTIONS = {
   meals: [
     { name: 'Early Morning', time: '6:00 – 7:00 AM', items: '½ tsp Fenugreek powder in lukewarm water + 3 soaked almonds + 5 walnuts.' },

@@ -4,21 +4,44 @@ import { jwtVerify } from 'jose';
 import { prisma } from '@/lib/prisma';
 import { formatDate } from '@/lib/dateUtils';
 
+export const dynamic = 'force-dynamic';
+
 export default async function DoctorDashboardPage() {
   const cookieStore = await cookies();
   const token = cookieStore.get('doctor_token')?.value;
   
   let doctorName = 'Doctor';
+  let doctorType = 'CONSULTANT';
   
   if (token) {
     try {
       const secret = new TextEncoder().encode(process.env.JWT_SECRET || 'benva-super-secret-key-2026');
       const { payload } = await jwtVerify(token, secret);
       if (payload.name) doctorName = payload.name as string;
+      if (payload.type) doctorType = payload.type as string;
+
+      if (payload.id) {
+        const doc = await prisma.doctor.findUnique({
+          where: { id: payload.id as string }
+        });
+        if (doc) {
+          if (doc.type) doctorType = doc.type;
+          if (doc.name) doctorName = doc.name;
+        }
+      }
     } catch (e) {
       // ignore
     }
   }
+
+  const isDietician =
+    doctorType === 'DIETICIAN' ||
+    doctorName.toLowerCase().startsWith('dt.') ||
+    doctorName.toLowerCase().startsWith('dt ');
+
+  const formattedName = isDietician
+    ? (doctorName.toLowerCase().startsWith('dt.') || doctorName.toLowerCase().startsWith('dt ') ? doctorName : `Dt. ${doctorName}`)
+    : (doctorName.toLowerCase().startsWith('dr.') || doctorName.toLowerCase().startsWith('dr ') ? doctorName : `Dr. ${doctorName}`);
 
   // Set up date boundaries for today
   const today = new Date();
@@ -54,15 +77,15 @@ export default async function DoctorDashboardPage() {
   return (
     <div>
       <h1 style={{ fontSize: '24px', fontWeight: 'bold', color: '#0f172a', marginBottom: '8px' }}>
-        Welcome back, Dr. {doctorName}
+        Welcome back, {formattedName}
       </h1>
       <p style={{ color: '#64748b', marginBottom: '32px' }}>
-        Here is your overview for today.
+        Here is your {isDietician ? 'nutrition and diet plan' : 'clinical'} overview for today.
       </p>
 
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: '24px', marginBottom: '32px' }}>
         <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0' }}>
-          <div style={{ color: '#64748b', fontSize: '14px', fontWeight: 500, marginBottom: '8px' }}>Today's Appointments</div>
+          <div style={{ color: '#64748b', fontSize: '14px', fontWeight: 500, marginBottom: '8px' }}>Today's Consultations</div>
           <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#0f172a' }}>{todaysAppointments}</div>
         </div>
         <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0' }}>
@@ -70,7 +93,9 @@ export default async function DoctorDashboardPage() {
           <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#0f172a' }}>{totalPatients}</div>
         </div>
         <div style={{ backgroundColor: 'white', padding: '24px', borderRadius: '12px', boxShadow: '0 1px 3px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0' }}>
-          <div style={{ color: '#64748b', fontSize: '14px', fontWeight: 500, marginBottom: '8px' }}>Pending Reports</div>
+          <div style={{ color: '#64748b', fontSize: '14px', fontWeight: 500, marginBottom: '8px' }}>
+            {isDietician ? 'Pending Diet Charts' : 'Pending Prescriptions'}
+          </div>
           <div style={{ fontSize: '32px', fontWeight: 'bold', color: '#0f172a' }}>{pendingReports}</div>
         </div>
       </div>

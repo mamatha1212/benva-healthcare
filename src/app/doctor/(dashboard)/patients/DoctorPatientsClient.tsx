@@ -4,7 +4,17 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { formatDate } from '@/lib/dateUtils';
 
-export default function DoctorPatientsClient({ initialPatients, doctorName }: { initialPatients: any[], doctorName: string }) {
+export default function DoctorPatientsClient({
+  initialPatients,
+  doctorName,
+  doctorType = 'CONSULTANT',
+  isDietician = false
+}: {
+  initialPatients: any[];
+  doctorName: string;
+  doctorType?: string;
+  isDietician?: boolean;
+}) {
   const [patients, setPatients] = useState(initialPatients);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingPatient, setEditingPatient] = useState<any>(null);
@@ -17,8 +27,14 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
   const [detectedUhid, setDetectedUhid] = useState<string | null>(null);
   const [uhidStatusType, setUhidStatusType] = useState<'found' | 'new' | null>(null);
   const submitActionRef = React.useRef<'save' | 'save-and-add'>('save');
-  
+
   const router = useRouter();
+
+  const isDiet =
+    isDietician ||
+    doctorType === 'DIETICIAN' ||
+    doctorName.toLowerCase().startsWith('dt.') ||
+    doctorName.toLowerCase().startsWith('dt ');
 
   // Auto-fetch UHID and patient records across database whenever 10 digits entered
   React.useEffect(() => {
@@ -42,9 +58,9 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
             setUhidStatusType('found');
             setFormData(prev => ({
               ...prev,
-              name: prev.name || data.primary.name || '',
-              age: prev.age || data.primary.age || '',
-              gender: prev.gender || data.primary.gender || '',
+              name: data.primary.name || prev.name || '',
+              age: data.primary.age || prev.age || '',
+              gender: data.primary.gender || prev.gender || '',
             }));
             if (data.patients && data.patients.length > 0) {
               setFamilyMembers(data.patients);
@@ -88,7 +104,7 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
     e.preventDefault();
     setIsSubmitting(true);
     setFormError('');
-    
+
     try {
       const url = editingPatient ? `/api/doctor/patients/${editingPatient.id}` : '/api/doctor/patients';
       const method = editingPatient ? 'PUT' : 'POST';
@@ -103,18 +119,18 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
         try {
           const errData = await res.json();
           if (errData.error) errMsg = errData.error;
-        } catch (e) {}
+        } catch (e) { }
         throw new Error(errMsg);
       }
-      
+
       const savedPatient = await res.json();
-      
+
       if (editingPatient) {
         setPatients(patients.map(p => p.id === savedPatient.id ? savedPatient : p));
       } else {
         setPatients(prev => [savedPatient, ...prev]);
       }
-      
+
       if (submitActionRef.current === 'save-and-add') {
         // Keep phone, clear others
         setFormData(prev => ({ ...prev, name: '', age: '', gender: '' }));
@@ -136,8 +152,8 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
     }
   };
 
-  const filteredPatients = patients.filter(p => 
-    p.name.toLowerCase().includes(searchTerm.toLowerCase()) || 
+  const filteredPatients = patients.filter(p =>
+    p.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     p.phone.includes(searchTerm) ||
     (p.uhid && p.uhid.toLowerCase().includes(searchTerm.toLowerCase()))
   );
@@ -245,19 +261,19 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
           box-shadow: 0 0 0 3px rgba(2, 85, 157, 0.1);
         }
       `}</style>
-      
+
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', marginBottom: '32px' }}>
         <div>
           <h1 style={{ fontSize: '28px', fontWeight: '800', color: '#0f172a', margin: '0 0 8px 0', letterSpacing: '-0.02em' }}>My Patients</h1>
           <p style={{ color: '#64748b', margin: 0, fontSize: '15px' }}>View and manage your assigned patients and consultation history.</p>
         </div>
-        
+
         <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', width: '100%' }}>
           <div style={{ position: 'relative', flex: '1 1 min(100%, 300px)' }}>
-            <input 
-              type="text" 
+            <input
+              type="text"
               className="search-input"
-              placeholder="Search patients by name, phone, or UHID..." 
+              placeholder="Search patients by name, phone, or UHID..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{ padding: '12px 16px 12px 42px', borderRadius: '8px', border: '1px solid #cbd5e1', width: '100%', fontSize: '14px', transition: 'all 0.2s' }}
@@ -308,36 +324,39 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
                       )}
                     </div>
                   </td>
-                <td>
-                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '4px 10px', borderRadius: '20px', border: '1px solid #e2e8f0', fontSize: '13px' }}>
-                    <span style={{ fontWeight: 600, color: '#334155' }}>{patient.age ? `${patient.age} Yrs` : '-'}</span>
-                    <span style={{ color: '#cbd5e1' }}>|</span>
-                    <span style={{ color: '#475569' }}>{patient.gender || '-'}</span>
-                  </div>
-                </td>
-                <td suppressHydrationWarning>
-                  <div style={{ fontSize: '13px', color: '#64748b' }}>
-                    {formatDate(patient.createdAt)}
-                  </div>
-                </td>
-                <td style={{ textAlign: 'right' }}>
-                  <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
-                    <button onClick={() => router.push(`/doctor/patients/${patient.id}`)} className="action-btn">View</button>
-                    <button onClick={() => handleOpenModal(patient)} className="action-btn edit">Edit</button>
-                    <button 
-                      onClick={() => router.push(`/doctor/patients/${patient.id}/diet-chart`)} 
-                      style={{ background: '#059669', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 1px 3px rgba(5,150,105,0.2)' }}
-                    >
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
-                      Diet Chart
-                    </button>
-                    <button onClick={() => router.push(`/doctor/patients/${patient.id}`)} className="action-btn prescribe">
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
-                      Prescriptions
-                    </button>
-                  </div>
-                </td>
-              </tr>
+                  <td>
+                    <div style={{ display: 'inline-flex', alignItems: 'center', gap: '8px', background: '#f8fafc', padding: '4px 10px', borderRadius: '20px', border: '1px solid #e2e8f0', fontSize: '13px' }}>
+                      <span style={{ fontWeight: 600, color: '#334155' }}>{patient.age ? `${patient.age} Yrs` : '-'}</span>
+                      <span style={{ color: '#cbd5e1' }}>|</span>
+                      <span style={{ color: '#475569' }}>{patient.gender || '-'}</span>
+                    </div>
+                  </td>
+                  <td suppressHydrationWarning>
+                    <div style={{ fontSize: '13px', color: '#64748b' }}>
+                      {formatDate(patient.createdAt)}
+                    </div>
+                  </td>
+                  <td style={{ textAlign: 'right' }}>
+                    <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '8px' }}>
+                      <button onClick={() => router.push(`/doctor/patients/${patient.id}`)} className="action-btn">View</button>
+                      <button onClick={() => handleOpenModal(patient)} className="action-btn edit">Edit</button>
+                      {isDiet ? (
+                        <button
+                          onClick={() => router.push(`/doctor/patients/${patient.id}/diet-chart`)}
+                          style={{ background: '#059669', color: 'white', border: 'none', padding: '6px 12px', borderRadius: '6px', fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', boxShadow: '0 1px 3px rgba(5,150,105,0.2)' }}
+                        >
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line></svg>
+                          Diet Chart
+                        </button>
+                      ) : (
+                        <button onClick={() => router.push(`/doctor/patients/${patient.id}/prescription`)} className="action-btn prescribe">
+                          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+                          Prescriptions
+                        </button>
+                      )}
+                    </div>
+                  </td>
+                </tr>
               );
             })}
             {filteredPatients.length === 0 && (
@@ -358,12 +377,12 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
       </div>
 
       {isModalOpen && (
-        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div style={{ background: 'white', padding: '32px', borderRadius: '12px', width: '100%', maxWidth: '500px' }}>
-            <h2 style={{ margin: '0 0 24px 0', fontSize: '24px', color: '#1e293b' }}>
+        <div style={{ position: 'fixed', inset: 0, backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: '16px' }}>
+          <div style={{ background: 'white', padding: '28px', borderRadius: '12px', width: '100%', maxWidth: '520px', maxHeight: '90vh', overflowY: 'auto' }}>
+            <h2 style={{ margin: '0 0 20px 0', fontSize: '22px', color: '#1e293b' }}>
               {editingPatient ? 'Edit Patient' : 'Add New Patient'}
             </h2>
-            
+
             <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {formError && (
                 <div style={{ backgroundColor: '#fee2e2', color: '#ef4444', padding: '12px', borderRadius: '8px', fontSize: '14px', fontWeight: 500 }}>
@@ -372,16 +391,16 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
               )}
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Phone Number *</label>
-                <input 
-                  type="tel" 
+                <input
+                  type="tel"
                   value={formData.phone}
                   onChange={(e) => {
                     const newPhone = e.target.value;
-                    setFormData({...formData, phone: newPhone});
+                    setFormData({ ...formData, phone: newPhone });
                   }}
                   required
                   placeholder="Enter 10-digit mobile number"
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} 
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
 
@@ -450,31 +469,31 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
 
               <div>
                 <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Patient Name *</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={formData.name}
-                  onChange={(e) => setFormData({...formData, name: e.target.value})}
-                  required 
-                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} 
+                  onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                  required
+                  style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                 />
               </div>
-              
+
               <div style={{ display: 'flex', gap: '16px' }}>
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Age</label>
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     value={formData.age}
-                    onChange={(e) => setFormData({...formData, age: e.target.value})}
-                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }} 
+                    onChange={(e) => setFormData({ ...formData, age: e.target.value })}
+                    style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   />
                 </div>
-                
+
                 <div style={{ flex: 1 }}>
                   <label style={{ display: 'block', marginBottom: '8px', fontSize: '14px', fontWeight: 600, color: '#475569' }}>Gender</label>
-                  <select 
+                  <select
                     value={formData.gender}
-                    onChange={(e) => setFormData({...formData, gender: e.target.value})}
+                    onChange={(e) => setFormData({ ...formData, gender: e.target.value })}
                     style={{ width: '100%', padding: '10px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
                   >
                     <option value="">Select Gender</option>
@@ -484,25 +503,25 @@ export default function DoctorPatientsClient({ initialPatients, doctorName }: { 
                   </select>
                 </div>
               </div>
-              
+
               <div style={{ display: 'flex', justifyContent: 'flex-end', gap: '12px', marginTop: '16px' }}>
                 <button type="button" onClick={() => setIsModalOpen(false)} style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #cbd5e1', background: 'white', color: '#475569', fontWeight: 600, cursor: 'pointer' }}>Cancel</button>
-                
+
                 {!editingPatient && (
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     onClick={() => { submitActionRef.current = 'save-and-add'; }}
-                    disabled={isSubmitting} 
+                    disabled={isSubmitting}
                     style={{ padding: '10px 20px', borderRadius: '8px', border: '1px solid #3b82f6', background: 'white', color: '#3b82f6', fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.7 : 1 }}
                   >
                     {isSubmitting && submitActionRef.current === 'save-and-add' ? 'Saving...' : 'Save & Add Another'}
                   </button>
                 )}
 
-                <button 
-                  type="submit" 
+                <button
+                  type="submit"
                   onClick={() => { submitActionRef.current = 'save'; }}
-                  disabled={isSubmitting} 
+                  disabled={isSubmitting}
                   style={{ padding: '10px 20px', borderRadius: '8px', border: 'none', background: '#3b82f6', color: 'white', fontWeight: 600, cursor: isSubmitting ? 'not-allowed' : 'pointer', opacity: isSubmitting ? 0.7 : 1 }}
                 >
                   {isSubmitting && submitActionRef.current === 'save' ? 'Saving...' : editingPatient ? 'Save Changes' : 'Save Patient'}

@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
     await jwtVerify(token, secret);
 
     const body = await req.json();
-    let { name, phone, age, gender, consultant } = body;
+    let { name, phone, age, gender, consultant, uhid } = body;
     name = name?.trim();
     phone = phone?.trim();
 
@@ -27,21 +27,21 @@ export async function POST(req: NextRequest) {
 
     const existingPatient = await prisma.patientRecord.findFirst({ 
       where: { 
-        phone,
+        phone: { contains: phone.replace(/\D/g, '').slice(-10) },
         name: { equals: name, mode: 'insensitive' }
       },
       orderBy: { createdAt: 'desc' }
     });
 
     if (existingPatient) {
-      let uhid = existingPatient.uhid;
-      if (!uhid) {
-        uhid = await generateNextUhid();
+      let finalUhid = existingPatient.uhid || uhid;
+      if (!finalUhid) {
+        finalUhid = await generateNextUhid();
       }
       const updated = await prisma.patientRecord.update({
         where: { id: existingPatient.id },
         data: {
-          uhid,
+          uhid: finalUhid,
           consultant: consultant || existingPatient.consultant,
           age: age || existingPatient.age,
           gender: gender || existingPatient.gender,
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
       return NextResponse.json(updated);
     }
 
-    const nextUhid = await getOrCreateUhidForPatient(phone, name);
+    const nextUhid = uhid || await getOrCreateUhidForPatient(phone, name);
 
     const created = await prisma.patientRecord.create({
       data: { name, phone, age, gender, consultant, uhid: nextUhid }

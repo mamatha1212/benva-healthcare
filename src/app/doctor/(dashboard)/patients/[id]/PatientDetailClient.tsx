@@ -209,7 +209,17 @@ const InstructionsSelector = ({ value, onChange, disabled }: { value: string, on
   );
 };
 
-export default function PatientDetailClient({ initialPatient }: { initialPatient: any }) {
+export default function PatientDetailClient({
+  initialPatient,
+  isDietician = false,
+  doctorType = 'CONSULTANT',
+  doctorName = 'Doctor'
+}: {
+  initialPatient: any;
+  isDietician?: boolean;
+  doctorType?: string;
+  doctorName?: string;
+}) {
   const [patient, setPatient] = useState(initialPatient);
   const [isPrescriptionModalOpen, setIsPrescriptionModalOpen] = useState(false);
   const [prescriptionData, setPrescriptionData] = useState({
@@ -226,6 +236,12 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
   
   const router = useRouter();
   const searchParams = useSearchParams();
+
+  const isDiet =
+    isDietician ||
+    doctorType === 'DIETICIAN' ||
+    doctorName.toLowerCase().startsWith('dt.') ||
+    doctorName.toLowerCase().startsWith('dt ');
 
   useEffect(() => {
     if (searchParams?.get('action') === 'prescription') {
@@ -414,20 +430,23 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
         </div>
         
         <div className="pd-write-btn-wrap" style={{ gap: '10px' }}>
-          <button 
-            onClick={() => router.push(`/doctor/patients/${patient.id}/diet-chart`)}
-            style={{ background: '#059669', color: 'white', border: 'none', padding: '10px 18px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap', boxShadow: '0 2px 4px rgba(5,150,105,0.2)' }}
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-            Create Diet Chart
-          </button>
-          <button 
-            onClick={() => router.push(`/doctor/patients/${patient.id}/prescription`)}
-            className="pd-write-btn"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
-            Write Prescription
-          </button>
+          {isDiet ? (
+            <button 
+              onClick={() => router.push(`/doctor/patients/${patient.id}/diet-chart`)}
+              style={{ background: '#059669', color: 'white', border: 'none', padding: '10px 18px', borderRadius: '8px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '8px', whiteSpace: 'nowrap', boxShadow: '0 2px 4px rgba(5,150,105,0.2)' }}
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              Create Diet Chart
+            </button>
+          ) : (
+            <button 
+              onClick={() => router.push(`/doctor/patients/${patient.id}/prescription`)}
+              className="pd-write-btn"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="12" y1="18" x2="12" y2="12"></line><line x1="9" y1="15" x2="15" y2="15"></line></svg>
+              Write Prescription
+            </button>
+          )}
         </div>
       </div>
 
@@ -436,13 +455,27 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
         {/* Prescriptions & Diet Charts Section */}
         <div style={{ background: 'white', borderRadius: '12px', padding: '24px', border: '1px solid #e2e8f0' }}>
           <h2 style={{ fontSize: '18px', fontWeight: 600, color: '#0f172a', margin: '0 0 16px 0', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3b82f6" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-            Prescriptions & Diet Charts
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isDiet ? "#059669" : "#3b82f6"} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+            {isDiet ? 'Diet Charts' : 'Prescriptions'}
           </h2>
           
-          {patient.files && patient.files.length > 0 ? (
-            <div style={{ display: 'grid', gap: '12px' }}>
-              {patient.files.map((file: any) => (
+          {(() => {
+            const visibleFiles = (patient.files || []).filter((file: any) =>
+              isDiet ? file.fileType === 'DIET_CHART' : file.fileType !== 'DIET_CHART'
+            );
+            if (visibleFiles.length === 0) {
+              return (
+                <div style={{ textAlign: 'center', padding: '48px 0', color: '#94a3b8' }}>
+                  <div style={{ marginBottom: '8px', fontWeight: 600 }}>No {isDiet ? 'diet charts' : 'prescriptions'} yet</div>
+                  <div style={{ fontSize: '14px' }}>
+                    {isDiet ? "Click 'Create Diet Chart' to prepare a personalized diet plan." : "Click 'Write Prescription' to add a note for this patient."}
+                  </div>
+                </div>
+              );
+            }
+            return (
+              <div style={{ display: 'grid', gap: '12px' }}>
+                {visibleFiles.map((file: any) => (
                 <div key={file.id} className="pd-file-card">
                   <div className="pd-file-info">
                     <div style={{ width: '40px', height: '40px', background: file.fileType === 'DIET_CHART' ? '#dcfce7' : '#e0f2fe', color: file.fileType === 'DIET_CHART' ? '#15803d' : '#0284c7', borderRadius: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
@@ -495,15 +528,8 @@ export default function PatientDetailClient({ initialPatient }: { initialPatient
                 </div>
               ))}
             </div>
-          ) : (
-            <div style={{ textAlign: 'center', padding: '40px 0', color: '#94a3b8' }}>
-              <div style={{ background: '#f1f5f9', width: '56px', height: '56px', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 12px auto' }}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
-              </div>
-              <div style={{ fontWeight: 500, color: '#475569', marginBottom: '4px' }}>No Prescriptions Yet</div>
-              <div style={{ fontSize: '14px' }}>Click 'Write Prescription' to add a note for this patient.</div>
-            </div>
-          )}
+          );
+        })()}
         </div>
       </div>
 

@@ -263,6 +263,9 @@ export default function PrescriptionPage() {
 
   const [activeFileId, setActiveFileId] = useState<string | null>(searchParams?.get('fileId') || null);
   const [prescriptionStatus, setPrescriptionStatus] = useState<'DRAFT' | 'SUBMITTED'>('DRAFT');
+  const [patientFiles, setPatientFiles] = useState<any[]>([]);
+  const [isPastRxModalOpen, setIsPastRxModalOpen] = useState(false);
+  const [selectedPastRxIndex, setSelectedPastRxIndex] = useState(0);
 
   useEffect(() => {
     const fId = searchParams?.get('fileId') || null;
@@ -281,6 +284,10 @@ export default function PrescriptionPage() {
           patientGender: data.gender || 'Male',
           patientUhid: data.uhid || 'PENDING'
         }));
+
+        if (data.files && Array.isArray(data.files)) {
+          setPatientFiles(data.files);
+        }
 
         if (fId && data.files) {
           const file = data.files.find((f: any) => f.id === fId);
@@ -317,6 +324,43 @@ export default function PrescriptionPage() {
       }
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const pastPrescriptions = React.useMemo(() => {
+    return patientFiles
+      .filter((f: any) => f.id !== activeFileId && (f.fileType === 'PRESCRIPTION' || f.fileName?.toLowerCase().includes('prescription')))
+      .map((file: any) => {
+        let parsedData: any = null;
+        if (file.fileUrl && file.fileUrl.startsWith('data:')) {
+          try {
+            const base64Data = file.fileUrl.split(',')[1];
+            const decodedText = atob(base64Data);
+            parsedData = JSON.parse(decodedText);
+          } catch (e) {
+            console.error('Failed to parse past prescription', e);
+          }
+        }
+        return {
+          ...file,
+          parsedData
+        };
+      });
+  }, [patientFiles, activeFileId]);
+
+  const handleCopyPastMedicines = (pastRx: any) => {
+    const pastMeds = pastRx?.parsedData?.medicines;
+    if (!pastMeds || pastMeds.length === 0) {
+      alert('No structured medicines found in this previous prescription to copy.');
+      return;
+    }
+    if (confirm(`Copy ${pastMeds.length} medicine(s) from previous prescription into current form?`)) {
+      setMedicines(JSON.parse(JSON.stringify(pastMeds)));
+      if (pastRx.parsedData.clinicalSummary && !formData.clinicalSummary) {
+        setFormData(prev => ({ ...prev, clinicalSummary: `Follow-up. Previously: ${pastRx.parsedData.clinicalSummary}` }));
+      }
+      setIsPastRxModalOpen(false);
+      alert('✓ Previous medicines copied into your current prescription!');
     }
   };
 
@@ -790,6 +834,28 @@ export default function PrescriptionPage() {
       <div className="rx-header">
         <h1 className="rx-title">Create Prescription</h1>
         <div className="rx-btn-group">
+          {pastPrescriptions.length > 0 && (
+            <button
+              type="button"
+              onClick={() => {
+                setSelectedPastRxIndex(0);
+                setIsPastRxModalOpen(true);
+              }}
+              className="rx-btn"
+              style={{
+                backgroundColor: '#eff6ff',
+                color: '#1d4ed8',
+                border: '1px solid #bfdbfe',
+                fontWeight: 600,
+                boxShadow: '0 1px 2px rgba(29, 78, 216, 0.08)'
+              }}
+              title="View patient's previous prescription directly without asking patient to re-upload"
+            >
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
+              📋 View Old Prescription ({pastPrescriptions.length})
+            </button>
+          )}
+
           {patientId && (
             prescriptionStatus === 'SUBMITTED' ? (
               <>
@@ -1276,6 +1342,302 @@ export default function PrescriptionPage() {
           )}
         </div>
       </div>
+
+      {/* PAST PRESCRIPTION VIEW MODAL FOR FOLLOW-UP CONSULTATIONS */}
+      {isPastRxModalOpen && pastPrescriptions.length > 0 && (() => {
+        const activePast = pastPrescriptions[selectedPastRxIndex] || pastPrescriptions[0];
+        const data = activePast?.parsedData;
+        const meds = data?.medicines || [];
+
+        return (
+          <div style={{
+            position: 'fixed',
+            inset: 0,
+            zIndex: 9999,
+            background: 'rgba(15, 23, 42, 0.65)',
+            backdropFilter: 'blur(3px)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '20px'
+          }}>
+            <div style={{
+              background: 'white',
+              borderRadius: '12px',
+              maxWidth: '840px',
+              width: '100%',
+              maxHeight: '90vh',
+              overflowY: 'auto',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              display: 'flex',
+              flexDirection: 'column'
+            }}>
+              {/* MODAL HEADER */}
+              <div style={{
+                padding: '18px 24px',
+                borderBottom: '1px solid #e2e8f0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: '#0c3b6d',
+                color: 'white',
+                borderTopLeftRadius: '12px',
+                borderTopRightRadius: '12px'
+              }}>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, letterSpacing: '0.3px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <span>📋</span> Previous Prescription Record
+                  </h3>
+                  <p style={{ margin: '3px 0 0 0', fontSize: '12.5px', color: '#bae6fd' }}>
+                    Patient: <strong>{formData.patientName}</strong> • UHID: <strong>{formData.patientUhid}</strong>
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setIsPastRxModalOpen(false)}
+                  style={{
+                    background: 'rgba(255,255,255,0.15)',
+                    border: 'none',
+                    color: 'white',
+                    width: '32px',
+                    height: '32px',
+                    borderRadius: '50%',
+                    fontSize: '18px',
+                    cursor: 'pointer',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    lineHeight: 1
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+
+              {/* TABS FOR MULTIPLE PAST VISITS */}
+              {pastPrescriptions.length > 1 && (
+                <div style={{
+                  padding: '10px 24px',
+                  background: '#f8fafc',
+                  borderBottom: '1px solid #e2e8f0',
+                  display: 'flex',
+                  gap: '8px',
+                  overflowX: 'auto'
+                }}>
+                  {pastPrescriptions.map((rx, idx) => {
+                    const isSelected = idx === selectedPastRxIndex;
+                    const dateLabel = rx.parsedData?.consultationDate || formatDate(rx.createdAt || rx.updatedAt);
+                    return (
+                      <button
+                        key={rx.id || idx}
+                        type="button"
+                        onClick={() => setSelectedPastRxIndex(idx)}
+                        style={{
+                          padding: '6px 14px',
+                          borderRadius: '6px',
+                          border: isSelected ? '1px solid #0284c7' : '1px solid #cbd5e1',
+                          background: isSelected ? '#e0f2fe' : 'white',
+                          color: isSelected ? '#0369a1' : '#475569',
+                          fontWeight: isSelected ? 700 : 500,
+                          fontSize: '12.5px',
+                          cursor: 'pointer',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        Visit {idx + 1} ({dateLabel})
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* MODAL BODY */}
+              <div style={{ padding: '24px', overflowY: 'auto' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', flexWrap: 'wrap', gap: '8px' }}>
+                  <div>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Consultation Date</span>
+                    <div style={{ fontSize: '15px', fontWeight: 700, color: '#0f172a' }}>
+                      {data?.consultationDate ? formatDate(data.consultationDate) : formatDate(activePast.createdAt || activePast.updatedAt)}
+                    </div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Status</span>
+                    <div>
+                      <span style={{
+                        display: 'inline-block',
+                        padding: '2px 10px',
+                        borderRadius: '12px',
+                        fontSize: '11.5px',
+                        fontWeight: 700,
+                        background: activePast.status === 'SUBMITTED' ? '#dcfce7' : '#fef9c3',
+                        color: activePast.status === 'SUBMITTED' ? '#15803d' : '#854d0e'
+                      }}>
+                        {activePast.status === 'SUBMITTED' ? '✓ Submitted to Admin' : 'Draft'}
+                      </span>
+                    </div>
+                  </div>
+                  <div>
+                    <span style={{ fontSize: '11px', fontWeight: 700, color: '#64748b', textTransform: 'uppercase' }}>Mode</span>
+                    <div style={{ fontSize: '14px', fontWeight: 600, color: '#334155' }}>
+                      {data?.consultationMode || 'Video / Clinic'}
+                    </div>
+                  </div>
+                </div>
+
+                {/* CLINICAL SUMMARY */}
+                {data?.clinicalSummary && (
+                  <div style={{ marginBottom: '16px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#0c3b6d', textTransform: 'uppercase', marginBottom: '4px' }}>
+                      Previous Clinical Summary / Symptoms
+                    </div>
+                    <div style={{ fontSize: '13.5px', color: '#1e293b', lineHeight: 1.5 }}>
+                      {data.clinicalSummary}
+                    </div>
+                  </div>
+                )}
+
+                {/* INVESTIGATIONS */}
+                {data?.investigations && (
+                  <div style={{ marginBottom: '16px', background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#0c3b6d', textTransform: 'uppercase', marginBottom: '4px' }}>
+                      Investigations Ordered
+                    </div>
+                    <div style={{ fontSize: '13.5px', color: '#1e293b', lineHeight: 1.5 }}>
+                      {data.investigations}
+                    </div>
+                  </div>
+                )}
+
+                {/* MEDICINES TABLE */}
+                <div style={{ marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '8px', flexWrap: 'wrap', gap: '8px' }}>
+                    <div style={{ fontSize: '12px', fontWeight: 800, color: '#0c3b6d', textTransform: 'uppercase' }}>
+                      Prescribed Medicines ({meds.length})
+                    </div>
+                    {meds.length > 0 && (
+                      <button
+                        type="button"
+                        onClick={() => handleCopyPastMedicines(activePast)}
+                        style={{
+                          background: '#059669',
+                          color: 'white',
+                          border: 'none',
+                          padding: '6px 14px',
+                          borderRadius: '6px',
+                          fontSize: '12px',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          boxShadow: '0 2px 4px rgba(5, 150, 105, 0.25)'
+                        }}
+                      >
+                        📥 Copy Medicines to Current Form
+                      </button>
+                    )}
+                  </div>
+
+                  {meds.length === 0 ? (
+                    <div style={{ padding: '16px', background: '#f8fafc', borderRadius: '8px', border: '1px solid #e2e8f0', color: '#64748b', fontSize: '13px', textAlign: 'center' }}>
+                      No structured medicines recorded in this previous file.
+                    </div>
+                  ) : (
+                    <div style={{ border: '1px solid #cbd5e1', borderRadius: '8px', overflow: 'hidden' }}>
+                      <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '12.5px' }}>
+                        <thead>
+                          <tr style={{ background: '#0f3162', color: 'white', textAlign: 'left' }}>
+                            <th style={{ padding: '8px 12px', width: '35%' }}>Medicine Name</th>
+                            <th style={{ padding: '8px 12px', width: '15%' }}>Dosage</th>
+                            <th style={{ padding: '8px 12px', width: '20%' }}>Frequency</th>
+                            <th style={{ padding: '8px 12px', width: '15%' }}>Duration</th>
+                            <th style={{ padding: '8px 12px', width: '15%' }}>Instructions</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {meds.map((m: any, mIdx: number) => (
+                            <tr key={mIdx} style={{ borderBottom: '1px solid #e2e8f0', background: mIdx % 2 === 0 ? '#ffffff' : '#f8fafc' }}>
+                              <td style={{ padding: '8px 12px', fontWeight: 600, color: '#0f172a' }}>{m.name || '—'}</td>
+                              <td style={{ padding: '8px 12px', color: '#334155' }}>{m.dosage || '—'}</td>
+                              <td style={{ padding: '8px 12px', color: '#0369a1', fontWeight: 600 }}>{m.frequency || '—'}</td>
+                              <td style={{ padding: '8px 12px', color: '#334155' }}>{m.duration || '—'}</td>
+                              <td style={{ padding: '8px 12px', color: '#64748b', fontStyle: 'italic' }}>{m.instructions || '—'}</td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+                  )}
+                </div>
+
+                {/* ADVICE */}
+                {data?.advice && (
+                  <div style={{ background: '#f8fafc', padding: '12px 16px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ fontSize: '11px', fontWeight: 700, color: '#0c3b6d', textTransform: 'uppercase', marginBottom: '4px' }}>
+                      Previous Advice & Instructions
+                    </div>
+                    <div style={{ fontSize: '13.5px', color: '#1e293b', lineHeight: 1.5 }}>
+                      {data.advice}
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* MODAL FOOTER */}
+              <div style={{
+                padding: '16px 24px',
+                borderTop: '1px solid #e2e8f0',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                background: '#f8fafc',
+                borderBottomLeftRadius: '12px',
+                borderBottomRightRadius: '12px'
+              }}>
+                <button
+                  type="button"
+                  onClick={() => setIsPastRxModalOpen(false)}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '6px',
+                    border: '1px solid #cbd5e1',
+                    background: 'white',
+                    color: '#475569',
+                    fontWeight: 600,
+                    fontSize: '13px',
+                    cursor: 'pointer'
+                  }}
+                >
+                  Close
+                </button>
+
+                {meds.length > 0 && (
+                  <button
+                    type="button"
+                    onClick={() => handleCopyPastMedicines(activePast)}
+                    style={{
+                      background: '#0284c7',
+                      color: 'white',
+                      border: 'none',
+                      padding: '9px 20px',
+                      borderRadius: '6px',
+                      fontWeight: 700,
+                      fontSize: '13px',
+                      cursor: 'pointer',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '8px',
+                      boxShadow: '0 2px 4px rgba(2, 132, 199, 0.3)'
+                    }}
+                  >
+                    📥 Copy All {meds.length} Medicines to Current Prescription
+                  </button>
+                )}
+              </div>
+            </div>
+          </div>
+        );
+      })()}
 
     </div>
     </>

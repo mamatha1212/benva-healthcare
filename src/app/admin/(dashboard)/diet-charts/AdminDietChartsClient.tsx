@@ -458,8 +458,9 @@ export default function AdminDietChartsClient({ initialDietCharts }: { initialDi
                             )}
 
                             {meal.note && (
-                              <div style={{ marginTop: '6px', padding: '6px 10px', background: '#f8fafc', borderLeft: '3px solid #0284c7', fontSize: '12px', color: '#475569', fontStyle: 'italic', lineHeight: '1.5' }}>
-                                <strong>Note:</strong> {meal.note}
+                              <div style={{ marginTop: '6px', padding: '6px 10px', background: '#f8fafc', borderLeft: '3px solid #0284c7', fontSize: '12px', color: '#475569', fontStyle: 'italic', lineHeight: '1.6', whiteSpace: 'pre-line' }}>
+                                <strong>Note:</strong>
+                                <div style={{ marginTop: '2px' }}>{meal.note}</div>
                               </div>
                             )}
                           </div>
